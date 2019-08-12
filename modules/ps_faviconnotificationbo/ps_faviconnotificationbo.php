@@ -55,7 +55,7 @@ class Ps_faviconnotificationbo extends Module
 
         parent::__construct();
 
-        $this->displayName = $this->l('Order Notifications on the Favicon');
+        $this->displayName = $this->l('Order Notifications on the Favicon ache');
         $this->description = $this->l('Get notified when you get new order, new client or new message directly on your browser tab of your back office even if you are working on another page');
 
         // Settings paths
@@ -192,7 +192,7 @@ class Ps_faviconnotificationbo extends Module
         } else {
             $moduleAdminLink = Context::getContext()->link->getAdminLink('AdminModules', true).'&configure='.$this->name.'&module_name='.$this->name;
         }
-        $faq = $this->loadFaq(); // load faq from addons api
+//        $faq = $this->loadFaq(); // load faq from addons api
         $this->loadAsset(); // load js and css
 
         $id_lang = $this->context->language->id;
@@ -219,7 +219,7 @@ class Ps_faviconnotificationbo extends Module
             'module_version' => $this->version,
             'moduleAdminLink' => $moduleAdminLink,
             'module_display' => $this->displayName,
-            'apifaq' => $faq,
+//            'apifaq' => $faq,
             'doc' => $doc,
             'logo_path' => $this->logo_path,
             'languages' => $this->context->controller->getLanguages(),
