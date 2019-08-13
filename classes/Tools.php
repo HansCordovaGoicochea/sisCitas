@@ -59,12 +59,12 @@ class ToolsCore
     }
 
     /**
-    * Random password generator
-    *
-    * @param int $length Desired length (optional)
-    * @param string $flag Output type (NUMERIC, ALPHANUMERIC, NO_NUMERIC, RANDOM)
-    * @return bool|string Password
-    */
+     * Random password generator
+     *
+     * @param int $length Desired length (optional)
+     * @param string $flag Output type (NUMERIC, ALPHANUMERIC, NO_NUMERIC, RANDOM)
+     * @return bool|string Password
+     */
     public static function passwdGen($length = 8, $flag = 'ALPHANUMERIC')
     {
         $length = (int)$length;
@@ -197,10 +197,10 @@ class ToolsCore
     }
 
     /**
-    * Redirect URLs already containing PS_BASE_URI
-    *
-    * @param string $url Desired URL
-    */
+     * Redirect URLs already containing PS_BASE_URI
+     *
+     * @param string $url Desired URL
+     */
     public static function redirectLink($url)
     {
         if (!preg_match('@^https?://@i', $url)) {
@@ -221,10 +221,10 @@ class ToolsCore
     }
 
     /**
-    * Redirect user to another admin page
-    *
-    * @param string $url Desired URL
-    */
+     * Redirect user to another admin page
+     *
+     * @param string $url Desired URL
+     */
     public static function redirectAdmin($url)
     {
         header('Location: '.$url);
@@ -240,7 +240,7 @@ class ToolsCore
     public static function getShopProtocol()
     {
         $protocol = (Configuration::get('PS_SSL_ENABLED') || (!empty($_SERVER['HTTPS'])
-            && Tools::strtolower($_SERVER['HTTPS']) != 'off')) ? 'https://' : 'http://';
+                && Tools::strtolower($_SERVER['HTTPS']) != 'off')) ? 'https://' : 'http://';
         return $protocol;
     }
 
@@ -326,10 +326,10 @@ class ToolsCore
     }
 
     /**
-    * Get the server variable SERVER_NAME
-    *
-    * @return string server name
-    */
+     * Get the server variable SERVER_NAME
+     *
+     * @return string server name
+     */
     public static function getServerName()
     {
         if (isset($_SERVER['HTTP_X_FORWARDED_SERVER']) && $_SERVER['HTTP_X_FORWARDED_SERVER']) {
@@ -339,10 +339,10 @@ class ToolsCore
     }
 
     /**
-    * Get the server variable REMOTE_ADDR, or the first ip of HTTP_X_FORWARDED_FOR (when using proxy)
-    *
-    * @return string $remote_addr ip of client
-    */
+     * Get the server variable REMOTE_ADDR, or the first ip of HTTP_X_FORWARDED_FOR (when using proxy)
+     *
+     * @return string $remote_addr ip of client
+     */
     public static function getRemoteAddr()
     {
         if (function_exists('apache_request_headers')) {
@@ -356,8 +356,8 @@ class ToolsCore
         }
 
         if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR'] && (!isset($_SERVER['REMOTE_ADDR'])
-            || preg_match('/^127\..*/i', trim($_SERVER['REMOTE_ADDR'])) || preg_match('/^172\.16.*/i', trim($_SERVER['REMOTE_ADDR']))
-            || preg_match('/^192\.168\.*/i', trim($_SERVER['REMOTE_ADDR'])) || preg_match('/^10\..*/i', trim($_SERVER['REMOTE_ADDR'])))) {
+                || preg_match('/^127\..*/i', trim($_SERVER['REMOTE_ADDR'])) || preg_match('/^172\.16.*/i', trim($_SERVER['REMOTE_ADDR']))
+                || preg_match('/^192\.168\.*/i', trim($_SERVER['REMOTE_ADDR'])) || preg_match('/^10\..*/i', trim($_SERVER['REMOTE_ADDR'])))) {
             if (strpos($_SERVER['HTTP_X_FORWARDED_FOR'], ',')) {
                 $ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
                 return $ips[0];
@@ -370,10 +370,10 @@ class ToolsCore
     }
 
     /**
-    * Check if the current page use SSL connection on not
-    *
-    * @return bool uses SSL
-    */
+     * Check if the current page use SSL connection on not
+     *
+     * @return bool uses SSL
+     */
     public static function usingSecureMode()
     {
         if (isset($_SERVER['HTTPS'])) {
@@ -398,10 +398,10 @@ class ToolsCore
     }
 
     /**
-    * Get the current url prefix protocol (https/http)
-    *
-    * @return string protocol
-    */
+     * Get the current url prefix protocol (https/http)
+     *
+     * @return string protocol
+     */
     public static function getCurrentUrlProtocolPrefix()
     {
         if (Tools::usingSecureMode()) {
@@ -478,13 +478,13 @@ class ToolsCore
     }
 
     /**
-    * Get a value from $_POST / $_GET
-    * if unavailable, take a default value
-    *
-    * @param string $key Value key
-    * @param mixed $default_value (optional)
-    * @return mixed Value
-    */
+     * Get a value from $_POST / $_GET
+     * if unavailable, take a default value
+     *
+     * @param string $key Value key
+     * @param mixed $default_value (optional)
+     * @return mixed Value
+     */
     public static function getValue($key, $default_value = false)
     {
         if (!isset($key) || empty($key) || !is_string($key)) {
@@ -523,10 +523,10 @@ class ToolsCore
     }
 
     /**
-    * Change language in cookie while clicking on a flag
-    *
-    * @return string iso code
-    */
+     * Change language in cookie while clicking on a flag
+     *
+     * @return string iso code
+     */
     public static function setCookieLanguage($cookie = null)
     {
         if (!$cookie) {
@@ -693,26 +693,29 @@ class ToolsCore
     }
 
     /**
-    * Return price with currency sign for a given product
-    *
-    * @param float $price Product price
-    * @param object|array $currency Current currency (object, id_currency, NULL => context currency)
-    * @return string Price correctly formated (sign, decimal separator...)
-    * if you modify this function, don't forget to modify the Javascript function formatCurrency (in tools.js)
-    */
+     * Return price with currency sign for a given product
+     *
+     * @param float $price Product price
+     * @param object|array $currency Current currency (object, id_currency, NULL => context currency)
+     * @return string Price correctly formated (sign, decimal separator...)
+     * if you modify this function, don't forget to modify the Javascript function formatCurrency (in tools.js)
+     */
     public static function displayPrice($price, $currency = null, $no_utf8 = false, Context $context = null)
     {
+
         if (!is_numeric($price)) {
             return $price;
         }
         if (!$context) {
             $context = Context::getContext();
         }
+
         if ($currency === null) {
             $currency = $context->currency;
         } elseif (is_int($currency)) {
             $currency = Currency::getCurrencyInstance((int)$currency);
         }
+
 
         $cldr = self::getCldr($context);
 
@@ -733,26 +736,28 @@ class ToolsCore
 
     public static function displayPriceSmarty($params, &$smarty)
     {
+
         if (array_key_exists('currency', $params)) {
             $currency = Currency::getCurrencyInstance((int)$params['currency']);
             if (Validate::isLoadedObject($currency)) {
                 return Tools::displayPrice($params['price'], $currency, false);
             }
         }
+
         return Tools::displayPrice($params['price']);
     }
 
     /**
-    * Return price converted
-    *
-    * @deprecated since 1.7.4 use convertPriceToCurrency()
-    *
-    * @param float $price Product price
-    * @param object|array $currency Current currency object
-    * @param bool $to_currency convert to currency or from currency to default currency
-    * @param Context $context
-    * @return float Price
-    */
+     * Return price converted
+     *
+     * @deprecated since 1.7.4 use convertPriceToCurrency()
+     *
+     * @param float $price Product price
+     * @param object|array $currency Current currency object
+     * @param bool $to_currency convert to currency or from currency to default currency
+     * @param Context $context
+     * @return float Price
+     */
     public static function convertPrice($price, $currency = null, $to_currency = true, Context $context = null)
     {
         $default_currency = (int)Configuration::get('PS_CURRENCY_DEFAULT');
@@ -842,26 +847,26 @@ class ToolsCore
     }
 
     /**
-    * Display date regarding to language preferences
-    *
-    * @param array $params Date, format...
-    * @param object $smarty Smarty object for language preferences
-    * @return string Date
-    */
+     * Display date regarding to language preferences
+     *
+     * @param array $params Date, format...
+     * @param object $smarty Smarty object for language preferences
+     * @return string Date
+     */
     public static function dateFormat($params, &$smarty)
     {
         return Tools::displayDate($params['date'], null, (isset($params['full']) ? $params['full'] : false));
     }
 
     /**
-    * Display date regarding to language preferences
-    *
-    * @param string $date Date to display format UNIX
-    * @param int $id_lang Language id DEPRECATED
-    * @param bool $full With time or not (optional)
-    * @param string $separator DEPRECATED
-    * @return string Date
-    */
+     * Display date regarding to language preferences
+     *
+     * @param string $date Date to display format UNIX
+     * @param int $id_lang Language id DEPRECATED
+     * @param bool $full With time or not (optional)
+     * @param string $separator DEPRECATED
+     * @return string Date
+     */
     public static function displayDate($date, $id_lang = null, $full = false, $separator = null)
     {
         if ($id_lang !== null) {
@@ -889,10 +894,10 @@ class ToolsCore
     }
 
     /**
-    * Get localized date format
-    *
-    * @return string Date format
-    */
+     * Get localized date format
+     *
+     * @return string Date format
+     */
     public static function getDateFormat()
     {
         $format = Context::getContext()->language->date_format_lite;
@@ -903,12 +908,12 @@ class ToolsCore
     }
 
     /**
-    * Get formatted date
-    *
-    * @param string $date_str Date string
-    * @param bool $full With time or not (optional)
-    * @return string Formatted date
-    */
+     * Get formatted date
+     *
+     * @param string $date_str Date string
+     * @param bool $full With time or not (optional)
+     * @return string Formatted date
+     */
     public static function formatDateStr($date_str, $full = false)
     {
         $time = strtotime($date_str);
@@ -919,12 +924,12 @@ class ToolsCore
     }
 
     /**
-    * Sanitize a string
-    *
-    * @param string $string String to sanitize
-    * @param bool $full String contains HTML or not (optional)
-    * @return string Sanitized string
-    */
+     * Sanitize a string
+     *
+     * @param string $string String to sanitize
+     * @param bool $full String contains HTML or not (optional)
+     * @return string Sanitized string
+     */
     public static function safeOutput($string, $html = false)
     {
         if (!$html) {
@@ -961,10 +966,10 @@ class ToolsCore
     }
 
     /**
-    * Delete directory and subdirectories
-    *
-    * @param string $dirname Directory name
-    */
+     * Delete directory and subdirectories
+     *
+     * @param string $dirname Directory name
+     */
     public static function deleteDirectory($dirname, $delete_self = true)
     {
         $dirname = rtrim($dirname, '/').'/';
@@ -976,7 +981,7 @@ class ToolsCore
                             Tools::deleteDirectory($dirname.$file);
                         } elseif (file_exists($dirname.$file)) {
                             @chmod($dirname.$file, 0777); // NT ?
-                                unlink($dirname.$file);
+                            unlink($dirname.$file);
                         }
                     }
                 }
@@ -993,11 +998,11 @@ class ToolsCore
     }
 
     /**
-    * Delete file
-    *
-    * @param string $file File path
-    * @param array $exclude_files Excluded files
-    */
+     * Delete file
+     *
+     * @param string $file File path
+     * @param array $exclude_files Excluded files
+     */
     public static function deleteFile($file, $exclude_files = array())
     {
         if (isset($exclude_files) && !is_array($exclude_files)) {
@@ -1011,8 +1016,8 @@ class ToolsCore
     }
 
     /**
-    * Clear XML cache folder
-    */
+     * Clear XML cache folder
+     */
     public static function clearXMLCache()
     {
         foreach (scandir(_PS_ROOT_DIR_.'/config/xml') as $file) {
@@ -1024,11 +1029,11 @@ class ToolsCore
     }
 
     /**
-    * Display an error according to an error code
-    *
-    * @param string $string Error message
-    * @param bool $htmlentities By default at true for parsing error message with htmlentities
-    */
+     * Display an error according to an error code
+     *
+     * @param string $string Error message
+     * @param bool $htmlentities By default at true for parsing error message with htmlentities
+     */
     public static function displayError($string = 'Fatal error', $htmlentities = true, Context $context = null)
     {
         if (defined('_PS_MODE_DEV_') && _PS_MODE_DEV_) {
@@ -1039,6 +1044,20 @@ class ToolsCore
 
         return Context::getContext()->getTranslator()->trans('Fatal error', array(), 'Admin.Notifications.Error');
     }
+
+    /**
+     * ALIAS OF dieObject() - Display an error with detailed object
+     *
+     * @param $object
+     * @param bool $kill
+     * @return  object $object Object to display
+     */
+    public static function d($object, $kill = true)
+    {
+//        d($object);
+        return (Tools::dieObject($object, $kill));
+    }
+
 
     /**
      * Display an error with detailed object
@@ -1102,10 +1121,10 @@ class ToolsCore
     }
 
     /**
-    * Check if submit has been posted
-    *
-    * @param string $submit submit name
-    */
+     * Check if submit has been posted
+     *
+     * @param string $submit submit name
+     */
     public static function isSubmit($submit)
     {
         return (
@@ -1129,9 +1148,9 @@ class ToolsCore
     }
 
     /**
-    * Hash password
-    *
-    * @param string $passwd String to has
+     * Hash password
+     *
+     * @param string $passwd String to has
      *
      * @return string Hashed password
      *
@@ -1171,10 +1190,10 @@ class ToolsCore
     }
 
     /**
-    * Get token to prevent CSRF
-    *
-    * @param string $token token to encrypt
-    */
+     * Get token to prevent CSRF
+     *
+     * @param string $token token to encrypt
+     */
     public static function getToken($page = true, Context $context = null)
     {
         if (!$context) {
@@ -1188,10 +1207,10 @@ class ToolsCore
     }
 
     /**
-    * Tokenize a string
-    *
-    * @param string $string string to encript
-    */
+     * Tokenize a string
+     *
+     * @param string $string string to encript
+     */
     public static function getAdminToken($string)
     {
         return !empty($string) ? Tools::hash($string) : false;
@@ -1212,11 +1231,11 @@ class ToolsCore
     }
 
     /**
-    * Get a valid URL to use from BackOffice
-    *
-    * @param string $url An URL to use in BackOffice
-    * @param bool $entites Set to true to use htmlentities function on URL param
-    */
+     * Get a valid URL to use from BackOffice
+     *
+     * @param string $url An URL to use in BackOffice
+     * @param bool $entites Set to true to use htmlentities function on URL param
+     */
     public static function getAdminUrl($url = null, $entities = false)
     {
         $link = Tools::getHttpHost(true).__PS_BASE_URI__;
@@ -1229,11 +1248,11 @@ class ToolsCore
     }
 
     /**
-    * Get a valid image URL to use from BackOffice
-    *
-    * @param string $image Image name
-    * @param bool $entites Set to true to use htmlentities function on image param
-    */
+     * Get a valid image URL to use from BackOffice
+     *
+     * @param string $image Image name
+     * @param bool $entites Set to true to use htmlentities function on image param
+     */
     public static function getAdminImageUrl($image = null, $entities = false)
     {
         return Tools::getAdminUrl(basename(_PS_IMG_DIR_).'/'.$image, $entities);
@@ -1408,26 +1427,26 @@ class ToolsCore
             /* YU */ '/[\x{042E}]/u',
             /* ZH */ '/[\x{0416}]/u');
 
-            // ö to oe
-            // å to aa
-            // ä to ae
+        // ö to oe
+        // å to aa
+        // ä to ae
 
         $replacements = array(
-                'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 'ss', 't', 'u', 'v', 'w', 'y', 'z', 'ae', 'ch', 'kh', 'oe', 'sh', 'shh', 'ya', 'ye', 'yi', 'yo', 'yu', 'zh',
-                'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'R', 'S', 'T', 'U', 'V', 'W', 'Y', 'Z', 'AE', 'CH', 'KH', 'OE', 'SH', 'SHH', 'YA', 'YE', 'YI', 'YO', 'YU', 'ZH'
-            );
+            'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 'ss', 't', 'u', 'v', 'w', 'y', 'z', 'ae', 'ch', 'kh', 'oe', 'sh', 'shh', 'ya', 'ye', 'yi', 'yo', 'yu', 'zh',
+            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'R', 'S', 'T', 'U', 'V', 'W', 'Y', 'Z', 'AE', 'CH', 'KH', 'OE', 'SH', 'SHH', 'YA', 'YE', 'YI', 'YO', 'YU', 'ZH'
+        );
 
         return preg_replace($patterns, $replacements, $str);
     }
 
     /**
-    * Truncate strings
-    *
-    * @param string $str
-    * @param int $max_length Max length
-    * @param string $suffix Suffix optional
-    * @return string $str truncated
-    */
+     * Truncate strings
+     *
+     * @param string $str
+     * @param int $max_length Max length
+     * @param string $suffix Suffix optional
+     * @return string $str truncated
+     */
     /* CAUTION : Use it only on module hookEvents.
     ** For other purposes use the smarty function instead */
     public static function truncate($str, $max_length, $suffix = '...')
@@ -1563,14 +1582,14 @@ class ToolsCore
     }
 
     /**
-    * Generate date form
-    *
-    * @param int $year Year to select
-    * @param int $month Month to select
-    * @param int $day Day to select
-    * @return array $tab html data with 3 cells :['days'], ['months'], ['years']
-    *
-    */
+     * Generate date form
+     *
+     * @param int $year Year to select
+     * @param int $month Month to select
+     * @param int $day Day to select
+     * @return array $tab html data with 3 cells :['days'], ['months'], ['years']
+     *
+     */
     public static function dateYears()
     {
         $tab = array();
@@ -2106,8 +2125,8 @@ class ToolsCore
     }
 
     /**
-    * Translates a string with underscores into camel case (e.g. first_name -> firstName)
-    * @prototype string public static function toCamelCase(string $str[, bool $capitalise_first_char = false])
+     * Translates a string with underscores into camel case (e.g. first_name -> firstName)
+     * @prototype string public static function toCamelCase(string $str[, bool $capitalise_first_char = false])
      *
      * @param string $str Source string to convert in camel case
      * @param bool $capitaliseFirstChar Optionnal parameters to transform the first letter in upper case
@@ -3005,13 +3024,13 @@ exit;
                 }
 
                 return $order_by_prefix.$value;
-            break;
+                break;
 
             case 'way':
                 $value = (is_null($value) || $value === false || $value === '') ? (int)Configuration::get('PS_PRODUCTS_ORDER_WAY') : $value;
                 $list = array(0 => 'asc', 1 => 'desc');
                 return ((isset($list[$value])) ? $list[$value] : ((in_array($value, $list)) ? $value : 'asc'));
-            break;
+                break;
         }
     }
 
@@ -3044,8 +3063,8 @@ exit;
     }
 
     /**
-    * @deprecated as of 1.5 use Controller::getController('PageNotFoundController')->run();
-    */
+     * @deprecated as of 1.5 use Controller::getController('PageNotFoundController')->run();
+     */
     public static function display404Error()
     {
         header('HTTP/1.1 404 Not Found');
@@ -3121,7 +3140,7 @@ exit;
 
     /**
      * Clear compile for Smarty
-    */
+     */
     public static function clearCompile($smarty = null)
     {
         if ($smarty === null) {
@@ -3140,8 +3159,8 @@ exit;
     }
 
     /**
-    * Clear Smarty cache and compile folders
-    */
+     * Clear Smarty cache and compile folders
+     */
     public static function clearSmartyCache()
     {
         $smarty = Context::getContext()->smarty;
@@ -3763,7 +3782,7 @@ exit;
     /**
      * Allows to display the category description without HTML tags and slashes
      * @return string
-    */
+     */
     public static function getDescriptionClean($description)
     {
         return strip_tags(stripslashes($description));
@@ -3844,7 +3863,7 @@ exit;
      * Check if a constant was already defined
      * @param string $constant Constant name
      * @param mixed $value Default value to set if not defined
-    */
+     */
     public static function safeDefine($constant, $value)
     {
         if (!defined($constant)) {
@@ -3910,7 +3929,7 @@ exit;
      * Replaces elements from passed arrays into the first array recursively
      * @param array $base The array in which elements are replaced.
      * @param array $replacements The array from which elements will be extracted.
-    */
+     */
     public static function arrayReplaceRecursive($base, $replacements)
     {
         if (function_exists('array_replace_recursive')) {
@@ -3964,7 +3983,7 @@ exit;
 					WHERE c.nleft <= '.(int)$category['nleft'].'
 						AND c.nright >= '.(int)$category['nright'].'
 						AND cl.id_lang = '.(int)$context->language->id.
-                       ($home ? ' AND c.id_category='.(int)$id_category : '').'
+                    ($home ? ' AND c.id_category='.(int)$id_category : '').'
 						AND c.id_category != '.(int)Category::getTopCategory()->id.'
 					GROUP BY c.id_category
 					ORDER BY c.level_depth ASC
@@ -4016,6 +4035,383 @@ exit;
         }
         exit;
     }
+
+    public static function getFormatFechaGuardar($key)
+    {
+        $fechas_vuelo = $key;
+        $fechas_vuelo = str_replace('/', '-', $fechas_vuelo);
+        $fechas_vuelo= date('Y-m-d', strtotime($fechas_vuelo));
+        return $fechas_vuelo;
+    }
+    public static function getFormatFechaPresentar($key)
+    {
+        $fechas_vuelo = $key;
+        $fechas_vuelo = str_replace('-', '/', $fechas_vuelo);
+        $fechas_vuelo= date('d/m/Y', strtotime($fechas_vuelo));
+        return $fechas_vuelo;
+    }
+
+    public static function zero_fill ($valor, $long = 0)
+    {
+        return str_pad($valor, $long, '0', STR_PAD_LEFT);
+    }
+
+    public static function entero($s){
+        return($a=preg_replace('/[^\-\d]*(\-?\d*).*/','$1',$s))?$a:'0';
+    }
+
+    public static function eliminar_tildes($text){
+
+        $text = htmlentities($text, ENT_QUOTES, 'UTF-8');
+        $text = strtolower($text);
+        $patron = array (
+            // Espacios, puntos y comas por guion
+            //'/[\., ]+/' => ' ',
+
+            // Vocales
+            '/\+/' => '',
+            '/&agrave;/' => 'a',
+            '/&egrave;/' => 'e',
+            '/&igrave;/' => 'i',
+            '/&ograve;/' => 'o',
+            '/&ugrave;/' => 'u',
+
+            '/&aacute;/' => 'a',
+            '/&eacute;/' => 'e',
+            '/&iacute;/' => 'i',
+            '/&oacute;/' => 'o',
+            '/&uacute;/' => 'u',
+
+            '/&acirc;/' => 'a',
+            '/&ecirc;/' => 'e',
+            '/&icirc;/' => 'i',
+            '/&ocirc;/' => 'o',
+            '/&ucirc;/' => 'u',
+
+            '/&atilde;/' => 'a',
+            '/&etilde;/' => 'e',
+            '/&itilde;/' => 'i',
+            '/&otilde;/' => 'o',
+            '/&utilde;/' => 'u',
+
+            '/&auml;/' => 'a',
+            '/&euml;/' => 'e',
+            '/&iuml;/' => 'i',
+            '/&ouml;/' => 'o',
+            '/&uuml;/' => 'u',
+
+            '/&auml;/' => 'a',
+            '/&euml;/' => 'e',
+            '/&iuml;/' => 'i',
+            '/&ouml;/' => 'o',
+            '/&uuml;/' => 'u',
+
+            // Otras letras y caracteres especiales
+            '/&aring;/' => 'a',
+            '/&ntilde;/' => 'n',
+
+            // Agregar aqui mas caracteres si es necesario
+            '/&ordm;/' => '',
+            '/&deg;/' => '',
+            '/\s+/' => ' ',
+
+        );
+
+        $text = trim(utf8_encode(preg_replace(array_keys($patron),array_values($patron),$text)));
+        return $text;
+
+    }
+
+    public static function displaynumeroaletras($xcifra,$moneda)
+    {
+        $xarray = array(0 => "Cero",
+            1 => "UN", "DOS", "TRES", "CUATRO", "CINCO", "SEIS", "SIETE", "OCHO", "NUEVE",
+            "DIEZ", "ONCE", "DOCE", "TRECE", "CATORCE", "QUINCE", "DIECISEIS", "DIECISIETE", "DIECIOCHO", "DIECINUEVE",
+            "VEINTI", 30 => "TREINTA", 40 => "CUARENTA", 50 => "CINCUENTA", 60 => "SESENTA", 70 => "SETENTA", 80 => "OCHENTA", 90 => "NOVENTA",
+            100 => "CIENTO", 200 => "DOSCIENTOS", 300 => "TRESCIENTOS", 400 => "CUATROCIENTOS", 500 => "QUINIENTOS", 600 => "SEISCIENTOS", 700 => "SETECIENTOS", 800 => "OCHOCIENTOS", 900 => "NOVECIENTOS"
+        );
+//
+        $xcifra = trim($xcifra);
+        $xlength = strlen($xcifra);
+        $xpos_punto = strpos($xcifra, ".");
+        $xaux_int = $xcifra;
+        $xdecimales = "00";
+        if (!($xpos_punto === false)) {
+            if ($xpos_punto == 0) {
+                $xcifra = "0" . $xcifra;
+                $xpos_punto = strpos($xcifra, ".");
+            }
+            $xaux_int = substr($xcifra, 0, $xpos_punto); // obtengo el entero de la cifra a covertir
+            $xdecimales = substr($xcifra . "00", $xpos_punto + 1, 2); // obtengo los valores decimales
+        }
+
+        $XAUX = str_pad($xaux_int, 18, " ", STR_PAD_LEFT); // ajusto la longitud de la cifra, para que sea divisible por centenas de miles (grupos de 6)
+        $xcadena = "";
+        for ($xz = 0; $xz < 3; $xz++) {
+            $xaux = substr($XAUX, $xz * 6, 6);
+            $xi = 0;
+            $xlimite = 6; // inicializo el contador de centenas xi y establezco el límite a 6 dígitos en la parte entera
+            $xexit = true; // bandera para controlar el ciclo del While
+            while ($xexit) {
+                if ($xi == $xlimite) { // si ya llegó al límite máximo de enteros
+                    break; // termina el ciclo
+                }
+
+                $x3digitos = ($xlimite - $xi) * -1; // comienzo con los tres primeros digitos de la cifra, comenzando por la izquierda
+                $xaux = substr($xaux, $x3digitos, abs($x3digitos)); // obtengo la centena (los tres dígitos)
+                for ($xy = 1; $xy < 4; $xy++) { // ciclo para revisar centenas, decenas y unidades, en ese orden
+                    switch ($xy) {
+                        case 1: // checa las centenas
+                            if (substr($xaux, 0, 3) < 100) { // si el grupo de tres dígitos es menor a una centena ( < 99) no hace nada y pasa a revisar las decenas
+
+                            } else {
+                                $key = (int) substr($xaux, 0, 3);
+                                if (TRUE === array_key_exists($key, $xarray)){  // busco si la centena es número redondo (100, 200, 300, 400, etc..)
+                                    $xseek = $xarray[$key];
+                                    $xsub = subfijo($xaux); // devuelve el subfijo correspondiente (Millón, Millones, Mil o nada)
+                                    if (substr($xaux, 0, 3) == 100)
+                                        $xcadena = " " . $xcadena . " CIEN " . $xsub;
+                                    else
+                                        $xcadena = " " . $xcadena . " " . $xseek . " " . $xsub;
+                                    $xy = 3; // la centena fue redonda, entonces termino el ciclo del for y ya no reviso decenas ni unidades
+                                }
+                                else { // entra aquí si la centena no fue numero redondo (101, 253, 120, 980, etc.)
+                                    $key = (int) substr($xaux, 0, 1) * 100;
+                                    $xseek = $xarray[$key]; // toma el primer caracter de la centena y lo multiplica por cien y lo busca en el arreglo (para que busque 100,200,300, etc)
+                                    $xcadena = " " . $xcadena . " " . $xseek;
+                                } // ENDIF ($xseek)
+                            } // ENDIF (substr($xaux, 0, 3) < 100)
+                            break;
+                        case 2: // checa las decenas (con la misma lógica que las centenas)
+                            if (substr($xaux, 1, 2) < 10) {
+
+                            } else {
+                                $key = (int) substr($xaux, 1, 2);
+                                if (TRUE === array_key_exists($key, $xarray)) {
+                                    $xseek = $xarray[$key];
+                                    $xsub = subfijo($xaux);
+                                    if (substr($xaux, 1, 2) == 20)
+                                        $xcadena = " " . $xcadena . " VEINTE " . $xsub;
+                                    else
+                                        $xcadena = " " . $xcadena . " " . $xseek . " " . $xsub;
+                                    $xy = 3;
+                                }
+                                else {
+                                    $key = (int) substr($xaux, 1, 1) * 10;
+                                    $xseek = $xarray[$key];
+                                    if (20 == substr($xaux, 1, 1) * 10)
+                                        $xcadena = " " . $xcadena . " " . $xseek;
+                                    else
+                                        $xcadena = " " . $xcadena . " " . $xseek . " Y ";
+                                } // ENDIF ($xseek)
+                            } // ENDIF (substr($xaux, 1, 2) < 10)
+                            break;
+                        case 3: // checa las unidades
+                            if (substr($xaux, 2, 1) < 1) { // si la unidad es cero, ya no hace nada
+
+                            } else {
+                                $key = (int) substr($xaux, 2, 1);
+                                $xseek = $xarray[$key]; // obtengo directamente el valor de la unidad (del uno al nueve)
+                                $xsub = subfijo($xaux);
+                                $xcadena = " " . $xcadena . " " . $xseek . " " . $xsub;
+                            } // ENDIF (substr($xaux, 2, 1) < 1)
+                            break;
+                    } // END SWITCH
+                } // END FOR
+                $xi = $xi + 3;
+            } // ENDDO
+
+            if (substr(trim($xcadena), -5, 5) == "ILLON") // si la cadena obtenida termina en MILLON o BILLON, entonces le agrega al final la conjuncion DE
+                $xcadena.= " DE";
+
+            if (substr(trim($xcadena), -7, 7) == "ILLONES") // si la cadena obtenida en MILLONES o BILLONES, entoncea le agrega al final la conjuncion DE
+                $xcadena.= " DE";
+
+            // ----------- esta línea la puedes cambiar de acuerdo a tus necesidades o a tu país -------
+            if (trim($xaux) != "") {
+                switch ($xz) {
+                    case 0:
+                        if (trim(substr($XAUX, $xz * 6, 6)) == "1")
+                            $xcadena.= "UN BILLON ";
+                        else
+                            $xcadena.= " BILLONES ";
+                        break;
+                    case 1:
+                        if (trim(substr($XAUX, $xz * 6, 6)) == "1")
+                            $xcadena.= "UN MILLON ";
+                        else
+                            $xcadena.= " MILLONES ";
+                        break;
+                    case 2:
+                        if ($xcifra < 1) {
+                            $xcadena = "CERO CON $xdecimales/100 ".$moneda.".";
+                        }
+                        if ($xcifra >= 1 && $xcifra < 2) {
+                            $xcadena = "UN CON $xdecimales/100 ".$moneda.".";
+                        }
+                        if ($xcifra >= 2) {
+                            $xcadena.= " CON $xdecimales/100 ".$moneda."."; //
+                        }
+                        break;
+                } // endswitch ($xz)
+            } // ENDIF (trim($xaux) != "")
+            // ------------------      en este caso, para México se usa esta leyenda     ----------------
+            $xcadena = str_replace("VEINTI ", "VEINTI", $xcadena); // quito el espacio para el VEINTI, para que quede: VEINTICUATRO, VEINTIUN, VEINTIDOS, etc
+            $xcadena = str_replace("  ", " ", $xcadena); // quito espacios dobles
+            $xcadena = str_replace("UN UN", "UN", $xcadena); // quito la duplicidad
+            $xcadena = str_replace("  ", " ", $xcadena); // quito espacios dobles
+            $xcadena = str_replace("BILLON DE MILLONES", "BILLON DE", $xcadena); // corrigo la leyenda
+            $xcadena = str_replace("BILLONES DE MILLONES", "BILLONES DE", $xcadena); // corrigo la leyenda
+            $xcadena = str_replace("DE UN", "UN", $xcadena); // corrigo la leyenda
+        } // ENDFOR ($xz)
+        return trim($xcadena);
+    }
+
+    public static function numtoletras($xcifra)
+    {
+        $xarray = array(0 => "Cero",
+            1 => "UN", "DOS", "TRES", "CUATRO", "CINCO", "SEIS", "SIETE", "OCHO", "NUEVE",
+            "DIEZ", "ONCE", "DOCE", "TRECE", "CATORCE", "QUINCE", "DIECISEIS", "DIECISIETE", "DIECIOCHO", "DIECINUEVE",
+            "VEINTI", 30 => "TREINTA", 40 => "CUARENTA", 50 => "CINCUENTA", 60 => "SESENTA", 70 => "SETENTA", 80 => "OCHENTA", 90 => "NOVENTA",
+            100 => "CIENTO", 200 => "DOSCIENTOS", 300 => "TRESCIENTOS", 400 => "CUATROCIENTOS", 500 => "QUINIENTOS", 600 => "SEISCIENTOS", 700 => "SETECIENTOS", 800 => "OCHOCIENTOS", 900 => "NOVECIENTOS"
+        );
+//
+        $xcifra = trim($xcifra);
+        $xlength = strlen($xcifra);
+        $xpos_punto = strpos($xcifra, ".");
+        $xaux_int = $xcifra;
+        $xdecimales = "00";
+        if (!($xpos_punto === false)) {
+            if ($xpos_punto == 0) {
+                $xcifra = "0" . $xcifra;
+                $xpos_punto = strpos($xcifra, ".");
+            }
+            $xaux_int = substr($xcifra, 0, $xpos_punto); // obtengo el entero de la cifra a covertir
+            $xdecimales = substr($xcifra . "00", $xpos_punto + 1, 2); // obtengo los valores decimales
+        }
+
+        $XAUX = str_pad($xaux_int, 18, " ", STR_PAD_LEFT); // ajusto la longitud de la cifra, para que sea divisible por centenas de miles (grupos de 6)
+        $xcadena = "";
+        for ($xz = 0; $xz < 3; $xz++) {
+            $xaux = substr($XAUX, $xz * 6, 6);
+            $xi = 0;
+            $xlimite = 6; // inicializo el contador de centenas xi y establezco el límite a 6 dígitos en la parte entera
+            $xexit = true; // bandera para controlar el ciclo del While
+            while ($xexit) {
+                if ($xi == $xlimite) { // si ya llegó al límite máximo de enteros
+                    break; // termina el ciclo
+                }
+
+                $x3digitos = ($xlimite - $xi) * -1; // comienzo con los tres primeros digitos de la cifra, comenzando por la izquierda
+                $xaux = substr($xaux, $x3digitos, abs($x3digitos)); // obtengo la centena (los tres dígitos)
+                for ($xy = 1; $xy < 4; $xy++) { // ciclo para revisar centenas, decenas y unidades, en ese orden
+                    switch ($xy) {
+                        case 1: // checa las centenas
+                            if (substr($xaux, 0, 3) < 100) { // si el grupo de tres dígitos es menor a una centena ( < 99) no hace nada y pasa a revisar las decenas
+
+                            } else {
+                                $key = (int) substr($xaux, 0, 3);
+                                if (TRUE === array_key_exists($key, $xarray)){  // busco si la centena es número redondo (100, 200, 300, 400, etc..)
+                                    $xseek = $xarray[$key];
+                                    $xsub = subfijo($xaux); // devuelve el subfijo correspondiente (Millón, Millones, Mil o nada)
+                                    if (substr($xaux, 0, 3) == 100)
+                                        $xcadena = " " . $xcadena . " CIEN " . $xsub;
+                                    else
+                                        $xcadena = " " . $xcadena . " " . $xseek . " " . $xsub;
+                                    $xy = 3; // la centena fue redonda, entonces termino el ciclo del for y ya no reviso decenas ni unidades
+                                }
+                                else { // entra aquí si la centena no fue numero redondo (101, 253, 120, 980, etc.)
+                                    $key = (int) substr($xaux, 0, 1) * 100;
+                                    $xseek = $xarray[$key]; // toma el primer caracter de la centena y lo multiplica por cien y lo busca en el arreglo (para que busque 100,200,300, etc)
+                                    $xcadena = " " . $xcadena . " " . $xseek;
+                                } // ENDIF ($xseek)
+                            } // ENDIF (substr($xaux, 0, 3) < 100)
+                            break;
+                        case 2: // checa las decenas (con la misma lógica que las centenas)
+                            if (substr($xaux, 1, 2) < 10) {
+
+                            } else {
+                                $key = (int) substr($xaux, 1, 2);
+                                if (TRUE === array_key_exists($key, $xarray)) {
+                                    $xseek = $xarray[$key];
+                                    $xsub = subfijo($xaux);
+                                    if (substr($xaux, 1, 2) == 20)
+                                        $xcadena = " " . $xcadena . " VEINTE " . $xsub;
+                                    else
+                                        $xcadena = " " . $xcadena . " " . $xseek . " " . $xsub;
+                                    $xy = 3;
+                                }
+                                else {
+                                    $key = (int) substr($xaux, 1, 1) * 10;
+                                    $xseek = $xarray[$key];
+                                    if (20 == substr($xaux, 1, 1) * 10)
+                                        $xcadena = " " . $xcadena . " " . $xseek;
+                                    else
+                                        $xcadena = " " . $xcadena . " " . $xseek . " Y ";
+                                } // ENDIF ($xseek)
+                            } // ENDIF (substr($xaux, 1, 2) < 10)
+                            break;
+                        case 3: // checa las unidades
+                            if (substr($xaux, 2, 1) < 1) { // si la unidad es cero, ya no hace nada
+
+                            } else {
+                                $key = (int) substr($xaux, 2, 1);
+                                $xseek = $xarray[$key]; // obtengo directamente el valor de la unidad (del uno al nueve)
+                                $xsub = subfijo($xaux);
+                                $xcadena = " " . $xcadena . " " . $xseek . " " . $xsub;
+                            } // ENDIF (substr($xaux, 2, 1) < 1)
+                            break;
+                    } // END SWITCH
+                } // END FOR
+                $xi = $xi + 3;
+            } // ENDDO
+
+            if (substr(trim($xcadena), -5, 5) == "ILLON") // si la cadena obtenida termina en MILLON o BILLON, entonces le agrega al final la conjuncion DE
+                $xcadena.= " DE";
+
+            if (substr(trim($xcadena), -7, 7) == "ILLONES") // si la cadena obtenida en MILLONES o BILLONES, entoncea le agrega al final la conjuncion DE
+                $xcadena.= " DE";
+
+            // ----------- esta línea la puedes cambiar de acuerdo a tus necesidades o a tu país -------
+            if (trim($xaux) != "") {
+                switch ($xz) {
+                    case 0:
+                        if (trim(substr($XAUX, $xz * 6, 6)) == "1")
+                            $xcadena.= "UN BILLON ";
+                        else
+                            $xcadena.= " BILLONES ";
+                        break;
+                    case 1:
+                        if (trim(substr($XAUX, $xz * 6, 6)) == "1")
+                            $xcadena.= "UN MILLON ";
+                        else
+                            $xcadena.= " MILLONES ";
+                        break;
+                    case 2:
+                        if ($xcifra < 1) {
+                            $xcadena = "CON CERO $xdecimales/100 ";
+                        }
+                        if ($xcifra >= 1 && $xcifra < 2) {
+                            $xcadena = "CON $xdecimales/100 ";
+                        }
+                        if ($xcifra >= 2) {
+                            $xcadena.= "CON $xdecimales/100 "; //
+                        }
+                        break;
+                } // endswitch ($xz)
+            } // ENDIF (trim($xaux) != "")
+            // ------------------      en este caso, para México se usa esta leyenda     ----------------
+            $xcadena = str_replace("VEINTI ", "VEINTI", $xcadena); // quito el espacio para el VEINTI, para que quede: VEINTICUATRO, VEINTIUN, VEINTIDOS, etc
+            $xcadena = str_replace("  ", " ", $xcadena); // quito espacios dobles
+            $xcadena = str_replace("UN UN", "UN", $xcadena); // quito la duplicidad
+            $xcadena = str_replace("  ", " ", $xcadena); // quito espacios dobles
+            $xcadena = str_replace("BILLON DE MILLONES", "BILLON DE", $xcadena); // corrigo la leyenda
+            $xcadena = str_replace("BILLONES DE MILLONES", "BILLONES DE", $xcadena); // corrigo la leyenda
+            $xcadena = str_replace("DE UN", "UN", $xcadena); // corrigo la leyenda
+        } // ENDFOR ($xz)
+        return trim($xcadena);
+    }
+
 }
 
 /**
@@ -4045,3 +4441,17 @@ function cmpPriceDesc($a, $b)
     }
     return 0;
 }
+
+function subfijo($xx)
+{ // esta función regresa un subfijo para la cifra
+    $xx = trim($xx);
+    $xstrlen = strlen($xx);
+    if ($xstrlen == 1 || $xstrlen == 2 || $xstrlen == 3)
+        $xsub = "";
+    //
+    if ($xstrlen == 4 || $xstrlen == 5 || $xstrlen == 6)
+        $xsub = "MIL";
+    //
+    return $xsub;
+}
+

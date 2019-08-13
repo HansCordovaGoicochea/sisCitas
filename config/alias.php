@@ -63,3 +63,9 @@ function displayFatalError()
         echo '[PrestaShop] Fatal error in module file: '.$error['file'].':'.$error['line'].'<br />'.$error['message'];
     }
 }
+
+function d($var)
+{
+    Tools::d($var);
+}
+

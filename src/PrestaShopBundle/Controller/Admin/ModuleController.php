@@ -762,22 +762,22 @@ class ModuleController extends FrameworkBundleAdminController
         $addonsProvider = $this->get('prestashop.core.admin.data_provider.addons_interface');
         $addonsConnect = array();
 
-        if ($addonsProvider->isAddonsAuthenticated()) {
-            $addonsEmail = $addonsProvider->getAddonsEmail();
-            $addonsConnect['addons_logout'] = array(
-                'href' => '#',
-                'desc' => $addonsEmail['username_addons'],
-                'icon' => 'exit_to_app',
-                'help' => $this->trans('Synchronized with Addons marketplace!', 'Admin.Modules.Notification'),
-            );
-        } else {
-            $addonsConnect['addons_connect'] = array(
-                'href' => '#',
-                'desc' => $this->trans('Connect to Addons marketplace', 'Admin.Modules.Feature'),
-                'icon' => 'vpn_key',
-                'help' => $this->trans('Connect to Addons marketplace', 'Admin.Modules.Feature'),
-            );
-        }
+//        if ($addonsProvider->isAddonsAuthenticated()) {
+//            $addonsEmail = $addonsProvider->getAddonsEmail();
+//            $addonsConnect['addons_logout'] = array(
+//                'href' => '#',
+//                'desc' => $addonsEmail['username_addons'],
+//                'icon' => 'exit_to_app',
+//                'help' => $this->trans('Synchronized with Addons marketplace!', 'Admin.Modules.Notification'),
+//            );
+//        } else {
+//            $addonsConnect['addons_connect'] = array(
+//                'href' => '#',
+//                'desc' => $this->trans('Connect to Addons marketplace', 'Admin.Modules.Feature'),
+//                'icon' => 'vpn_key',
+//                'help' => $this->trans('Connect to Addons marketplace', 'Admin.Modules.Feature'),
+//            );
+//        }
 
         return $addonsConnect;
     }

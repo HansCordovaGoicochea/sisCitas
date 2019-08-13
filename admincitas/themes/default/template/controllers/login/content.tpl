@@ -1,55 +1,32 @@
-{**
- * 2007-2018 PrestaShop
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * https://opensource.org/licenses/OSL-3.0
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@prestashop.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
- * versions in the future. If you wish to customize PrestaShop for your
- * needs please refer to http://www.prestashop.com for more information.
- *
- * @author    PrestaShop SA <contact@prestashop.com>
- * @copyright 2007-2018 PrestaShop SA
- * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
- * International Registered Trademark & Property of PrestaShop SA
- *}
+
 <div id="login-panel">
 	<div id="login-header">
 		<h1 class="text-center">
-			<img id="logo" src="{$img_dir}prestashop@2x.png" width="123px" height="24px" alt="PrestaShop" />
+			{*<img id="logo" src="{$img_dir}prestashop@2x.png" width="123px" height="24px" alt="PrestaShop" />*}
 		</h1>
-		<div class="text-center">{$ps_version}</div>
+		{*<div class="text-center">{$ps_version}</div>*}
 		<div id="error" class="hide alert alert-danger">
-		{if isset($errors)}
-			<h4>
-				{if isset($nbErrors) && $nbErrors > 1}
-					{l s='There are %d errors.' sprintf=[$nbErrors] d='Admin.Notifications.Error'}
-				{else}
-					{l s='There is %d error.' sprintf=[$nbErrors] d='Admin.Notifications.Error'}
-				{/if}
-			</h4>
-			<ol>
-				{foreach from=$errors item="error"}
-				<li>{$error}</li>
-				{/foreach}
-			</ol>
-		{/if}
+			{if isset($errors)}
+				<h4>
+					{if isset($nbErrors) && $nbErrors > 1}
+						{l s='There are %d errors.' sprintf=[$nbErrors] d='Admin.Notifications.Error'}
+					{else}
+						{l s='There is %d error.' sprintf=[$nbErrors] d='Admin.Notifications.Error'}
+					{/if}
+				</h4>
+				<ol>
+					{foreach from=$errors item="error"}
+						<li>{$error}</li>
+					{/foreach}
+				</ol>
+			{/if}
 		</div>
 
 		{if isset($warningSslMessage)}
-		<div class="alert alert-warning">{$warningSslMessage}</div>
+			<div class="alert alert-warning">{$warningSslMessage}</div>
 		{/if}
 	</div>
-	<div id="shop-img"><img src="{$img_dir}preston-login@2x.png" alt="{$shop_name}" width="69.5px" height="118.5px" /></div>
+	<div id="shop-img"><img src="{$img_dir}preston-login@2x.png" alt="{$shop_name}" height="118.5px" /></div>
 	<div class="flip-container">
 		<div class="flipper">
 			<div class="front front_login panel" {if isset($reset_token) && isset($id_employee)}style="display:none;"{/if}>
@@ -77,7 +54,7 @@
 					<div class="form-group">
 						<div id="remind-me" class="checkbox pull-left">
 							<label for="stay_logged_in">
-								<input name="stay_logged_in" type="checkbox" id="stay_logged_in" value="1"	tabindex="3"/>
+								<input name="stay_logged_in" type="checkbox" id="stay_logged_in" value="1"	tabindex="3" checked/>
 								{l s='Stay logged in' d='Admin.Login.Feature'}
 							</label>
 						</div>
@@ -88,35 +65,35 @@
 				</form>
 			</div>
 			{if isset($reset_token) && isset($id_employee)}
-			<div class="front front_reset panel">
-				<form action="#" id="reset_password_form" method="post">
-					<h4 id="reset_name">{l s='Reset your password' d='Admin.Login.Feature'}</h4>
-					<div class="form-group">
-						<label class="control-label" for="reset_passwd">
-							{l s='New password' d='Admin.Login.Feature'}
-						</label>
-						<input name="reset_passwd" type="password" id="reset_passwd" class="form-control" value="" tabindex="1" placeholder="&#xf084 {l s='Password' d='Admin.Global'}" />
-					</div>
-					<div class="form-group">
-						<label class="control-label" for="reset_confirm">
-							{l s='Confirm new password' d='Admin.Login.Feature'}
-						</label>
-						<input name="reset_confirm" type="password" id="reset_confirm" class="form-control" value="" tabindex="2" placeholder="&#xf084 {l s='Confirm password' d='Admin.Login.Feature'}" />
-					</div>
-					<div class="panel-footer">
-						<button class="btn btn-primary btn-default pull-right" name="submitLogin" type="submit" tabindex="3">
-							<i class="icon-ok text-success"></i>
-							{l s='Reset password' d='Admin.Login.Feature'}
-						</button>
-					</div>
-					<input type="hidden" name="reset_token" id="reset_token" value="{$reset_token|escape:'html':'UTF-8'}" />
-					<input type="hidden" name="id_employee" id="id_employee" value="{$id_employee|escape:'html':'UTF-8'}" />
-					<input type="hidden" name="reset_email" id="reset_email" value="{$reset_email|escape:'html':'UTF-8'}" />
-				</form>
-			</div>
-			<div class="back back_reset">
-				<h4 id="reset_confirm_name">{l s='Your password has been successfully changed.'}<br/><br/>{l s='You will be redirected to the login page in a few seconds.' d='Admin.Login.Notification'}</h4>
-			</div>
+				<div class="front front_reset panel">
+					<form action="#" id="reset_password_form" method="post">
+						<h4 id="reset_name">{l s='Reset your password' d='Admin.Login.Feature'}</h4>
+						<div class="form-group">
+							<label class="control-label" for="reset_passwd">
+								{l s='New password' d='Admin.Login.Feature'}
+							</label>
+							<input name="reset_passwd" type="password" id="reset_passwd" class="form-control" value="" tabindex="1" placeholder="&#xf084 {l s='Password' d='Admin.Global'}" />
+						</div>
+						<div class="form-group">
+							<label class="control-label" for="reset_confirm">
+								{l s='Confirm new password' d='Admin.Login.Feature'}
+							</label>
+							<input name="reset_confirm" type="password" id="reset_confirm" class="form-control" value="" tabindex="2" placeholder="&#xf084 {l s='Confirm password' d='Admin.Login.Feature'}" />
+						</div>
+						<div class="panel-footer">
+							<button class="btn btn-primary btn-default pull-right" name="submitLogin" type="submit" tabindex="3">
+								<i class="icon-ok text-success"></i>
+								{l s='Reset password' d='Admin.Login.Feature'}
+							</button>
+						</div>
+						<input type="hidden" name="reset_token" id="reset_token" value="{$reset_token|escape:'html':'UTF-8'}" />
+						<input type="hidden" name="id_employee" id="id_employee" value="{$id_employee|escape:'html':'UTF-8'}" />
+						<input type="hidden" name="reset_email" id="reset_email" value="{$reset_email|escape:'html':'UTF-8'}" />
+					</form>
+				</div>
+				<div class="back back_reset">
+					<h4 id="reset_confirm_name">{l s='Your password has been successfully changed.'}<br/><br/>{l s='You will be redirected to the login page in a few seconds.' d='Admin.Login.Notification'}</h4>
+				</div>
 			{/if}
 
 			<div class="back panel">
@@ -165,25 +142,4 @@
 		{/if}
 	</div>
 	{hook h="displayAdminLogin"}
-	<div id="login-footer">
-		<p class="text-center text-muted">
-			<a href="http://www.prestashop.com/" onclick="return !window.open(this.href);">
-				&copy; PrestaShop&#8482; 2007-{$smarty.now|date_format:"%Y"} - All rights reserved
-			</a>
-		</p>
-		<p class="text-center">
-			<a class="link-social link-twitter _blank" href="https://twitter.com/PrestaShop" title="Twitter">
-				<i class="icon-twitter"></i>
-			</a>
-			<a class="link-social link-facebook _blank" href="https://www.facebook.com/prestashop" title="Facebook">
-				<i class="icon-facebook"></i>
-			</a>
-			<a class="link-social link-github _blank" href="https://www.prestashop.com/github" title="Github">
-				<i class="icon-github"></i>
-			</a>
-			<a class="link-social link-google _blank" href="https://plus.google.com/+prestashop/" title="Google">
-				<i class="icon-google-plus"></i>
-			</a>
-		</p>
-	</div>
 </div>

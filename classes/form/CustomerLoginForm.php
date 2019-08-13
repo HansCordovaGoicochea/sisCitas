@@ -62,6 +62,7 @@ class CustomerLoginFormCore extends AbstractForm
             Hook::exec('actionAuthenticationBefore');
 
             $customer = new Customer();
+
             $authentication = $customer->getByEmail(
                 $this->getValue('email'),
                 $this->getValue('password')

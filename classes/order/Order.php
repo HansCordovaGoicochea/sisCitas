@@ -173,6 +173,8 @@ class OrderCore extends ObjectModel
     */
     public $round_type;
 
+    public $id_employee;
+
     /**
      * @see ObjectModel::$definition
      */
@@ -225,6 +227,8 @@ class OrderCore extends ObjectModel
             'reference' =>                    array('type' => self::TYPE_STRING),
             'date_add' =>                    array('type' => self::TYPE_DATE, 'validate' => 'isDate'),
             'date_upd' =>                    array('type' => self::TYPE_DATE, 'validate' => 'isDate'),
+
+            'id_employee' =>                    array('type' => self::TYPE_INT),
         ),
     );
 

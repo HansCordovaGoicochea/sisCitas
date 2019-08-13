@@ -63,6 +63,8 @@ class CustomerAddressFormatterCore implements FormFormatterInterface
             true,
             true
         );
+
+
         $required = array_flip(AddressFormat::getFieldsRequired());
 
         $format = [
@@ -85,6 +87,8 @@ class CustomerAddressFormatterCore implements FormFormatterInterface
                 )
         ];
 
+
+
         foreach ($fields as $field) {
             $formField = new FormField();
             $formField->setName($field);
@@ -96,6 +100,9 @@ class CustomerAddressFormatterCore implements FormFormatterInterface
                     if ($this->country->need_zip_code) {
                         $formField->setRequired(true);
                     }
+                }
+                if ($field === 'city') {
+                    $formField->setValue("Cajamarca");
                 }
             } elseif (count($fieldParts) === 2) {
                 list($entity, $entityField) = $fieldParts;
@@ -189,8 +196,9 @@ class CustomerAddressFormatterCore implements FormFormatterInterface
             case 'alias':
                 return $this->translator->trans('Alias', [], 'Shop.Forms.Labels');
             case 'firstname':
-                return $this->translator->trans('First name', [], 'Shop.Forms.Labels');
+                return $this->translator->trans('Apellidos y Nombres', [], 'Shop.Forms.Labels');
             case 'lastname':
+
                 return $this->translator->trans('Last name', [], 'Shop.Forms.Labels');
             case 'address1':
                 return $this->translator->trans('Address', [], 'Shop.Forms.Labels');

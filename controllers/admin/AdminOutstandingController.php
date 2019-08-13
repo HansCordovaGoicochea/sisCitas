@@ -40,7 +40,7 @@ class AdminOutstandingControllerCore extends AdminController
 
         $this->_select = '`id_order_invoice` AS `id_invoice`,
 		`id_order_invoice` AS `outstanding`,
-		CONCAT(LEFT(c.`firstname`, 1), \'. \', c.`lastname`) AS `customer`,
+		c.`firstname` AS `customer`,
 		c.`outstanding_allow_amount`,
 		r.`color`,
 		rl.`name` AS `risk`';

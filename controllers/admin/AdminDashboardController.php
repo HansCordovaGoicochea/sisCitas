@@ -56,11 +56,11 @@ class AdminDashboardControllerCore extends AdminController
     public function initPageHeaderToolbar()
     {
         $this->page_header_toolbar_title = $this->trans('Dashboard', array(), 'Admin.Dashboard.Feature');
-        $this->page_header_toolbar_btn['switch_demo'] = array(
-            'desc' => $this->trans('Demo mode', array(), 'Admin.Dashboard.Feature'),
-            'icon' => 'process-icon-toggle-'.(Configuration::get('PS_DASHBOARD_SIMULATION') ? 'on' : 'off'),
-            'help' => $this->trans('This mode displays sample data so you can try your dashboard without real numbers.', array(), 'Admin.Dashboard.Help')
-        );
+//        $this->page_header_toolbar_btn['switch_demo'] = array(
+//            'desc' => $this->trans('Demo mode', array(), 'Admin.Dashboard.Feature'),
+//            'icon' => 'process-icon-toggle-'.(Configuration::get('PS_DASHBOARD_SIMULATION') ? 'on' : 'off'),
+//            'help' => $this->trans('This mode displays sample data so you can try your dashboard without real numbers.', array(), 'Admin.Dashboard.Help')
+//        );
 
         parent::initPageHeaderToolbar();
 

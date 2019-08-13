@@ -23,11 +23,11 @@
  * International Registered Trademark & Property of PrestaShop SA
  *}
 
-<form id="header_search"
+<form id="header_search hide"
       class="bo_search_form dropdown-form js-dropdown-form collapsed"
       method="post"
       action="{$baseAdminUrl}index.php?controller=AdminSearch&amp;token={getAdminToken tab='AdminSearch'}"
-      role="search">
+      role="search" style="display: none;">
   <input type="hidden" name="bo_search_type" id="bo_search_type" class="js-search-type" />
   {if isset($show_clear_btn) && $show_clear_btn}
     <a href="#" class="clear_search hide"><i class="icon-remove"></i></a>

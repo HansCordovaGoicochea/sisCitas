@@ -114,11 +114,11 @@
 
 			{* Logo *}
 			<a id="header_logo" href="{$default_tab_link|escape:'html':'UTF-8'}"></a>
-			<span id="shop_version">{$ps_version}</span>
+{*			<span id="shop_version">{$ps_version}</span>*}
 
 			{* Quick access *}
 			{if count($quick_access) >= 0}
-				<div id="header_quick" class="component">
+				<div id="header_quick" class="component hide">
 					<div class="dropdown">
 						<button
 							 id="quick_select"
@@ -134,22 +134,6 @@
 								</li>
 							{/foreach}
 							<li class="divider"></li>
-							{if isset($matchQuickLink)}
-								<li>
-									<a href="javascript:void(0);" class="ajax-quick-link" data-method="remove"
-										 data-quicklink-id="{$matchQuickLink}">
-										<i class="material-icons">remove_circle</i>
-										{l s='Remove from QuickAccess' d='Admin.Navigation.Header'}
-									</a>
-								</li>
-							{else}
-								<li>
-									<a href="javascript:void(0);" class="ajax-quick-link" data-method="add">
-										<i class="material-icons">add_circle</i>
-										{l s='Add current page to QuickAccess' d='Admin.Navigation.Header'}
-									</a>
-								</li>
-							{/if}
 							<li>
 								<a href="{$link->getAdminLink("AdminQuickAccesses")|addslashes}">
 									<i class="material-icons">settings</i>
@@ -210,7 +194,7 @@
 			{/if}
 
 			{* Search *}
-			{include file="search_form.tpl" show_clear_btn=1}
+			{include file="cajas_view.tpl" show_clear_btn=1}
 
 			{if isset($debug_mode) && $debug_mode == true}
 			<div class="component hide-mobile-sm">
@@ -368,10 +352,10 @@
 				</li>
 			</ul>
 
-			{* Ajax running *}
-			<span id="ajax_running" class="hidden-xs">
-				<i class="icon-refresh icon-spin icon-fw"></i>
-			</span>
+{*			*}{* Ajax running *}
+{*			<span id="ajax_running" class="hidden-xs">*}
+{*				<i class="icon-refresh icon-spin icon-fw"></i>*}
+{*			</span>*}
 
 		{if isset($displayBackOfficeTop)}{$displayBackOfficeTop}{/if}
 		</nav>{* end header_infos*}

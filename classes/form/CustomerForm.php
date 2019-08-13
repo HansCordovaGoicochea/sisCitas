@@ -71,7 +71,7 @@ class CustomerFormCore extends AbstractForm
     public function setPasswordRequired($passwordRequired)
     {
         $this->passwordRequired = $passwordRequired;
-        
+
         return $this;
     }
 
@@ -108,10 +108,17 @@ class CustomerFormCore extends AbstractForm
     {
         $emailField = $this->getField('email');
         $id_customer = Customer::customerExists($emailField->getValue(), true, true);
+        $num_documentField = $this->getField('num_document');
+        $num_document = Customer::customerExistsByNumberDoc($num_documentField->getValue(), true, true);
         $customer = $this->getCustomer();
         if ($id_customer && $id_customer != $customer->id) {
             $emailField->addError($this->translator->trans(
                 'The email "%mail%" is already used, please choose another one or sign in', array('%mail%' => $emailField->getValue()), 'Shop.Notifications.Error'
+            ));
+        }
+        if ($num_document) {
+            $num_documentField->addError($this->translator->trans(
+                'El número de documento %num% ya está en uso, por favor, elija otro para registrarse', array('%num%' => $num_documentField->getValue()), 'Shop.Notifications.Error'
             ));
         }
 
@@ -137,7 +144,7 @@ class CustomerFormCore extends AbstractForm
     {
         $this->validateFieldLength('email', 128, $this->getEmailMaxLengthViolationMessage());
         $this->validateFieldLength('firstname', 255, $this->getFirstNameMaxLengthViolationMessage());
-        $this->validateFieldLength('lastname', 255, $this->getLastNameMaxLengthViolationMessage());
+//        $this->validateFieldLength('lastname', 255, $this->getLastNameMaxLengthViolationMessage());
     }
 
     /**
@@ -185,6 +192,7 @@ class CustomerFormCore extends AbstractForm
 
     public function submit()
     {
+
         if ($this->validate()) {
             $clearTextPassword = $this->getValue('password');
             $newPassword = $this->getValue('new_password');

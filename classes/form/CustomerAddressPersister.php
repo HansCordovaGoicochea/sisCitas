@@ -65,6 +65,12 @@ class CustomerAddressPersisterCore
         }
 
         $address->id_customer = $this->customer->id;
+        $address->save();    // <-- Add this
+
+        $cus = new Customer((int)$address->id_customer);
+        $cus->direccion = $address->address1;
+        $cus->telefono = $address->phone;
+        $cus->update();
 
         if ($address->isUsed()) {
             $old_address = new Address($address->id);

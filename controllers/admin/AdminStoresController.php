@@ -127,7 +127,8 @@ class AdminStoresControllerCore extends AdminController
                 ON (sl.`id_store` = a.`id_store`
                 AND sl.`id_lang` = ' . (int)$this->context->language->id . ') ';
 
-        return parent::renderList();
+//        return parent::renderList();
+        return false;
     }
 
     public function renderForm()
@@ -514,26 +515,27 @@ class AdminStoresControllerCore extends AdminController
         // Simple example: the current country is France, where we don't display the state. You choose "US" as a country in the form. The state is not dsplayed at the right place...
 
         // $associatedOrderKey = array(
-            // 'PS_SHOP_NAME' => 'company',
-            // 'PS_SHOP_ADDR1' => 'address1',
-            // 'PS_SHOP_ADDR2' => 'address2',
-            // 'PS_SHOP_CITY' => 'city',
-            // 'PS_SHOP_STATE_ID' => 'State:name',
-            // 'PS_SHOP_CODE' => 'postcode',
-            // 'PS_SHOP_COUNTRY_ID' => 'Country:name',
-            // 'PS_SHOP_PHONE' => 'phone');
+        // 'PS_SHOP_NAME' => 'company',
+        // 'PS_SHOP_ADDR1' => 'address1',
+        // 'PS_SHOP_ADDR2' => 'address2',
+        // 'PS_SHOP_CITY' => 'city',
+        // 'PS_SHOP_STATE_ID' => 'State:name',
+        // 'PS_SHOP_CODE' => 'postcode',
+        // 'PS_SHOP_COUNTRY_ID' => 'Country:name',
+        // 'PS_SHOP_PHONE' => 'phone');
         // $fields = array();
         // $orderedFields = AddressFormat::getOrderedAddressFields(Configuration::get('PS_SHOP_COUNTRY_ID'), false, true);
         // foreach ($orderedFields as $lineFields)
-            // if (($patterns = explode(' ', $lineFields)))
-                // foreach ($patterns as $pattern)
-                    // if (($key = array_search($pattern, $associatedOrderKey)))
-                        // $fields[$key] = $formFields[$key];
+        // if (($patterns = explode(' ', $lineFields)))
+        // foreach ($patterns as $pattern)
+        // if (($key = array_search($pattern, $associatedOrderKey)))
+        // $fields[$key] = $formFields[$key];
         // foreach ($formFields as $key => $value)
-            // if (!isset($fields[$key]))
-                // $fields[$key] = $formFields[$key];
+        // if (!isset($fields[$key]))
+        // $fields[$key] = $formFields[$key];
 
         $fields = $formFields;
+
         $this->fields_options['contact'] = array(
             'title' =>    $this->trans('Contact details', array(), 'Admin.Shopparameters.Feature'),
             'icon' =>    'icon-user',
@@ -579,14 +581,14 @@ class AdminStoresControllerCore extends AdminController
 
     /**
      * Adapt the format of hours
-     * 
+     *
      * @param array $value
      * @return array
      */
     private function adaptHoursFormat($value)
     {
         $separator = array_fill(0, count($value), ' | ');
-        
+
         return array_map('implode', $value, $separator);
     }
 }

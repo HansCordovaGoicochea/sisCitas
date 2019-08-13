@@ -105,21 +105,44 @@ class CustomerFormatterCore implements FormFormatterInterface
         }
         $format[$genderField->getName()] = $genderField;
 
+        $format['id_document'] = (new FormField)
+            ->setName('id_document')
+            ->setLabel(
+                $this->translator->trans(
+                    'Tipo Doc', [], 'Shop.Forms.Labels'
+                )
+            )
+            ->setType('select')
+        ;
+
+        $documents_array = array();
+        $documents = Tipodocumentolegal::getAllTipDoc();
+        $format['id_document']->addAvailableValue(
+            0,
+            "SELECCIONE TIPO DOCUMENTO"
+        );
+        foreach ($documents as $document) {
+            $format['id_document']->addAvailableValue(
+                $document['id_tipodocumentolegal'],
+                $document['nombre']
+            );
+            $documents_array[$document['id_tipodocumentolegal']] = $document['nombre'];
+        }
+
+        $format['num_document'] = (new FormField)
+            ->setName('num_document')
+            ->setLabel(
+                $this->translator->trans(
+                    'DNI/RUC', [], 'Shop.Forms.Labels'
+                )
+            )
+        ;
+
         $format['firstname'] = (new FormField)
             ->setName('firstname')
             ->setLabel(
                 $this->translator->trans(
-                    'First name', [], 'Shop.Forms.Labels'
-                )
-            )
-            ->setRequired(true)
-        ;
-
-        $format['lastname'] = (new FormField)
-            ->setName('lastname')
-            ->setLabel(
-                $this->translator->trans(
-                    'Last name', [], 'Shop.Forms.Labels'
+                    'Apellidos y Nombres', [], 'Shop.Forms.Labels'
                 )
             )
             ->setRequired(true)

@@ -49,36 +49,6 @@
                 </a>
               {/if}
             {/foreach}
-            {if isset($toolbar_btn['modules-list'])}
-              {* TODO: REFACTOR ALL THIS THINGS *}
-              <a
-                class="btn btn-outline-secondary {if isset($toolbar_btn['modules-list'].target) && $toolbar_btn['modules-list'].target} _blank{/if}"
-                id="page-header-desc-{$table}-{if isset($toolbar_btn['modules-list'].imgclass)}{$toolbar_btn['modules-list'].imgclass}{else}modules-list{/if}"
-                {if isset($toolbar_btn['modules-list'].href)}href="{$toolbar_btn['modules-list'].href}"{/if}
-                title="{$toolbar_btn['modules-list'].desc}"
-                {if isset($toolbar_btn['modules-list'].js) && $toolbar_btn['modules-list'].js}onclick="{$toolbar_btn['modules-list'].js}"{/if}
-              >
-                {$toolbar_btn['modules-list'].desc}
-              </a>
-            {/if}
-            {if isset($help_link)}
-
-              {if $enableSidebar}
-                <a class="btn btn-outline-secondary btn-help btn-sidebar" href="#"
-                   title="{l s='Help'}"
-                   data-toggle="sidebar"
-                   data-target="#right-sidebar"
-                   data-url="{$help_link|escape}"
-                   id="product_form_open_help"
-                >
-                  {l s='Help'}
-                </a>
-              {else}
-                <a class="btn btn-outline-secondary" href="{$help_link|escape}" title="{l s='Help'}">
-                  {l s='Help'}
-                </a>
-              {/if}
-            {/if}
           </div>
         </div>
       {/block}

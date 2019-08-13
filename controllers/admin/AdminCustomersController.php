@@ -1,28 +1,9 @@
 <?php
-/**
- * 2007-2018 PrestaShop
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * https://opensource.org/licenses/OSL-3.0
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@prestashop.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
- * versions in the future. If you wish to customize PrestaShop for your
- * needs please refer to http://www.prestashop.com for more information.
- *
- * @author    PrestaShop SA <contact@prestashop.com>
- * @copyright 2007-2018 PrestaShop SA
- * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
- * International Registered Trademark & Property of PrestaShop SA
- */
+
+use Sunat\Sunat;
+$vendorDir = dirname(dirname(__FILE__));
+$baseDir = dirname($vendorDir);
+require $baseDir.'/vendor/getSunat/autoload.php';
 
 /**
  * @property Customer $object
@@ -77,30 +58,46 @@ class AdminCustomersControllerCore extends AdminController
             $titles_array[$gender->id_gender] = $gender->name;
         }
 
-        $this->_join = 'LEFT JOIN '._DB_PREFIX_.'gender_lang gl ON (a.id_gender = gl.id_gender AND gl.id_lang = '.(int)$this->context->language->id.')';
+        $documents_array = array();
+        $documents = Tipodocumentolegal::getAllTipDoc();
+        foreach ($documents as $document) {
+            $documents_array[$document['id_tipodocumentolegal']] = $document['nombre'];
+        }
+
+        $this->_join .= 'LEFT JOIN '._DB_PREFIX_.'gender_lang gl ON (a.id_gender = gl.id_gender AND gl.id_lang = '.(int)$this->context->language->id.')';
+        $this->_join .= 'LEFT JOIN '._DB_PREFIX_.'tipodocumentolegal tdl ON (a.id_document = tdl.id_tipodocumentolegal)';
         $this->_use_found_rows = false;
+        $this->_where .= " AND id_customer > 1 ";
+
         $this->fields_list = array(
             'id_customer' => array(
                 'title' => $this->trans('ID', array(), 'Admin.Global'),
-                'align' => 'text-center',
-                'class' => 'fixed-width-xs'
+                'class' => 'hide'
             ),
-            'title' => array(
-                'title' => $this->trans('Social title', array(), 'Admin.Global'),
-                'filter_key' => 'a!id_gender',
-                'type' => 'select',
-                'list' => $titles_array,
-                'filter_type' => 'int',
-                'order_key' => 'gl!name'
+            'date_add' => array(
+                'title' => $this->trans('Registration', array(), 'Admin.Orderscustomers.Feature'),
+                'type' => 'date',
+                'align' => 'text-right'
             ),
             'firstname' => array(
-                'title' => $this->trans('First name', array(), 'Admin.Global')
+                'title' => $this->trans('Cliente', array(), 'Admin.Global')
             ),
-            'lastname' => array(
-                'title' => $this->trans('Last name', array(), 'Admin.Global')
+//            'tipo_documento' => array(
+//                'type' => 'select',
+//                'title' => $this->trans('T/D', array(), 'Admin.Global'),
+//                'filter_key' => 'a!id_document',
+//                'list' => $documents_array,
+//                'filter_type' => 'int',
+//                'order_key' => 'tdl!nombre'
+//            ),
+            'num_document' => array(
+                'title' => $this->trans('Num. Documento', array(), 'Admin.Global')
             ),
-            'email' => array(
-                'title' => $this->trans('Email address', array(), 'Admin.Global')
+            'direccion' => array(
+                'title' => $this->trans('Dirección', array(), 'Admin.Global')
+            ),
+            'telefono_celular' => array(
+                'title' => $this->trans('Celular', array(), 'Admin.Global')
             ),
         );
 
@@ -129,35 +126,15 @@ class AdminCustomersControllerCore extends AdminController
                 'orderby' => false,
                 'filter_key' => 'a!active'
             ),
-            'newsletter' => array(
-                'title' => $this->trans('Newsletter', array(), 'Admin.Global'),
-                'align' => 'text-center',
-                'callback' => 'printNewsIcon',
-            ),
-            'optin' => array(
-                'title' => $this->trans('Partner offers', array(), 'Admin.Orderscustomers.Feature'),
-                'align' => 'text-center',
-                'callback' => 'printOptinIcon',
-            ),
-            'date_add' => array(
-                'title' => $this->trans('Registration', array(), 'Admin.Orderscustomers.Feature'),
-                'type' => 'date',
-                'align' => 'text-right'
-            ),
-            'connect' => array(
-                'title' => $this->trans('Last visit', array(), 'Admin.Orderscustomers.Feature'),
-                'type' => 'datetime',
-                'search' => false,
-                'havingFilter' => true
-            )
+
         ));
 
         $this->shopLinkType = 'shop';
         $this->shopShareDatas = Shop::SHARE_CUSTOMER;
 
         $this->_select = '
-        a.date_add, gl.name as title, (
-            SELECT SUM(total_paid_real / conversion_rate)
+        a.date_add, gl.name as title, tdl.nombre as tipo_documento, (
+            SELECT SUM(total_paid_real)
             FROM '._DB_PREFIX_.'orders o
             WHERE o.id_customer = a.id_customer
             '.Shop::addSqlRestriction(Shop::SHARE_ORDER, 'o').'
@@ -249,7 +226,7 @@ class AdminCustomersControllerCore extends AdminController
                 /** @var Customer $customer */
                 if (($customer = $this->loadObject(true)) && Validate::isLoadedObject($customer)) {
                     array_pop($this->toolbar_title);
-                    $this->toolbar_title[] = $this->trans('Information about customer %name%', array('%name%' => Tools::substr($customer->firstname, 0, 1).'. '.$customer->lastname), 'Admin.Orderscustomers.Feature');
+                    $this->toolbar_title[] = $this->trans('Information about customer %name%', array('%name%' => $customer->firstname.'. '.$customer->lastname), 'Admin.Orderscustomers.Feature');
                 }
                 break;
             case 'add':
@@ -257,7 +234,7 @@ class AdminCustomersControllerCore extends AdminController
                 array_pop($this->toolbar_title);
                 /** @var Customer $customer */
                 if (($customer = $this->loadObject(true)) && Validate::isLoadedObject($customer)) {
-                    $this->toolbar_title[] = $this->trans('Editing customer %name%', array('%name%' => Tools::substr($customer->firstname, 0, 1).'. '.$customer->lastname), 'Admin.Orderscustomers.Feature');
+                    $this->toolbar_title[] = $this->trans('Editing customer %name%', array('%name%' => $customer->firstname.'. '.$customer->lastname), 'Admin.Orderscustomers.Feature');
                 } else {
                     $this->toolbar_title[] = $this->trans('Creating a new Customer', array(), 'Admin.Orderscustomers.Feature');
                 }
@@ -350,6 +327,23 @@ class AdminCustomersControllerCore extends AdminController
         $months = Tools::dateMonths();
         $days = Tools::dateDays();
 
+
+        $documents_array = array();
+        $documents = Tipodocumentolegal::getAllTipDoc();
+        foreach ($documents as $document) {
+            $documents_array[$document['id_tipodocumentolegal']] = $document['nombre'];
+        }
+
+        $customers_all = CustomerCore::getCustomers();
+        foreach ($customers_all as $customerultimo1) {
+            $customerultimo = $customerultimo1;
+        }
+
+        $list_type_customer = array(
+            array('id' => 'persona', 'value' => 'persona', 'label' => 'Persona Natural'),
+            array('id' => 'empresa', 'value' => 'empresa', 'label' => 'Empresa')
+        );
+
         $groups = Group::getGroups($this->default_form_language, true);
         $this->fields_form = array(
             'legend' => array(
@@ -363,34 +357,114 @@ class AdminCustomersControllerCore extends AdminController
                     'name' => 'id_gender',
                     'required' => false,
                     'class' => 't',
-                    'values' => $list_genders
+                    'values' => $list_genders,
+                    'form_group_class' => 'hide'
+                ),
+                array(
+                    'type' => 'radio',
+                    'label' => $this->trans('TIPO DE CLIENTE', array(), 'Admin.Global'),
+                    'name' => 'TYPE_CUSTOMER_ACHE',
+                    'required' => false,
+                    'class' => 'ache_radio',
+                    'values' => $list_type_customer,
+                    'form_group_class' => $obj->id ? 'hide': '',
+                ),
+                array(
+                    'type' => 'select',
+                    'label' => $this->trans('Tipo de Documento', array(), 'Admin.Global'),
+                    'name' => 'id_document',
+                    'required' => true,
+                    'default_value' => 1,
+                    'options' => array(
+                        'query' => $documents,
+                        'id' => 'id_tipodocumentolegal',
+                        'name' => 'nombre',
+                        'default' => array(
+                            'value' => 0,
+                            'label' => 'SIN DOCUMENTO'
+                        ),
+                        'data' => array(
+                            'name' => 'codsunat',
+                            'value' => 'cod_sunat',
+                        )
+
+                    ),
+                    'hint' => $this->trans('', array(), 'Admin.International.Help'),
+//                    'disabled' => $obj->id ? true: false,
+                ),
+                array(
+                    'type' => 'textbutton',
+                    'label' => $this->trans('N° de documento', array(), 'Admin.Advparameters.Feature'),
+                    'name' => 'num_document',
+                    'id' => 'num_document',
+                    'col' => '4',
+                    'required' => true,
+                    'hint' => $this->trans('', array(), 'Admin.Advparameters.Feature'),
+//                    'disabled' => $obj->id ? true: false,
+                    'placeholder' => 'Número de documento',
+                    'button' => array(
+                        'label' => $this->trans('SUNAT&nbsp;<i class="icon-search"></i>', array(), 'Admin.Advparameters.Feature'),
+                        'attributes' => array(
+                            'onclick' => 'traerDatosSunat()',
+                            'id' => 'buscar_sunat',
+                            'disabled' => 'disabled'
+                        )
+                    )
                 ),
                 array(
                     'type' => 'text',
-                    'label' => $this->trans('First name', array(), 'Admin.Global'),
+                    'label' => $this->trans('Nombre Legal', array(), 'Admin.Global'),
                     'name' => 'firstname',
+                    'placeholder' => 'Nombre legal / Razón social',
                     'required' => true,
                     'col' => '4',
                     'hint' => $this->trans('Invalid characters:', array(), 'Admin.Notifications.Info').' 0-9!&lt;&gt;,;?=+()@#"°{}_$%:'
                 ),
                 array(
+                    'form_group_class' => 'hide',
                     'type' => 'text',
                     'label' => $this->trans('Last name', array(), 'Admin.Global'),
                     'name' => 'lastname',
                     'required' => true,
                     'col' => '4',
                     'hint' => $this->trans('Invalid characters:', array(), 'Admin.Notifications.Info').' 0-9!&lt;&gt;,;?=+()@#"°{}_$%:'
+
+                ),
+                array(
+                    'type' => 'text',
+                    'label' => $this->trans('Dirección', array(), 'Admin.Global'),
+                    'name' => 'direccion',
+//            'required' => true,
+                    'col' => '4',
+                    'hint' => $this->trans('Dirección de residencia del cliente', array(), 'Admin.Notifications.Info').''
+                ),
+                array(
+                    'type' => 'text',
+                    'label' => $this->trans('Telefono', array(), 'Admin.Global'),
+                    'name' => 'telefono',
+                    'col' => '4',
+                    'hint' => $this->trans('Dirección de residencia del cliente', array(), 'Admin.Notifications.Info').''
+                ),
+                array(
+                    'type' => 'text',
+                    'label' => $this->trans('Celular', array(), 'Admin.Global'),
+                    'name' => 'telefono_celular',
+                    'col' => '4',
+                    'hint' => $this->trans('Dirección de residencia del cliente', array(), 'Admin.Notifications.Info').''
                 ),
                 array(
                     'type' => 'text',
                     'prefix' => '<i class="icon-envelope-o"></i>',
                     'label' => $this->trans('Email address', array(), 'Admin.Global'),
+//                    !Tools::getValue('id_customer') ? 'string_format' : 'abc' => 'optica' . ($customerultimo['id_customer'] + 1) . '@optica.com',
                     'name' => 'email',
                     'col' => '4',
-                    'required' => true,
-                    'autocomplete' => false
+                    'autocomplete' => false,
+                    'placeholder' => 'example@example.com',
+
                 ),
                 array(
+                    'form_group_class' => 'hide',
                     'type' => 'password',
                     'label' => $this->trans('Password', array(), 'Admin.Global'),
                     'name' => 'passwd',
@@ -431,6 +505,28 @@ class AdminCustomersControllerCore extends AdminController
                     'hint' => $this->trans('Enable or disable customer login.', array(), 'Admin.Orderscustomers.Help')
                 ),
                 array(
+                    'type' => 'switch',
+                    'label' => $this->trans('¿Apto para crédito?', array(), 'Admin.Global'),
+                    'name' => 'es_credito',
+                    'required' => false,
+                    'class' => 't',
+                    'is_bool' => true,
+                    'values' => array(
+                        array(
+                            'id' => 'es_credito_on',
+                            'value' => 1,
+                            'label' => $this->trans('Enabled', array(), 'Admin.Global')
+                        ),
+                        array(
+                            'id' => 'es_credito_off',
+                            'value' => 0,
+                            'label' => $this->trans('Disabled', array(), 'Admin.Global')
+                        )
+                    ),
+                    'hint' => $this->trans('Si al cliente se da crédito.', array(), 'Admin.Orderscustomers.Help')
+                ),
+                array(
+                    'form_group_class' => 'hide',
                     'type' => 'switch',
                     'label' => $this->trans('Partner offers', array(), 'Admin.Orderscustomers.Feature'),
                     'name' => 'optin',
@@ -562,6 +658,8 @@ class AdminCustomersControllerCore extends AdminController
             );
         }
 
+
+
         $this->fields_form['submit'] = array(
             'title' => $this->trans('Save', array(), 'Admin.Actions'),
         );
@@ -572,8 +670,11 @@ class AdminCustomersControllerCore extends AdminController
             'years' => $this->getFieldValue($obj, 'birthday') ? $birthday[0] : 0,
             'months' => $this->getFieldValue($obj, 'birthday') ? $birthday[1] : 0,
             'days' => $this->getFieldValue($obj, 'birthday') ? $birthday[2] : 0,
+            'passwd' => $this->getFieldValue($obj, 'passwd') ? $this->getFieldValue($obj, 'passwd') : '123456789',
+            'num_document' => $this->getFieldValue($obj, 'num_document') ? $this->getFieldValue($obj, 'num_document') : '-',
         );
 
+//        d($this);
         // Added values of object Group
         if (!Validate::isUnsignedId($obj->id)) {
             $customer_groups = array();
@@ -903,6 +1004,7 @@ class AdminCustomersControllerCore extends AdminController
 
     public function processUpdate()
     {
+
         if (Validate::isLoadedObject($this->object)) {
             $customer_email = strval(Tools::getValue('email'));
 
@@ -1006,7 +1108,7 @@ class AdminCustomersControllerCore extends AdminController
     public function printNewsIcon($value, $customer)
     {
         return '<a class="list-action-enable '.($value ? 'action-enabled' : 'action-disabled').'" href="index.php?'.htmlspecialchars('tab=AdminCustomers&id_customer='
-            .(int)$customer['id_customer'].'&changeNewsletterVal&token='.Tools::getAdminTokenLite('AdminCustomers')).'">
+                .(int)$customer['id_customer'].'&changeNewsletterVal&token='.Tools::getAdminTokenLite('AdminCustomers')).'">
 				'.($value ? '<i class="icon-check"></i>' : '<i class="icon-remove"></i>').
             '</a>';
     }
@@ -1014,7 +1116,7 @@ class AdminCustomersControllerCore extends AdminController
     public function printOptinIcon($value, $customer)
     {
         return '<a class="list-action-enable '.($value ? 'action-enabled' : 'action-disabled').'" href="index.php?'.htmlspecialchars('tab=AdminCustomers&id_customer='
-            .(int)$customer['id_customer'].'&changeOptinVal&token='.Tools::getAdminTokenLite('AdminCustomers')).'">
+                .(int)$customer['id_customer'].'&changeOptinVal&token='.Tools::getAdminTokenLite('AdminCustomers')).'">
 				'.($value ? '<i class="icon-check"></i>' : '<i class="icon-remove"></i>').
             '</a>';
     }
@@ -1056,6 +1158,7 @@ class AdminCustomersControllerCore extends AdminController
         $searches = array_unique($searches);
         foreach ($searches as $search) {
             if (!empty($search) && $results = Customer::searchByName($search, 50)) {
+//                d($results);
                 foreach ($results as $result) {
                     if ($result['active']) {
                         $result['fullname_and_email'] = $result['firstname'].' '.$result['lastname'].' - '.$result['email'];
@@ -1101,5 +1204,98 @@ class AdminCustomersControllerCore extends AdminController
             }
             die('ok');
         }
+    }
+
+    public function setMedia()
+    {
+        parent::setMedia();
+
+        $this->addCSS(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/css/waitMe.min.css');
+        $this->addJs(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/js/waitMe.min.js');
+    }
+
+
+    public function ajaxProcessGetDataSunat(){
+
+//        d(Tools::getAllValues());
+        $cliente = new Sunat(false, false);
+
+        $ruc = (isset($_REQUEST["nruc"])) ? $_REQUEST["nruc"] : false;
+//	d($ruc);
+        $data = $cliente->search($ruc, true);
+//        $data_json = json_encode($data);
+        $data_json = json_decode($data, true);
+//        d($data_json['result']['RazonSocial']);
+//        d($data_json['result']['RazonSocial']);
+//        d($data_json['result']['Direccion']);
+        if ($data_json['tipo_msg'] == 'encontrado'){
+
+            $customer = new Customer();
+            $customer->id_shop_group = Context::getContext()->shop->id_shop_group;
+            $customer->id_shop = Context::getContext()->shop->id;
+            $customer->id_gender = 0;
+            $customer->id_default_group = (int) Configuration::get('PS_CUSTOMER_GROUP');
+            $customer->id_lang = Context::getContext()->language->id;
+            $customer->id_risk = 0;
+            $customer->firstname = $data_json['result']['RazonSocial'];
+            $customer->lastname = "";
+            $pass = $this->get('hashing')->hash("123456789", _COOKIE_KEY_);
+            $customer->passwd = $pass;
+            $customer->last_passwd_gen = date('Y-m-d H:i:s', strtotime('-'.Configuration::get('PS_PASSWD_TIME_FRONT').'minutes'));
+            $customer->newsletter = 0;
+            $customer->optin = 0;
+            $customer->outstanding_allow_amount = 0;
+            $customer->show_public_prices = 0;
+            $customer->max_payment_days = 0;
+//                d(md5(uniqid(rand(), true)));
+            $customer->secure_key = md5(uniqid(rand(), true));
+            $customer->active = 1;
+            $customer->is_guest = 0;
+            $customer->deleted = 0;
+            $td = strlen(trim($ruc)) == 8 ? '1' : '6';
+            $tipo_doc = Tipodocumentolegal::getByCodSunat($td);
+            $customer->id_document = $tipo_doc['id_tipodocumentolegal'];
+            $customer->num_document = $ruc;
+            $customer->direccion = $data_json['result']['Direccion'] == '-' ? '': $data_json['result']['Direccion'] ;
+            $res = $customer->add();
+            if ($res){
+                $customer->updateGroup(array($customer->id_default_group));
+                $order = new Order((int)Tools::getValue('order_id'));
+                $order->id_customer = $customer->id;
+                $r = $order->update();
+            }
+            $data_json['cliente'] = $customer;
+            $data_json['cliente']->cod_sunat = $td;
+            $data_json['cliente']->id_customer = $customer->id;
+
+
+        }
+
+        die(json_encode($data_json));
+    }
+
+    public function ajaxProcessGetDataDataBase(){
+
+
+        $cliente = Customer::getCustomerByDocumento(Tools::getValue('nruc'));
+
+        if (!empty($cliente)) {
+//            d($address);
+            $order = new Order((int)Tools::getValue('id_order'));
+            $order->id_customer = $cliente['id_customer'];
+            $order->update();
+            $rtn = array(
+                "success" 	=> true,
+                "result" 	=> $cliente
+            );
+            die(json_encode($rtn));
+        }else{
+            $rtn = array(
+                "success" 	=> false,
+                "msg" 		=> "El Numero de documento no existe en la DB."
+            );
+            die(json_encode($rtn));
+        }
+
     }
 }

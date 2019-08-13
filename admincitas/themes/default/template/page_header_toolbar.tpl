@@ -95,27 +95,19 @@
                 </li>
               {/if}
             {/foreach}
-            {if isset($toolbar_btn['modules-list'])}
-              <li>
-                <a
-                  id="page-header-desc-{$table}-{if isset($toolbar_btn['modules-list'].imgclass)}{$toolbar_btn['modules-list'].imgclass}{else}modules-list{/if}"
-                  class="toolbar_btn{if isset($toolbar_btn['modules-list'].class)} {$toolbar_btn['modules-list'].class}{/if}{if isset($toolbar_btn['modules-list'].target) && $toolbar_btn['modules-list'].target} _blank{/if}"
-                  {if isset($toolbar_btn['modules-list'].href)}href="{$toolbar_btn['modules-list'].href}"{/if}
-                  title="{$toolbar_btn['modules-list'].desc}"{if isset($toolbar_btn['modules-list'].js) && $toolbar_btn['modules-list'].js} onclick="{$toolbar_btn['modules-list'].js}"{/if}>
-                  <i
-                    class="{if isset($toolbar_btn['modules-list'].icon)}{$toolbar_btn['modules-list'].icon}{else}process-icon-{if isset($toolbar_btn['modules-list'].imgclass)}{$toolbar_btn['modules-list'].imgclass}{else}modules-list{/if}{/if}"></i>
-                  <div{if isset($toolbar_btn['modules-list'].force_desc) && $toolbar_btn['modules-list'].force_desc == true } class="locked"{/if}>{$toolbar_btn['modules-list'].desc}</div>
-                </a>
-              </li>
-            {/if}
-            {if isset($help_link)}
-              <li>
-                <a class="toolbar_btn btn-help" href="{$help_link|escape}" title="{l s='Help' d='Admin.Global'}">
-                  <i class="process-icon-help"></i>
-                  <div>{l s='Help' d='Admin.Global'}</div>
-                </a>
-              </li>
-            {/if}
+
+              {if $smarty.get.controller == 'AdminOrders' && Tools::getValue('id_order')}
+                  <li class="hidden-xs" style="text-align: center!important;">
+                      <div  class="" >
+                          <div class="box-stats color4" style=" height: 0px!important;">
+                              <div class="kpi-content" style="display: inline-flex!important;">
+                                  <span class="title">{l s='Total' d='Admin.Global'}</span>
+                                  <span class="value" style="font-weight: bold!important; font-size: 3em!important; color: #121475!important;;" id="total_ache_order">{displayPrice price=$order->total_paid_tax_incl currency=1}</span>
+                              </div>
+                          </div>
+                      </div>
+                  </li>
+              {/if}
           </ul>
           {if (isset($tab_modules_open) && $tab_modules_open) || isset($tab_modules_list)}
             <script type="text/javascript">

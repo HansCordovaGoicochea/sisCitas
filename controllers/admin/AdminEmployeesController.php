@@ -112,8 +112,8 @@ class AdminEmployeesControllerCore extends AdminController
                         'list' => array(
                             '0' => array('value' => 0, 'name' => $this->trans('No', array(), 'Admin.Global')),
                             '1' => array('value' => 1, 'name' => $this->trans('Yes', array(), 'Admin.Global')
-                        )
-                    ), 'visibility' => Shop::CONTEXT_ALL)
+                            )
+                        ), 'visibility' => Shop::CONTEXT_ALL)
                 ),
                 'submit' => array('title' => $this->trans('Save', array(), 'Admin.Actions'))
             )
@@ -234,20 +234,20 @@ class AdminEmployeesControllerCore extends AdminController
                     'name' => 'lastname',
                     'required' => true
                 ),
-                array(
-                    'type' => 'html',
-                    'name' => 'employee_avatar',
-                    'html_content' => '<div id="employee-thumbnail"><a href="http://www.prestashop.com/forums/index.php?app=core&amp;module=usercp" target="_blank" style="background-image:url('.$obj->getImage().')"></a></div>
-					<div id="employee-avatar-thumbnail" class="alert alert-info">'.$this->trans(
-                        'Your avatar in PrestaShop 1.7.x is your profile picture on %url%. To change your avatar, log in to PrestaShop.com with your email %email% and follow the on-screen instructions.',
-                        array(
-                            '%url%' => '<a href="http://www.prestashop.com/forums/index.php?app=core&amp;module=usercp" class="alert-link" target="_blank">PrestaShop.com</a>',
-                            '%email%' => $obj->email,
-                        ),
-                        'Admin.Advparameters.Help'
-                        ).'
-                    </div>',
-                ),
+//                array(
+//                    'type' => 'html',
+//                    'name' => 'employee_avatar',
+//                    'html_content' => '<div id="employee-thumbnail"><a href="http://www.prestashop.com/forums/index.php?app=core&amp;module=usercp" target="_blank" style="background-image:url('.$obj->getImage().')"></a></div>
+//					<div id="employee-avatar-thumbnail" class="alert alert-info">'.$this->trans(
+//                        'Your avatar in PrestaShop 1.7.x is your profile picture on %url%. To change your avatar, log in to PrestaShop.com with your email %email% and follow the on-screen instructions.',
+//                        array(
+//                            '%url%' => '<a href="http://www.prestashop.com/forums/index.php?app=core&amp;module=usercp" class="alert-link" target="_blank">PrestaShop.com</a>',
+//                            '%email%' => $obj->email,
+//                        ),
+//                        'Admin.Advparameters.Help'
+//                        ).'
+//                    </div>',
+//                ),
                 array(
                     'type' => 'text',
                     'class'=> 'fixed-width-xxl',
@@ -265,45 +265,17 @@ class AdminEmployeesControllerCore extends AdminController
                 'type' => 'change-password',
                 'label' => $this->trans('Password', array(), 'Admin.Global'),
                 'name' => 'passwd'
-                );
-
-            if (Tab::checkTabRights(Tab::getIdFromClassName('AdminModulesController'))) {
-                $this->fields_form['input'][] = array(
-                    'type' => 'prestashop_addons',
-                    'label' => 'PrestaShop Addons',
-                    'name' => 'prestashop_addons',
-                );
-            }
+            );
         } else {
             $this->fields_form['input'][] = array(
                 'type' => 'password',
                 'label' => $this->trans('Password', array(), 'Admin.Global'),
                 'hint' => $this->trans('Password should be at least %num% characters long.', array('%num%' => Validate::ADMIN_PASSWORD_LENGTH), 'Admin.Advparameters.Help'),
                 'name' => 'passwd'
-                );
+            );
         }
 
         $this->fields_form['input'] = array_merge($this->fields_form['input'], array(
-            array(
-                'type' => 'switch',
-                'label' => $this->trans('Subscribe to PrestaShop newsletter', array(), 'Admin.Advparameters.Feature'),
-                'name' => 'optin',
-                'required' => false,
-                'is_bool' => true,
-                'values' => array(
-                    array(
-                        'id' => 'optin_on',
-                        'value' => 1,
-                        'label' => $this->trans('Yes', array(), 'Admin.Global')
-                    ),
-                    array(
-                        'id' => 'optin_off',
-                        'value' => 0,
-                        'label' => $this->trans('No', array(), 'Admin.Global')
-                    )
-                ),
-                'hint' => $this->trans('PrestaShop can provide you with guidance on a regular basis by sending you tips on how to optimize the management of your store which will help you grow your business. If you do not wish to receive these tips, you can disable this option.', array(), 'Admin.Advparameters.Help')
-            ),
             array(
                 'type' => 'default_tab',
                 'label' => $this->trans('Default page', array(), 'Admin.Advparameters.Feature'),
@@ -312,6 +284,7 @@ class AdminEmployeesControllerCore extends AdminController
                 'options' => $this->tabs_list
             ),
             array(
+                'form_group_class' => 'hide',
                 'type' => 'select',
                 'label' => $this->trans('Language', array(), 'Admin.Global'),
                 'name' => 'id_lang',
@@ -408,7 +381,7 @@ class AdminEmployeesControllerCore extends AdminController
 
         $email = $this->getFieldValue($obj, 'email');
         if (Validate::isEmail($email) && Employee::employeeExists($email) && (!Tools::getValue('id_employee')
-            || ($employee = new Employee((int)Tools::getValue('id_employee'))) && $employee->email != $email)) {
+                || ($employee = new Employee((int)Tools::getValue('id_employee'))) && $employee->email != $email)) {
             $this->errors[] = $this->trans('An account already exists for this email address:', array(), 'Admin.Orderscustomers.Notification').' '.$email;
         }
     }
@@ -619,6 +592,7 @@ class AdminEmployeesControllerCore extends AdminController
         $this->context->cookie->collapse_menu = (int)Tools::getValue('collapse');
         $this->context->cookie->write();
     }
+
     public function ajaxProcessGetTabByIdProfile()
     {
         $id_profile = Tools::getValue('id_profile');

@@ -24,7 +24,7 @@
     {* Logo *}
     <i class="material-icons js-mobile-menu">menu</i>
     <a id="header_logo" class="logo float-left" href="{$default_tab_link|escape:'html':'UTF-8'}"></a>
-    <span id="shop_version">{$ps_version}</span>
+{*    <span id="shop_version">{$ps_version}</span>*}
 
     <div class="component" id="quick-access-container">
       {include file="components/layout/quick_access.tpl"}
@@ -49,7 +49,7 @@
       </div>
     {/if}
     {if isset($maintenance_mode) && $maintenance_mode == true}
-      <div class="component hide-mobile-sm" id="header-maintenance-mode-container">
+      <div class="component hide-mobile-sm hide" id="header-maintenance-mode-container">
         <a class="link shop-state"
            id="maintenance-mode"
            data-toggle="pstooltip"
@@ -62,7 +62,7 @@
         </a>
       </div>
     {/if}
-    <div class="component" id="header-shop-list-container">
+    <div class="component" id="header-shop-list-container" style="display: none;">
       {include file="components/layout/shop_list.tpl"}
     </div>
     {if $show_new_orders || $show_new_customers || $show_new_messages}

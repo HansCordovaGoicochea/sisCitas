@@ -381,7 +381,7 @@ class AdminCategoriesControllerCore extends AdminController
         }
     }
 
-    public function renderKpis()
+    public function render123Kpis()
     {
         $time = time();
         $kpis = array();

@@ -112,6 +112,16 @@ class LogoUploader
                 if (!@ImageManager::resize($tmpName, _PS_IMG_DIR_.$logoName)) {
                     throw new PrestaShopException(sprintf('An error occurred while attempting to copy shop logo %s.', $logoName));
                 }
+
+                //guardar los logos para el login
+                if ($fieldName == "PS_LOGO"){
+                    if (!@ImageManager::resize($tmpName, _PS_IMG_DIR_."preston-login@2x.png")) {
+                        throw new PrestaShopException(sprintf('An error occurred while attempting to copy shop logo %s.', "preston-login@2x.png"));
+                    }
+                    if (!@ImageManager::resize($tmpName, _PS_IMG_DIR_."preston-login-wink@2x.png")) {
+                        throw new PrestaShopException(sprintf('An error occurred while attempting to copy shop logo %s.', "preston-login-wink@2x.png"));
+                    }
+                }
             }
 
             $idShop = $this->shop->id;

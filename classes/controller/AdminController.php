@@ -2078,7 +2078,7 @@ class AdminControllerCore extends Controller
             if (get_class($this) != 'AdminCarriersController') {
                 $this->content .= $this->renderModulesList();
             }
-            $this->content .= $this->renderKpis();
+//            $this->content .= $this->renderKpis();
             $this->content .= $this->renderList();
             $this->content .= $this->renderOptions();
 

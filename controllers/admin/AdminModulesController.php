@@ -1355,7 +1355,7 @@ class AdminModulesControllerCore extends AdminController
         return false;
     }
 
-    public function renderKpis()
+    public function render123Kpis()
     {
         $time = time();
         $kpis = array();

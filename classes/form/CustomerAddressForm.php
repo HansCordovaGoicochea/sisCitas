@@ -184,13 +184,15 @@ class CustomerAddressFormCore extends AbstractForm
             $this->formFields
         );
 
+//        d($formFields);
+
         if (empty($formFields['firstname']['value'])) {
             $formFields['firstname']['value'] = $context->customer->firstname;
         }
 
-        if (empty($formFields['lastname']['value'])) {
-            $formFields['lastname']['value'] = $context->customer->lastname;
-        }
+//        if (empty($formFields['lastname']['value'])) {
+//            $formFields['lastname']['value'] = $context->customer->lastname;
+//        }
 
         return array(
             'id_address' => (isset($this->address->id)) ? $this->address->id : 0,

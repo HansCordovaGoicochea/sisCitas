@@ -149,6 +149,14 @@ class CustomerCore extends ObjectModel
     /** @var string token validity date for forgot password feature */
     public $reset_password_validity;
 
+    public $id_document;
+    public $num_document;
+    public $direccion;
+    public $telefono;
+    public $telefono_celular;
+    /** estado si es credito es para ver si al cliente se puede dar credito**/
+    public $es_credito = 0; //0 sin credito - 1 credito aceptado
+
     protected $webserviceParameters = array(
         'fields' => array(
             'id_default_group' => array('xlink_resource' => 'groups'),
@@ -165,6 +173,8 @@ class CustomerCore extends ObjectModel
         ),
     );
 
+
+
     /**
      * @see ObjectModel::$definition
      */
@@ -173,10 +183,10 @@ class CustomerCore extends ObjectModel
         'primary' => 'id_customer',
         'fields' => array(
             'secure_key' => array('type' => self::TYPE_STRING, 'validate' => 'isMd5', 'copy_post' => false),
-            'lastname' => array('type' => self::TYPE_STRING, 'validate' => 'isName', 'required' => true, 'size' => 255),
-            'firstname' => array('type' => self::TYPE_STRING, 'validate' => 'isName', 'required' => true, 'size' => 255),
-            'email' => array('type' => self::TYPE_STRING, 'validate' => 'isEmail', 'required' => true, 'size' => 128),
-            'passwd' => array('type' => self::TYPE_STRING, 'validate' => 'isPasswd', 'required' => true, 'size' => 60),
+            'lastname' => array('type' => self::TYPE_STRING, 'validate' => 'isName', 'size' => 255),
+            'firstname' => array('type' => self::TYPE_STRING, 'size' => 255),
+            'email' => array('type' => self::TYPE_STRING, 'validate' => 'isEmail', 'size' => 128),
+            'passwd' => array('type' => self::TYPE_STRING, 'validate' => 'isPasswd', 'size' => 60),
             'last_passwd_gen' => array('type' => self::TYPE_STRING, 'copy_post' => false),
             'id_gender' => array('type' => self::TYPE_INT, 'validate' => 'isUnsignedId'),
             'birthday' => array('type' => self::TYPE_DATE, 'validate' => 'isBirthDate'),
@@ -204,6 +214,13 @@ class CustomerCore extends ObjectModel
             'date_upd' => array('type' => self::TYPE_DATE, 'validate' => 'isDate', 'copy_post' => false),
             'reset_password_token' => array('type' => self::TYPE_STRING, 'validate' => 'isSha1', 'size' => 40, 'copy_post' => false),
             'reset_password_validity' => array('type' => self::TYPE_DATE, 'validate' => 'isDateOrNull', 'copy_post' => false),
+
+            'id_document' => array('type' => self::TYPE_INT),
+            'num_document' => array('type' => self::TYPE_STRING),
+            'direccion' => array('type' => self::TYPE_STRING),
+            'telefono' => array('type' => self::TYPE_STRING),
+            'telefono_celular' => array('type' => self::TYPE_STRING),
+            'es_credito' => array('type' => self::TYPE_INT),
         ),
     );
 
@@ -373,6 +390,7 @@ class CustomerCore extends ObjectModel
      */
     public function getByEmail($email, $plaintextPassword = null, $ignoreGuest = true)
     {
+
         if (!Validate::isEmail($email) || ($plaintextPassword && !Validate::isPasswd($plaintextPassword))) {
             die(Tools::displayError());
         }
@@ -395,6 +413,7 @@ class CustomerCore extends ObjectModel
         $sql->where('c.`deleted` = 0');
 
         $passwordHash = Db::getInstance()->getValue($sql);
+
         try {
             /** @var \PrestaShop\PrestaShop\Core\Crypto\Hashing $crypto */
             $crypto = ServiceLocator::get('\\PrestaShop\\PrestaShop\\Core\\Crypto\\Hashing');
@@ -507,6 +526,28 @@ class CustomerCore extends ObjectModel
         SELECT `id_customer`
         FROM `'._DB_PREFIX_.'customer`
         WHERE `email` = \''.pSQL($email).'\'
+        '.Shop::addSqlRestriction(Shop::SHARE_CUSTOMER).'
+        '.($ignoreGuest ? ' AND `is_guest` = 0' : ''));
+
+        return $returnId ? (int) $result : (bool) $result;
+    }
+    /**
+     * Check if e-mail is already registered in database.
+     *
+     * @param string $email       e-mail
+     * @param bool   $returnId
+     * @param bool   $ignoreGuest To exclude guest customer
+     *
+     * @return bool|int Customer ID if found
+     *                  `false` otherwise
+     */
+    public static function customerExistsByNumberDoc($doc, $returnId = false, $ignoreGuest = true)
+    {
+
+        $result = Db::getInstance()->getValue('
+        SELECT `num_document`
+        FROM `'._DB_PREFIX_.'customer`
+        WHERE `num_document` = \''.pSQL($doc).'\'
         '.Shop::addSqlRestriction(Shop::SHARE_CUSTOMER).'
         '.($ignoreGuest ? ' AND `is_guest` = 0' : ''));
 
@@ -793,7 +834,7 @@ class CustomerCore extends ObjectModel
         if ($limit) {
             $sql .= ' LIMIT 0, '.(int) $limit;
         }
-
+//d($sql);
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
     }
 
@@ -1260,6 +1301,7 @@ class CustomerCore extends ObjectModel
         $query->where('o.id_customer = '.(int) $this->id);
         $totalPaid = (float) Db::getInstance()->getValue($query->build());
 
+
         $query = new DbQuery();
         $query->select('SUM(op.amount)');
         $query->from('order_payment', 'op');
@@ -1370,4 +1412,62 @@ class CustomerCore extends ObjectModel
         $this->reset_password_token = null;
         $this->reset_password_validity = null;
     }
+
+    public static function getCustomerByDocumento($num_documento)
+    {
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow('
+            SELECT *
+            FROM `'._DB_PREFIX_.'customer`
+            WHERE num_document = \''.$num_documento.'\'
+            ORDER BY `id_customer` ASC'
+        );
+    }
+
+    public static function searchClienteByName($query, Context $context = null)
+    {
+        if (!$context) {
+            $context = Context::getContext();
+        }
+
+        $sql = new DbQuery();
+        $sql->select('c.*, tdl.nombre as tipo_documento, cod_sunat');
+        $sql->from('customer', 'c');
+        $sql->join(Shop::addSqlAssociation('customer', 'c'));
+        $sql->leftJoin('tipodocumentolegal', 'tdl', 'tdl.`id_tipodocumentolegal` = c.`id_document`');
+
+        $where = 'c.`firstname` LIKE \'%'.pSQL($query).'%\'
+		OR c.`num_document` LIKE \'%'.pSQL($query).'%\'';
+
+        $sql->orderBy('c.`firstname` ASC');
+
+        $sql->where($where);
+
+        $result = Db::getInstance()->executeS($sql);
+
+        return $result;
+    }
+
+    public static function searchClienteByDocumento($query, Context $context = null)
+    {
+        if (!$context) {
+            $context = Context::getContext();
+        }
+
+        $sql = new DbQuery();
+        $sql->select('c.*, tdl.nombre as tipo_documento, cod_sunat');
+        $sql->from('customer', 'c');
+        $sql->join(Shop::addSqlAssociation('customer', 'c'));
+        $sql->leftJoin('tipodocumentolegal', 'tdl', 'tdl.`id_tipodocumentolegal` = c.`id_document`');
+
+        $where = 'c.`num_document` = \''.pSQL($query).'\'';
+
+        $sql->orderBy('c.`firstname` ASC');
+
+        $sql->where($where);
+
+        $result = Db::getInstance()->getRow($sql);
+
+        return $result;
+    }
+
 }

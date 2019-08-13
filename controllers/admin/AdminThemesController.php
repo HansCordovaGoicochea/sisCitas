@@ -1,28 +1,4 @@
 <?php
-/**
- * 2007-2018 PrestaShop
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * https://opensource.org/licenses/OSL-3.0
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@prestashop.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
- * versions in the future. If you wish to customize PrestaShop for your
- * needs please refer to http://www.prestashop.com for more information.
- *
- * @author    PrestaShop SA <contact@prestashop.com>
- * @copyright 2007-2018 PrestaShop SA
- * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
- * International Registered Trademark & Property of PrestaShop SA
- */
 
 use PrestaShop\PrestaShop\Core\Addon\Theme\ThemeManager;
 use PrestaShop\PrestaShop\Core\Addon\Theme\ThemeManagerBuilder;
@@ -40,8 +16,8 @@ class AdminThemesControllerCore extends AdminController
     const CACHE_FILE_MUST_HAVE_THEMES_LIST = '/config/xml/must_have_themes_list.xml';
 
     /**
-    * @var ThemeManager
-    */
+     * @var ThemeManager
+     */
     public $theme_manager;
 
     /**
@@ -151,18 +127,18 @@ class AdminThemesControllerCore extends AdminController
         parent::initPageHeaderToolbar();
 
         if (empty($this->display)) {
-            if ($this->isAddGranted()) {
-                $this->page_header_toolbar_btn['import_theme'] = array(
-                    'href' => self::$currentIndex.'&action=importtheme&token='.$this->token,
-                    'desc' => $this->trans('Add new theme', array(), 'Admin.Design.Feature'),
-                    'icon' => 'process-icon-new'
-                );
-                $this->page_header_toolbar_btn['export_theme'] = array(
-                    'href' => self::$currentIndex.'&action=exporttheme&token='.$this->token,
-                    'desc' => $this->trans('Export current theme', array(), 'Admin.Design.Feature'),
-                    'icon' => 'process-icon-export'
-                );
-            }
+//            if ($this->isAddGranted()) {
+//                $this->page_header_toolbar_btn['import_theme'] = array(
+//                    'href' => self::$currentIndex.'&action=importtheme&token='.$this->token,
+//                    'desc' => $this->trans('Add new theme', array(), 'Admin.Design.Feature'),
+//                    'icon' => 'process-icon-new'
+//                );
+//                $this->page_header_toolbar_btn['export_theme'] = array(
+//                    'href' => self::$currentIndex.'&action=exporttheme&token='.$this->token,
+//                    'desc' => $this->trans('Export current theme', array(), 'Admin.Design.Feature'),
+//                    'icon' => 'process-icon-export'
+//                );
+//            }
 
             if ($this->context->mode) {
                 unset($this->toolbar_btn['new']);
@@ -403,7 +379,7 @@ class AdminThemesControllerCore extends AdminController
                     'logo' => $this->trans('Logo', array(), 'Admin.Global'),
                     'logo2' => $this->trans('Invoice & Email Logos', array(), 'Admin.Design.Feature'),
                     'icons' => $this->trans('Favicons', array(), 'Admin.Design.Feature'),
-                    ),
+                ),
                 'fields' => array(
                     'PS_LOGO' => array(
                         'title' => $this->trans('Header logo', array(), 'Admin.Design.Feature'),
@@ -445,21 +421,21 @@ class AdminThemesControllerCore extends AdminController
                         'thumb' => _PS_IMG_.Configuration::get('PS_FAVICON').(Tools::getValue('conf') ? sprintf('?%04d', rand(0, 9999)) : '')
                     ),
                 ),
-                'after_tabs' => array(
-                    'cur_theme' => $this->context->shop->theme,
-                ),
+//                'after_tabs' => array(
+//                    'cur_theme' => $this->context->shop->theme,
+//                ),
                 'submit' => array('title' => $this->trans('Save', array(), 'Admin.Actions')),
                 'buttons' => array(
-                    'storeLink' => array(
-                        'id' => 'visit-theme-catalog-link',
-                        'title' => $this->trans('Visit the theme catalog', array(), 'Admin.Design.Feature'),
-                        'icon' => 'process-icon-themes',
-                        'href' => Tools::getCurrentUrlProtocolPrefix().'addons.prestashop.com/en/3-templates-prestashop'
-                        .'?utm_source=back-office&utm_medium=theme-button'
-                        .'&utm_campaign=back-office-'.$iso_lang_uc
-                        .'&utm_content='.(defined('_PS_HOST_MODE_') ? 'cloud' : 'download'),
-                        'js' => 'return !window.open(this.href)'
-                    )
+//                    'storeLink' => array(
+//                        'id' => 'visit-theme-catalog-link',
+//                        'title' => $this->trans('Visit the theme catalog', array(), 'Admin.Design.Feature'),
+//                        'icon' => 'process-icon-themes',
+//                        'href' => Tools::getCurrentUrlProtocolPrefix().'addons.prestashop.com/en/3-templates-prestashop'
+//                        .'?utm_source=back-office&utm_medium=theme-button'
+//                        .'&utm_campaign=back-office-'.$iso_lang_uc
+//                        .'&utm_content='.(defined('_PS_HOST_MODE_') ? 'cloud' : 'download'),
+//                        'js' => 'return !window.open(this.href)'
+//                    )
                 )
             ),
         );
@@ -571,9 +547,9 @@ class AdminThemesControllerCore extends AdminController
                     'submit' => array(
                         'id' => 'zip',
                         'title' => $this->trans('Save', array(), 'Admin.Actions'),
-                        )
-                    ),
-                );
+                    )
+                ),
+            );
 
             $fields_form[1] = array(
                 'form' => array(
@@ -592,9 +568,9 @@ class AdminThemesControllerCore extends AdminController
                     ),
                     'submit' => array(
                         'title' => $this->trans('Save', array(), 'Admin.Actions'),
-                        )
-                    ),
-                );
+                    )
+                ),
+            );
 
             $theme_archive_server = array();
             $files = scandir(_PS_ALL_THEMES_DIR_);
@@ -631,9 +607,9 @@ class AdminThemesControllerCore extends AdminController
                     ),
                     'submit' => array(
                         'title' => $this->trans('Save', array(), 'Admin.Actions'),
-                        )
-                    ),
-                );
+                    )
+                ),
+            );
         }
 
         $this->context->smarty->assign(
@@ -641,8 +617,8 @@ class AdminThemesControllerCore extends AdminController
                 'import_theme' => true,
                 'logged_on_addons' => $this->logged_on_addons,
                 'iso_code' => $this->context->language->iso_code,
-                )
-            );
+            )
+        );
 
         $helper = new HelperForm();
 
@@ -1044,9 +1020,9 @@ class AdminThemesControllerCore extends AdminController
 
             if ((bool)Tools::getValue('PS_GENERATE_RTL')) {
                 Language::getRtlStylesheetProcessor()
-                ->setProcessFOThemes(array(Tools::getValue('PS_THEMES_LIST')))
-                ->setRegenerate(true)
-                ->process();
+                    ->setProcessFOThemes(array(Tools::getValue('PS_THEMES_LIST')))
+                    ->setRegenerate(true)
+                    ->process();
 
                 $this->confirmations[] = $this->trans(
                     'Your RTL stylesheets has been generated successfully',

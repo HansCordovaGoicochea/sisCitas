@@ -51,7 +51,7 @@ class AdminOrdersControllerCore extends AdminController
         $this->_select = '
 		a.id_currency,
 		a.id_order AS id_pdf,
-		CONCAT(LEFT(c.`firstname`, 1), \'. \', c.`lastname`) AS `customer`,
+		c.`firstname` AS `customer`,
 		osl.`name` AS `osname`,
 		os.`color`,
 		IF((SELECT so.id_order FROM `'._DB_PREFIX_.'orders` so WHERE so.id_customer = a.id_customer AND so.id_order < a.id_order LIMIT 1) > 0, 0, 1) as new,
@@ -275,7 +275,7 @@ class AdminOrdersControllerCore extends AdminController
             }
 
             $this->toolbar_title[] = $this->trans(
-                'Order %reference% from %firstname% %lastname%',
+                'Order %reference% from %firstname%',
                 array(
                     '%reference%' => $order->reference,
                     '%firstname%' => $customer->firstname,
@@ -1228,7 +1228,7 @@ class AdminOrdersControllerCore extends AdminController
                     $payment_module->validateOrder(
                         (int)$cart->id, (int)$id_order_state,
                         $cart->getOrderTotal(true, Cart::BOTH), $payment_module->displayName, $this->trans('Manual order -- Employee:', array(), 'Admin.Orderscustomers.Feature').' '.
-                        substr($employee->firstname, 0, 1).'. '.$employee->lastname, array(), null, false, $cart->secure_key
+                        $employee->firstname, array(), null, false, $cart->secure_key
                     );
                     if ($payment_module->currentOrder) {
                         Tools::redirectAdmin(self::$currentIndex.'&id_order='.$payment_module->currentOrder.'&vieworder'.'&token='.$this->token);
@@ -1599,7 +1599,7 @@ class AdminOrdersControllerCore extends AdminController
         parent::postProcess();
     }
 
-    public function renderKpis()
+    public function render123Kpis()
     {
         $time = time();
         $kpis = array();
@@ -1707,7 +1707,7 @@ class AdminOrdersControllerCore extends AdminController
         }
 
         $this->toolbar_title = $this->trans(
-            'Order #%id% (%ref%) - %firstname% %lastname%',
+            'Order #%id% (%ref%) - %firstname%',
             array(
                 '%id%' => $order->id,
                 '%ref%' => $order->reference,
