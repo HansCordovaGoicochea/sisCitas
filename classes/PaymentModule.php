@@ -619,29 +619,6 @@ abstract class PaymentModuleCore extends Module
                                 // If the voucher has conditions, they are now copied to the new voucher
                                 CartRule::copyConditions($cart_rule['obj']->id, $voucher->id);
                                 $orderLanguage = new Language((int) $order->id_lang);
-
-                                $params = array(
-                                    '{voucher_amount}' => Tools::displayPrice($voucher->reduction_amount, $this->context->currency, false),
-                                    '{voucher_num}' => $voucher->code,
-                                    '{firstname}' => $this->context->customer->firstname,
-                                    '{lastname}' => $this->context->customer->lastname,
-                                    '{id_order}' => $order->reference,
-                                    '{order_name}' => $order->getUniqReference()
-                                );
-                                Mail::Send(
-                                    (int)$order->id_lang,
-                                    'voucher',
-                                    Context::getContext()->getTranslator()->trans(
-                                        'New voucher for your order %s',
-                                        array($order->reference),
-                                        'Emails.Subject',
-                                        $orderLanguage->locale
-                                    ),
-                                    $params,
-                                    $this->context->customer->email,
-                                    $this->context->customer->firstname.' '.$this->context->customer->lastname,
-                                    null, null, null, null, _PS_MAIL_DIR_, false, (int)$order->id_shop
-                                );
                             }
 
                             $values['tax_incl'] = $order->total_products_wt - $total_reduction_value_ti;
@@ -738,14 +715,14 @@ abstract class PaymentModuleCore extends Module
                     $new_history->addWithemail(true, $extra_vars);
 
                     // Switch to back order if needed
-                    if (Configuration::get('PS_STOCK_MANAGEMENT') && 
-                            ($order_detail->getStockState() || 
-                            $order_detail->product_quantity_in_stock < 0)) {
-                        $history = new OrderHistory();
-                        $history->id_order = (int)$order->id;
-                        $history->changeIdOrderState(Configuration::get($order->valid ? 'PS_OS_OUTOFSTOCK_PAID' : 'PS_OS_OUTOFSTOCK_UNPAID'), $order, true);
-                        $history->addWithemail();
-                    }
+//                    if (Configuration::get('PS_STOCK_MANAGEMENT') &&
+//                            ($order_detail->getStockState() ||
+//                            $order_detail->product_quantity_in_stock < 0)) {
+//                        $history = new OrderHistory();
+//                        $history->id_order = (int)$order->id;
+//                        $history->changeIdOrderState(Configuration::get($order->valid ? 'PS_OS_OUTOFSTOCK_PAID' : 'PS_OS_OUTOFSTOCK_UNPAID'), $order, true);
+//                        $history->addWithemail();
+//                    }
 
                     unset($order_detail);
 
@@ -829,28 +806,6 @@ abstract class PaymentModuleCore extends Module
 
                         if (self::DEBUG_MODE) {
                             PrestaShopLogger::addLog('PaymentModule::validateOrder - Mail is about to be sent', 1, null, 'Cart', (int)$id_cart, true);
-                        }
-
-                        $orderLanguage = new Language((int) $order->id_lang);
-
-                        if (Validate::isEmail($this->context->customer->email)) {
-                            Mail::Send(
-                                (int)$order->id_lang,
-                                'order_conf',
-                                Context::getContext()->getTranslator()->trans(
-                                    'Order confirmation',
-                                    array(),
-                                    'Emails.Subject',
-                                    $orderLanguage->locale
-                                ),
-                                $data,
-                                $this->context->customer->email,
-                                $this->context->customer->firstname.' '.$this->context->customer->lastname,
-                                null,
-                                null,
-                                $file_attachement,
-                                null, _PS_MAIL_DIR_, false, (int)$order->id_shop
-                            );
                         }
                     }
 

@@ -757,26 +757,26 @@ class AdminOrdersControllerCore extends AdminController
                             $params['{id_order}'] = $order->id;
                             $params['{order_name}'] = $order->getUniqReference();
                             $orderLanguage = new Language((int) $order->id_lang);
-                            @Mail::Send(
-                                (int)$order->id_lang,
-                                'credit_slip',
-                                $this->trans(
-                                    'New credit slip regarding your order',
-                                    array(),
-                                    'Emails.Subject',
-                                    $orderLanguage->locale
-                                ),
-                                $params,
-                                $customer->email,
-                                $customer->firstname.' '.$customer->lastname,
-                                null,
-                                null,
-                                null,
-                                null,
-                                _PS_MAIL_DIR_,
-                                true,
-                                (int)$order->id_shop
-                            );
+//                            @Mail::Send(
+//                                (int)$order->id_lang,
+//                                'credit_slip',
+//                                $this->trans(
+//                                    'New credit slip regarding your order',
+//                                    array(),
+//                                    'Emails.Subject',
+//                                    $orderLanguage->locale
+//                                ),
+//                                $params,
+//                                $customer->email,
+//                                $customer->firstname.' '.$customer->lastname,
+//                                null,
+//                                null,
+//                                null,
+//                                null,
+//                                _PS_MAIL_DIR_,
+//                                true,
+//                                (int)$order->id_shop
+//                            );
                         }
 
                         foreach ($order_detail_list as &$product) {
@@ -835,26 +835,26 @@ class AdminOrdersControllerCore extends AdminController
                                     $params['{voucher_amount}'] = Tools::displayPrice($cart_rule->reduction_amount, $currency, false);
                                     $params['{voucher_num}'] = $cart_rule->code;
                                     $orderLanguage = new Language((int) $order->id_lang);
-                                    @Mail::Send(
-                                        (int)$order->id_lang,
-                                        'voucher',
-                                        $this->trans(
-                                            'New voucher for your order #%s',
-                                            array($order->reference),
-                                            'Emails.Subject',
-                                            $orderLanguage->locale
-                                        ),
-                                        $params,
-                                        $customer->email,
-                                        $customer->firstname.' '.$customer->lastname,
-                                        null,
-                                        null,
-                                        null,
-                                        null,
-                                        _PS_MAIL_DIR_,
-                                        true,
-                                        (int)$order->id_shop
-                                    );
+//                                    @Mail::Send(
+//                                        (int)$order->id_lang,
+//                                        'voucher',
+//                                        $this->trans(
+//                                            'New voucher for your order #%s',
+//                                            array($order->reference),
+//                                            'Emails.Subject',
+//                                            $orderLanguage->locale
+//                                        ),
+//                                        $params,
+//                                        $customer->email,
+//                                        $customer->firstname.' '.$customer->lastname,
+//                                        null,
+//                                        null,
+//                                        null,
+//                                        null,
+//                                        _PS_MAIL_DIR_,
+//                                        true,
+//                                        (int)$order->id_shop
+//                                    );
                                 }
                             }
                         }
@@ -1031,26 +1031,26 @@ class AdminOrdersControllerCore extends AdminController
                             } else {
                                 Hook::exec('actionOrderSlipAdd', array('order' => $order, 'productList' => $full_product_list, 'qtyList' => $full_quantity_list), null, false, true, false, $order->id_shop);
                                 $orderLanguage = new Language((int) $order->id_lang);
-                                @Mail::Send(
-                                    (int)$order->id_lang,
-                                    'credit_slip',
-                                    $this->trans(
-                                        'New credit slip regarding your order',
-                                        array(),
-                                        'Emails.Subject',
-                                        $orderLanguage->locale
-                                    ),
-                                    $params,
-                                    $customer->email,
-                                    $customer->firstname.' '.$customer->lastname,
-                                    null,
-                                    null,
-                                    null,
-                                    null,
-                                    _PS_MAIL_DIR_,
-                                    true,
-                                    (int)$order->id_shop
-                                );
+//                                @Mail::Send(
+//                                    (int)$order->id_lang,
+//                                    'credit_slip',
+//                                    $this->trans(
+//                                        'New credit slip regarding your order',
+//                                        array(),
+//                                        'Emails.Subject',
+//                                        $orderLanguage->locale
+//                                    ),
+//                                    $params,
+//                                    $customer->email,
+//                                    $customer->firstname.' '.$customer->lastname,
+//                                    null,
+//                                    null,
+//                                    null,
+//                                    null,
+//                                    _PS_MAIL_DIR_,
+//                                    true,
+//                                    (int)$order->id_shop
+//                                );
                             }
                         }
 
@@ -1112,26 +1112,26 @@ class AdminOrdersControllerCore extends AdminController
                                     $params['{voucher_amount}'] = Tools::displayPrice($cartrule->reduction_amount, $currency, false);
                                     $params['{voucher_num}'] = $cartrule->code;
                                     $orderLanguage = new Language((int) $order->id_lang);
-                                    @Mail::Send(
-                                        (int)$order->id_lang,
-                                        'voucher',
-                                        $this->trans(
-                                            'New voucher for your order #%s',
-                                            array($order->reference),
-                                            'Emails.Subject',
-                                            $orderLanguage->locale
-                                        ),
-                                        $params,
-                                        $customer->email,
-                                        $customer->firstname.' '.$customer->lastname,
-                                        null,
-                                        null,
-                                        null,
-                                        null,
-                                        _PS_MAIL_DIR_,
-                                        true,
-                                        (int)$order->id_shop
-                                    );
+//                                    @Mail::Send(
+//                                        (int)$order->id_lang,
+//                                        'voucher',
+//                                        $this->trans(
+//                                            'New voucher for your order #%s',
+//                                            array($order->reference),
+//                                            'Emails.Subject',
+//                                            $orderLanguage->locale
+//                                        ),
+//                                        $params,
+//                                        $customer->email,
+//                                        $customer->firstname.' '.$customer->lastname,
+//                                        null,
+//                                        null,
+//                                        null,
+//                                        null,
+//                                        _PS_MAIL_DIR_,
+//                                        true,
+//                                        (int)$order->id_shop
+//                                    );
                                 }
                             }
                         }

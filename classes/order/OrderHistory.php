@@ -132,54 +132,6 @@ class OrderHistoryCore extends ObjectModel
                         }
                     }
                 }
-
-                $customer = new Customer((int)$order->id_customer);
-
-                $links = '<ul>';
-                foreach ($assign as $product) {
-                    $links .= '<li>';
-                    $links .= '<a href="'.$product['link'].'">'.Tools::htmlentitiesUTF8($product['name']).'</a>';
-                    if (isset($product['deadline'])) {
-                        $links .= '&nbsp;'.$this->trans('expires on %s.', array($product['deadline']), 'Admin.Orderscustomers.Notification');
-                    }
-                    if (isset($product['downloadable'])) {
-                        $links .= '&nbsp;'.$this->trans('downloadable %d time(s)', array((int)$product['downloadable']), 'Admin.Orderscustomers.Notification');
-                    }
-                    $links .= '</li>';
-                }
-                $links .= '</ul>';
-                $data = array(
-                    '{lastname}' => $customer->lastname,
-                    '{firstname}' => $customer->firstname,
-                    '{id_order}' => (int)$order->id,
-                    '{order_name}' => $order->getUniqReference(),
-                    '{nbProducts}' => count($virtual_products),
-                    '{virtualProducts}' => $links
-                );
-                // If there is at least one downloadable file
-                if (!empty($assign)) {
-                    $orderLanguage = new Language((int) $order->id_lang);
-                    Mail::Send(
-                        (int)$order->id_lang,
-                        'download_product',
-                        Context::getContext()->getTranslator()->trans(
-                            'The virtual product that you bought is available for download',
-                            array(),
-                            'Emails.Subject',
-                            $orderLanguage->locale
-                        ),
-                        $data,
-                        $customer->email,
-                        $customer->firstname.' '.$customer->lastname,
-                        null,
-                        null,
-                        null,
-                        null,
-                        _PS_MAIL_DIR_,
-                        false,
-                        (int)$order->id_shop
-                    );
-                }
             }
 
             // @since 1.5.0 : gets the stock manager
@@ -453,9 +405,9 @@ class OrderHistoryCore extends ObjectModel
             return false;
         }
 
-        if (!$this->sendEmail($order, $template_vars)) {
-            return false;
-        }
+//        if (!$this->sendEmail($order, $template_vars)) {
+//            return false;
+//        }
 
         return true;
     }
@@ -518,23 +470,6 @@ class OrderHistoryCore extends ObjectModel
                     $file_attachement = null;
                 }
 
-                if (!Mail::Send(
-                    (int)$order->id_lang,
-                    $result['template'],
-                    $topic,
-                    $data,
-                    $result['email'],
-                    $result['firstname'].' '.$result['lastname'],
-                    null,
-                    null,
-                    $file_attachement,
-                    null,
-                    _PS_MAIL_DIR_,
-                    false,
-                    (int)$order->id_shop
-                )) {
-                    return false;
-                }
             }
 
             ShopUrl::resetMainDomainCache();

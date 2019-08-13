@@ -48,7 +48,8 @@ class SupplierDataProvider
      */
     public function getSuppliers($get_nb_products = false, $id_lang = 0, $active = true, $p = false, $n = false, $all_groups = false)
     {
-        return Supplier::getSuppliers($get_nb_products, $id_lang, $active, $p, $n, $all_groups);
+//        return Supplier::getSuppliers($get_nb_products, $id_lang, $active, $p, $n, $all_groups);
+        return [];
     }
 
     /**
