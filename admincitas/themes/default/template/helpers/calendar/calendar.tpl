@@ -69,28 +69,28 @@
 								<input class='date-input form-control' id='date-end' placeholder='End' type='text' name="date_to" value="{$date_to}" data-date-format="{$date_format}" tabindex="2" />
 							</div>
 						</div>
-						<div id="date-compare" class='form-date-group'>
-							<div class='form-date-heading'>
-								<span class="checkbox-title">
-									<label >
-										<input type='checkbox' id="datepicker-compare" name="datepicker_compare"{if isset($compare_date_from) && isset($compare_date_to)} checked="checked"{/if} tabindex="3">
-										{l s='Compare to'}
-									</label>
-								</span>
-								<select id="compare-options" class="form-control fixed-width-lg pull-right" name="compare_date_option"{if is_null($compare_date_from) || is_null($compare_date_to)} disabled="disabled"{/if}>
-									<option value="1" {if $compare_option == 1}selected="selected"{/if} label="{l s='Previous period'}">{l s='Previous period'}</option>
-									<option value="2" {if $compare_option == 2}selected="selected"{/if} label="{l s='Previous Year'}">{l s='Previous year'}</option>
-									<option value="3" {if $compare_option == 3}selected="selected"{/if} label="{l s='Custom'}">{l s='Custom'}</option>
-								</select>
-							</div>
-							<div class="form-date-body" id="form-date-body-compare"{if is_null($compare_date_from) || is_null($compare_date_to)} style="display: none;"{/if}>
-								<label>{l s='From'}</label>
-								<input id="date-start-compare" class="date-input form-control" type="text" placeholder="Start" name="compare_date_from" value="{$compare_date_from}" data-date-format="{$date_format}" tabindex="4" />
-								<label>{l s='to'}</label>
-								<input id="date-end-compare" class="date-input form-control" type="text" placeholder="End" name="compare_date_to" value="{$compare_date_to}" data-date-format="{$date_format}"
-								tabindex="5" />
-							</div>
-						</div>
+{*						<div id="date-compare" class='form-date-group'>*}
+{*							<div class='form-date-heading'>*}
+{*								<span class="checkbox-title">*}
+{*									<label >*}
+{*										<input type='checkbox' id="datepicker-compare" name="datepicker_compare"{if isset($compare_date_from) && isset($compare_date_to)} checked="checked"{/if} tabindex="3">*}
+{*										{l s='Compare to'}*}
+{*									</label>*}
+{*								</span>*}
+{*								<select id="compare-options" class="form-control fixed-width-lg pull-right" name="compare_date_option"{if is_null($compare_date_from) || is_null($compare_date_to)} disabled="disabled"{/if}>*}
+{*									<option value="1" {if $compare_option == 1}selected="selected"{/if} label="{l s='Previous period'}">{l s='Previous period'}</option>*}
+{*									<option value="2" {if $compare_option == 2}selected="selected"{/if} label="{l s='Previous Year'}">{l s='Previous year'}</option>*}
+{*									<option value="3" {if $compare_option == 3}selected="selected"{/if} label="{l s='Custom'}">{l s='Custom'}</option>*}
+{*								</select>*}
+{*							</div>*}
+{*							<div class="form-date-body" id="form-date-body-compare"{if is_null($compare_date_from) || is_null($compare_date_to)} style="display: none;"{/if}>*}
+{*								<label>{l s='From'}</label>*}
+{*								<input id="date-start-compare" class="date-input form-control" type="text" placeholder="Start" name="compare_date_from" value="{$compare_date_from}" data-date-format="{$date_format}" tabindex="4" />*}
+{*								<label>{l s='to'}</label>*}
+{*								<input id="date-end-compare" class="date-input form-control" type="text" placeholder="End" name="compare_date_to" value="{$compare_date_to}" data-date-format="{$date_format}"*}
+{*								tabindex="5" />*}
+{*							</div>*}
+{*						</div>*}
 						<div class='form-date-actions'>
 							<button class='btn btn-link' type='button' id="datepicker-cancel" tabindex="7">
 								<i class='icon-remove'></i>

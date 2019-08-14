@@ -28,7 +28,8 @@
 >
     {% for product in products %}
     {% block product_catalog_form_table_row %}
-    <tr data-uniturl="{{ product.unit_action_url|default('#') }}" data-product-id="{{ product.id_product }}">
+{#        {{ dump(product) }}#}
+    <tr data-uniturl="{{ product.unit_action_url|default('#') }}" data-product-id="{{ product.id_product }}" {% if product.sav_quantity <= product.low_stock_threshold %} style="background: #fde1e1" {% endif %}>
         <td class="checkbox-column form-group">
             <div class="md-checkbox md-checkbox-inline">
                 <label>
@@ -54,19 +55,57 @@
         <td>
             {{ product.name_category|default('') }}
         </td>
+        <td>
+            {{ product.name_manufacturer|default('') }}
+        </td>
         <td class="text-center">
-            <a href="{{ product.url|default('') }}#tab-step2">{{ product.price|default('N/A'|trans({}, 'Admin.Global')) }}</a>
+            <a href="{{ product.url|default('') }}#tab-step2">{{ product.price_final|default('N/A'|trans({}, 'Admin.Global')) }}</a>
         </td>
 
         {% if 'PS_STOCK_MANAGEMENT'|configuration %}
+            <style>
+                .badge.badge-danger{
+                    background-color: #fa0013;
+                    padding: 1px 5px;
+                    font-weight: normal;
+                    font-size: 1em;
+                    line-height: inherit;
+                    letter-spacing: .0625em;
+                    display: inline-block;
+                    min-width: 10px;
+                    color: #fff;
+                    vertical-align: baseline;
+                    white-space: nowrap;
+                    text-align: center;
+                    border-radius: 10px;
+                }
+                .product-sav-quantity .stock-warning.ico {
+                    border: 1px solid #c05c67;
+                    background: #ebcace;
+                    padding: 0 5px;
+                    cursor: pointer;
+                }
+
+                .product-sav-quantity .stock-warning {
+                    color: #c05c67;
+                    font-weight: 700;
+                }
+            </style>
             <td class="product-sav-quantity text-center" data-product-quantity-value="{{ product.sav_quantity|default('') }}">
-                <a href="{{ product.url|default('') }}#tab-step3">
+                <a href="{{ product.url|default('') }}#tab-step3" {% if product.sav_quantity <= product.low_stock_threshold %} class="badge badge-danger" {% endif %} >
                     {% if product.sav_quantity is defined and product.sav_quantity > 0 %}
-                        {{ product.sav_quantity }}
+                        {{ intCast(product.sav_quantity) }}
                     {% else %}
-                        {{ product.sav_quantity|default('N/A'|trans({}, 'Admin.Global')) }}
+                        {{ intCast(product.sav_quantity)|default('N/A'|trans({}, 'Admin.Global')) }}
                     {% endif %}
+
                 </a>
+                {% if product.sav_quantity <= product.low_stock_threshold %}
+                <span data-toggle="pstooltip" data-placement="top" data-html="true" title="" class="stock-warning ico ml-2" data-original-title="<div class=&quot;text-sm-left&quot;>
+                <p>Este producto se encuentra por debajo del nivel de stock más bajo que has definido.</p>
+                <p><strong>Nivel de stock bajo: {{ product.low_stock_threshold }}</strong></p>
+              </div>">!</span>
+                {% endif %}
             </td>
         {% else %}
             <td></td>

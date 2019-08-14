@@ -233,6 +233,7 @@ class AdminFilter
             'last_limit' => 20,
             'last_orderBy' => 'id_product',
             'last_sortOrder' => 'desc',
+            'filter_column_name_manufacturer' => '',
         );
     }
 
@@ -342,6 +343,7 @@ class AdminFilter
             'last_limit' => FILTER_SANITIZE_NUMBER_INT,
             'last_orderBy' => FILTER_SANITIZE_STRING,
             'last_sortOrder' => FILTER_SANITIZE_STRING,
+            'filter_column_name_manufacturer' => FILTER_SANITIZE_STRING,
         ));
     }
 }

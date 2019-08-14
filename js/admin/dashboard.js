@@ -300,7 +300,7 @@ $(document).ready( function () {
 	});
 
 	refreshDashboard(false, false);
-	getBlogRss();
+	// getBlogRss();
 	bindSubmitDashConfig();
 	bindCancelDashConfig();
 

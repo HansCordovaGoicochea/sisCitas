@@ -222,6 +222,8 @@ class AdminProductDataProvider extends AbstractAdminQueryBuilder implements Prod
             'nb_downloadable' => array('table' => 'pd', 'field' => 'nb_downloadable'),
             'sav_quantity' => array('table' => 'sav', 'field' => 'quantity', 'filtering' => ' %s '),
             'badge_danger' => array('select' => 'IF(sav.`quantity`<=0, 1, 0)', 'filtering' => 'IF(sav.`quantity`<=0, 1, 0) = %s'),
+            'name_manufacturer' => array('table' => 'm', 'field' => 'name', 'filtering' => self::FILTERING_LIKE_BOTH),
+            'low_stock_threshold' => array('table' => 'p', 'field' => 'low_stock_threshold'),
         );
         $sqlTable = array(
             'p' => 'product',
@@ -270,6 +272,11 @@ class AdminProductDataProvider extends AbstractAdminQueryBuilder implements Prod
                 'table' => 'product_download',
                 'join' => 'LEFT JOIN',
                 'on' => 'pd.`id_product` = p.`id_product`',
+            ),
+            'm' => array(
+                'table' => 'manufacturer',
+                'join' => 'LEFT JOIN',
+                'on' => 'm.`id_manufacturer` = p.`id_manufacturer`',
             ),
         );
         $sqlWhere = array('AND', 1);
