@@ -2300,15 +2300,15 @@ class AdminControllerCore extends Controller
             'addons_forgot_password_link' => '//addons.prestashop.com/'.$this->context->language->iso_code.'/forgot-your-password'
         ));
 
-        $this->modals[] = array(
-            'modal_id' => 'modal_addons_connect',
-            'modal_class' => 'modal-md',
-            'modal_title' => '<i class="icon-puzzle-piece"></i> <a target="_blank" href="https://addons.prestashop.com/'
-            .'?utm_source=back-office&utm_medium=modules'
-            .'&utm_campaign=back-office-'.Tools::strtoupper($this->context->language->iso_code)
-            .'&utm_content='.(defined('_PS_HOST_MODE_') ? 'cloud' : 'download').'">PrestaShop Addons</a>',
-            'modal_content' => $this->context->smarty->fetch('controllers/modules/login_addons.tpl'),
-        );
+//        $this->modals[] = array(
+//            'modal_id' => 'modal_addons_connect',
+//            'modal_class' => 'modal-md',
+//            'modal_title' => '<i class="icon-puzzle-piece"></i> <a target="_blank" href="https://addons.prestashop.com/'
+//            .'?utm_source=back-office&utm_medium=modules'
+//            .'&utm_campaign=back-office-'.Tools::strtoupper($this->context->language->iso_code)
+//            .'&utm_content='.(defined('_PS_HOST_MODE_') ? 'cloud' : 'download').'">PrestaShop Addons</a>',
+//            'modal_content' => $this->context->smarty->fetch('controllers/modules/login_addons.tpl'),
+//        );
     }
 
     /**

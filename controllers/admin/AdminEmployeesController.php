@@ -91,33 +91,33 @@ class AdminEmployeesControllerCore extends AdminController
                 'type' => 'bool', 'class' => 'fixed-width-sm'),
         );
 
-        $this->fields_options = array(
-            'general' => array(
-                'title' =>    $this->trans('Employee options', array(), 'Admin.Advparameters.Feature'),
-                'fields' =>    array(
-                    'PS_PASSWD_TIME_BACK' => array(
-                        'title' => $this->trans('Password regeneration', array(), 'Admin.Advparameters.Feature'),
-                        'hint' => $this->trans('Security: Minimum time to wait between two password changes.', array(), 'Admin.Advparameters.Feature'),
-                        'cast' => 'intval',
-                        'type' => 'text',
-                        'suffix' => ' '.$this->trans('minutes', array(), 'Admin.Advparameters.Feature'),
-                        'visibility' => Shop::CONTEXT_ALL
-                    ),
-                    'PS_BO_ALLOW_EMPLOYEE_FORM_LANG' => array(
-                        'title' => $this->trans('Memorize the language used in Admin panel forms', array(), 'Admin.Advparameters.Feature'),
-                        'hint' => $this->trans('Allow employees to select a specific language for the Admin panel form.', array(), 'Admin.Advparameters.Feature'),
-                        'cast' => 'intval',
-                        'type' => 'select',
-                        'identifier' => 'value',
-                        'list' => array(
-                            '0' => array('value' => 0, 'name' => $this->trans('No', array(), 'Admin.Global')),
-                            '1' => array('value' => 1, 'name' => $this->trans('Yes', array(), 'Admin.Global')
-                            )
-                        ), 'visibility' => Shop::CONTEXT_ALL)
-                ),
-                'submit' => array('title' => $this->trans('Save', array(), 'Admin.Actions'))
-            )
-        );
+//        $this->fields_options = array(
+//            'general' => array(
+//                'title' =>    $this->trans('Employee options', array(), 'Admin.Advparameters.Feature'),
+//                'fields' =>    array(
+//                    'PS_PASSWD_TIME_BACK' => array(
+//                        'title' => $this->trans('Password regeneration', array(), 'Admin.Advparameters.Feature'),
+//                        'hint' => $this->trans('Security: Minimum time to wait between two password changes.', array(), 'Admin.Advparameters.Feature'),
+//                        'cast' => 'intval',
+//                        'type' => 'text',
+//                        'suffix' => ' '.$this->trans('minutes', array(), 'Admin.Advparameters.Feature'),
+//                        'visibility' => Shop::CONTEXT_ALL
+//                    ),
+//                    'PS_BO_ALLOW_EMPLOYEE_FORM_LANG' => array(
+//                        'title' => $this->trans('Memorize the language used in Admin panel forms', array(), 'Admin.Advparameters.Feature'),
+//                        'hint' => $this->trans('Allow employees to select a specific language for the Admin panel form.', array(), 'Admin.Advparameters.Feature'),
+//                        'cast' => 'intval',
+//                        'type' => 'select',
+//                        'identifier' => 'value',
+//                        'list' => array(
+//                            '0' => array('value' => 0, 'name' => $this->trans('No', array(), 'Admin.Global')),
+//                            '1' => array('value' => 1, 'name' => $this->trans('Yes', array(), 'Admin.Global')
+//                            )
+//                        ), 'visibility' => Shop::CONTEXT_ALL)
+//                ),
+//                'submit' => array('title' => $this->trans('Save', array(), 'Admin.Actions'))
+//            )
+//        );
 
         $home_tab = Tab::getInstanceFromClassName('AdminDashboard', $this->context->language->id);
         $this->tabs_list[$home_tab->id] = array(

@@ -113,7 +113,7 @@
 			<i class="material-icons js-mobile-menu">menu</i>
 
 			{* Logo *}
-			<a id="header_logo" href="{$default_tab_link|escape:'html':'UTF-8'}"></a>
+{*			<a id="header_logo" href="{$default_tab_link|escape:'html':'UTF-8'}"></a>*}
 {*			<span id="shop_version">{$ps_version}</span>*}
 
 			{* Quick access *}
@@ -227,7 +227,7 @@
 			{/if}
 
 			{* Shop name *}
-			{if {$base_url}}
+			{if {$base_url} && 1==2}
 				<ul id="header-list" class="header-list">
 					<li class="shopname" data-mobile="true" data-from="header-list" data-target="menu">
 						{if isset($is_multishop) && $is_multishop && $shop_list &&

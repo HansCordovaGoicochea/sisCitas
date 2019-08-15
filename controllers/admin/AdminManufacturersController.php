@@ -268,7 +268,7 @@ class AdminManufacturersControllerCore extends AdminController
     public function renderList()
     {
         $this->initListManufacturer();
-        $this->initListManufacturerAddresses();
+//        $this->initListManufacturerAddresses();
     }
 
     /**

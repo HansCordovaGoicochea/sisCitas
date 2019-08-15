@@ -604,8 +604,8 @@ class EmployeeCore extends ObjectModel
         if (!Validate::isLoadedObject($this)) {
             return Tools::getAdminImageUrl('prestashop-avatar.png');
         }
-
-        return Tools::getShopProtocol().'profile.prestashop.com/'.urlencode($this->email).'.jpg';
+        return Tools::getAdminImageUrl('admin@admin.com.jpg');
+//        return Tools::getShopProtocol().'profile.prestashop.com/'.urlencode($this->email).'.jpg';
     }
 
     /**
