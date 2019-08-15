@@ -25,10 +25,11 @@
 
 {extends file="helpers/list/list_header.tpl"}
 {block name='override_header'}
+{*	{d(Tools::getAllValues())}*}
 {if $submit_form_ajax}
 	<script type="text/javascript">
-		$('#customer', window.parent.document).val('{$new_customer->email|escape:'html':'UTF-8'}');
-		parent.setupCustomer({$new_customer->id|intval});
+		{*$('#customer', window.parent.document).val('{$new_customer->email|escape:'html':'UTF-8'}');*}
+		{*parent.setupCustomer({$new_customer->id|intval});*}
 		parent.$.fancybox.close();
 	</script>
 {/if}

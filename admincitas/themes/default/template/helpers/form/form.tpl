@@ -30,12 +30,13 @@
 	var unique_field_id = '';
 </script>
 {/if}
+{block name="before"}{/block}
 {block name="defaultForm"}
 {if isset($identifier_bk) && $identifier_bk == $identifier}{capture name='identifier_count'}{counter name='identifier_count'}{/capture}{/if}
 {assign var='identifier_bk' value=$identifier scope='parent'}
 {if isset($table_bk) && $table_bk == $table}{capture name='table_count'}{counter name='table_count'}{/capture}{/if}
 {assign var='table_bk' value=$table scope='parent'}
-<form id="{if isset($fields.form.form.id_form)}{$fields.form.form.id_form|escape:'html':'UTF-8'}{else}{if $table == null}configuration_form{else}{$table}_form{/if}{if isset($smarty.capture.table_count) && $smarty.capture.table_count}_{$smarty.capture.table_count|intval}{/if}{/if}" class="defaultForm form-horizontal{if isset($name_controller) && $name_controller} {$name_controller}{/if}"{if isset($current) && $current} action="{$current|escape:'html':'UTF-8'}{if isset($token) && $token}&amp;token={$token|escape:'html':'UTF-8'}{/if}"{/if} method="post" enctype="multipart/form-data"{if isset($style)} style="{$style}"{/if} novalidate>
+<form id="{if isset($fields.form.form.id_form)}{$fields.form.form.id_form|escape:'html':'UTF-8'}{else}{if $table == null}configuration_form{else}{$table}_form{/if}{if isset($smarty.capture.table_count) && $smarty.capture.table_count}_{$smarty.capture.table_count|intval}{/if}{/if}" class="defaultForm form-horizontal {if isset($name_controller) && $name_controller} {$name_controller}{/if}"{if isset($current) && $current} action="{$current|escape:'html':'UTF-8'}{if isset($token) && $token}&amp;token={$token|escape:'html':'UTF-8'}{/if}"{/if} method="post" enctype="multipart/form-data"{if isset($style)} style="{$style}"{/if} novalidate>
 	{if $form_id}
 		<input type="hidden" name="{$identifier}" id="{$identifier}{if isset($smarty.capture.identifier_count) && $smarty.capture.identifier_count}_{$smarty.capture.identifier_count|intval}{/if}" value="{$form_id}" />
 	{/if}
@@ -245,7 +246,7 @@
 								{elseif $input.type == 'textbutton'}
 									{assign var='value_text' value=$fields_value[$input.name]}
 									<div class="row">
-										<div class="col-lg-9">
+										<div class="col-lg-9 col-xs-9">
 										{if isset($input.maxchar)}
 										<div class="input-group">
 											<span id="{if isset($input.id)}{$input.id}{else}{$input.name}{/if}_counter" class="input-group-addon">
@@ -270,14 +271,14 @@
 										</div>
 										{/if}
 										</div>
-										<div class="col-lg-2">
+										<div class="col-lg-2 col-xs-2">
 											<button type="button" class="btn btn-default{if isset($input.button.attributes['class'])} {$input.button.attributes['class']}{/if}{if isset($input.button.class)} {$input.button.class}{/if}"
 												{foreach from=$input.button.attributes key=name item=value}
 													{if $name|lower != 'class'}
 													 {$name|escape:'html':'UTF-8'}="{$value|escape:'html':'UTF-8'}"
 													{/if}
 												{/foreach} >
-												{$input.button.label}
+												{$input.button.label|unescape}
 											</button>
 										</div>
 									</div>
@@ -378,6 +379,9 @@
 																	selected="selected"
 																{/if}
 															{/if}
+
+															{if isset($input.options.data)} data-{$option->$input.data.name}="{$option->$input.data.value}"{/if}
+
 														>{$option->$input.options.name}</option>
 													{elseif $option == "-"}
 														<option value="">-</option>
@@ -394,6 +398,9 @@
 																	selected="selected"
 																{/if}
 															{/if}
+
+															{if isset($input.options.data)} data-{$input.options.data.name}="{$option[$input.options.data.value]}"{/if}
+
 														>{$option[$input.options.name]}</option>
 
 													{/if}
@@ -679,7 +686,7 @@
 											id="{if isset($input.id)}{$input.id}{else}{$input.name}{/if}"
 											name="{$input.name}"
 											class="{if isset($input.class)}{$input.class}{/if}"
-											value=""
+											value="{$fields_value[$input.name]|escape:'html':'UTF-8'}"
 											{if isset($input.autocomplete) && !$input.autocomplete}autocomplete="off"{/if}
 											{if isset($input.required) && $input.required } required="required" {/if} />
 									</div>
@@ -780,6 +787,14 @@
 									</div>
 								{elseif $input.type == 'free'}
 									{$fields_value[$input.name]}
+								{elseif $input.type == 'numeric'}
+									<div class="{$input.clase_form}">
+										<input class="form-control" type="number" id="{$input.name}"  name="{$input.name}" min="0" max="15" step="0.01" value="{$fields_value[$input.name]|escape:'html':'UTF-8'}" />
+									</div>
+								{elseif $input.type == 'number'}
+									<div class="{$input.clase_form}">
+										<input class="form-control" type="number" id="{$input.name}"  name="{$input.name}" min="0"  step="1" value="{$fields_value[$input.name]|escape:'html':'UTF-8'}" />
+									</div>
 								{elseif $input.type == 'html'}
 									{if isset($input.html_content)}
 										{$input.html_content}

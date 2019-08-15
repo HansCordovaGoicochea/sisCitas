@@ -69,6 +69,7 @@ class PhpEncryption extends PhpEncryptionCore {};
 class PhpEncryptionEngine extends PhpEncryptionEngineCore {};
 class PhpEncryptionLegacyEngine extends PhpEncryptionLegacyEngineCore {};
 class PosArqueoscaja extends PosArqueoscajaCore {};
+class PosOrdercomprobantes extends PosOrdercomprobantesCore {};
 class PrestaShopBackup extends PrestaShopBackupCore {};
 class PrestaShopCollection extends PrestaShopCollectionCore {};
 class PrestaShopLogger extends PrestaShopLoggerCore {};

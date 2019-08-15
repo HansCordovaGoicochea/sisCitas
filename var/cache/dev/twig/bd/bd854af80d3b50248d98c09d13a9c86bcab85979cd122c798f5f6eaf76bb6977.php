@@ -158,7 +158,7 @@ class __TwigTemplate_c6a7193db93a7735e14c9d9a09d1da4b2f35bf4b2e59d4ed6d6a1050c04
         echo "
                 </a>
               </div>
-              <div class=\"col-md-12 pt-1\">
+              <div class=\"col-md-12 pt-1 hide\">
                 ";
         // line 91
         echo $this->env->getRuntime('Symfony\Component\Form\FormRenderer')->searchAndRenderBlock($this->getAttribute((isset($context["pricingForm"]) ? $context["pricingForm"] : $this->getContext($context, "pricingForm")), "on_sale", array()), 'widget');
@@ -181,38 +181,9 @@ class __TwigTemplate_c6a7193db93a7735e14c9d9a09d1da4b2f35bf4b2e59d4ed6d6a1050c04
             </div>
           </div>
 
-          <div class=\"col-md-12\">
-            <div class=\"row mb-3\">
-              <div class=\"col-md-12\">
-                <h2>
-                  ";
-        // line 111
-        echo twig_escape_filter($this->env, $this->env->getExtension('Symfony\Bridge\Twig\Extension\TranslationExtension')->trans("Cost price", array(), "Admin.Catalog.Feature"), "html", null, true);
+";
+        // line 123
         echo "
-                  <span class=\"help-box\" data-toggle=\"popover\"
-                    data-content=\"";
-        // line 113
-        echo twig_escape_filter($this->env, $this->env->getExtension('Symfony\Bridge\Twig\Extension\TranslationExtension')->trans("The cost price is the price you paid for the product. Do not include the tax. It should be lower than the retail price: the difference between the two will be your margin.", array(), "Admin.Catalog.Help"), "html", null, true);
-        echo "\" ></span>
-                </h2>
-              </div>
-              <div class=\"col-xl-2 col-lg-3 form-group\">
-                <label class=\"form-control-label\">";
-        // line 117
-        echo $this->getAttribute($this->getAttribute($this->getAttribute((isset($context["pricingForm"]) ? $context["pricingForm"] : $this->getContext($context, "pricingForm")), "wholesale_price", array()), "vars", array()), "label", array());
-        echo "</label>
-                ";
-        // line 118
-        echo $this->env->getRuntime('Symfony\Component\Form\FormRenderer')->searchAndRenderBlock($this->getAttribute((isset($context["pricingForm"]) ? $context["pricingForm"] : $this->getContext($context, "pricingForm")), "wholesale_price", array()), 'errors');
-        echo "
-                ";
-        // line 119
-        echo $this->env->getRuntime('Symfony\Component\Form\FormRenderer')->searchAndRenderBlock($this->getAttribute((isset($context["pricingForm"]) ? $context["pricingForm"] : $this->getContext($context, "pricingForm")), "wholesale_price", array()), 'widget');
-        echo "
-              </div>
-            </div>
-          </div>
-
           <div class=\"col-md-12\">
             <div class=\"row mb-3\">
               <div class=\"col-md-12\">
@@ -414,7 +385,7 @@ class __TwigTemplate_c6a7193db93a7735e14c9d9a09d1da4b2f35bf4b2e59d4ed6d6a1050c04
 
     public function getDebugInfo()
     {
-        return array (  388 => 208,  380 => 203,  373 => 199,  369 => 198,  360 => 192,  356 => 191,  347 => 185,  343 => 184,  334 => 178,  330 => 177,  326 => 176,  318 => 171,  313 => 169,  300 => 159,  296 => 158,  286 => 151,  282 => 150,  278 => 149,  274 => 148,  270 => 147,  266 => 146,  262 => 145,  258 => 144,  254 => 143,  250 => 142,  242 => 139,  237 => 137,  227 => 130,  222 => 128,  210 => 119,  206 => 118,  202 => 117,  195 => 113,  190 => 111,  174 => 98,  164 => 91,  157 => 87,  153 => 86,  146 => 82,  142 => 81,  138 => 80,  127 => 72,  123 => 71,  119 => 70,  113 => 69,  106 => 65,  102 => 64,  96 => 61,  92 => 60,  85 => 56,  80 => 54,  72 => 49,  68 => 48,  64 => 47,  58 => 44,  54 => 43,  50 => 42,  39 => 34,  34 => 32,  25 => 25,);
+        return array (  359 => 208,  351 => 203,  344 => 199,  340 => 198,  331 => 192,  327 => 191,  318 => 185,  314 => 184,  305 => 178,  301 => 177,  297 => 176,  289 => 171,  284 => 169,  271 => 159,  267 => 158,  257 => 151,  253 => 150,  249 => 149,  245 => 148,  241 => 147,  237 => 146,  233 => 145,  229 => 144,  225 => 143,  221 => 142,  213 => 139,  208 => 137,  198 => 130,  193 => 128,  186 => 123,  174 => 98,  164 => 91,  157 => 87,  153 => 86,  146 => 82,  142 => 81,  138 => 80,  127 => 72,  123 => 71,  119 => 70,  113 => 69,  106 => 65,  102 => 64,  96 => 61,  92 => 60,  85 => 56,  80 => 54,  72 => 49,  68 => 48,  64 => 47,  58 => 44,  54 => 43,  50 => 42,  39 => 34,  34 => 32,  25 => 25,);
     }
 
     /** @deprecated since 1.27 (to be removed in 2.0). Use getSourceContext() instead */
@@ -516,7 +487,7 @@ class __TwigTemplate_c6a7193db93a7735e14c9d9a09d1da4b2f35bf4b2e59d4ed6d6a1050c04
                   {{ 'Manage tax rules'|trans({}, 'Admin.Catalog.Feature') }}
                 </a>
               </div>
-              <div class=\"col-md-12 pt-1\">
+              <div class=\"col-md-12 pt-1 hide\">
                 {{ form_widget(pricingForm.on_sale) }}
               </div>
               <div class=\"col-md-12\">
@@ -533,22 +504,22 @@ class __TwigTemplate_c6a7193db93a7735e14c9d9a09d1da4b2f35bf4b2e59d4ed6d6a1050c04
             </div>
           </div>
 
-          <div class=\"col-md-12\">
-            <div class=\"row mb-3\">
-              <div class=\"col-md-12\">
-                <h2>
-                  {{ 'Cost price'|trans({}, 'Admin.Catalog.Feature') }}
-                  <span class=\"help-box\" data-toggle=\"popover\"
-                    data-content=\"{{ \"The cost price is the price you paid for the product. Do not include the tax. It should be lower than the retail price: the difference between the two will be your margin.\"|trans({}, 'Admin.Catalog.Help') }}\" ></span>
-                </h2>
-              </div>
-              <div class=\"col-xl-2 col-lg-3 form-group\">
-                <label class=\"form-control-label\">{{ pricingForm.wholesale_price.vars.label|raw }}</label>
-                {{ form_errors(pricingForm.wholesale_price) }}
-                {{ form_widget(pricingForm.wholesale_price) }}
-              </div>
-            </div>
-          </div>
+{#          <div class=\"col-md-12\">#}
+{#            <div class=\"row mb-3\">#}
+{#              <div class=\"col-md-12\">#}
+{#                <h2>#}
+{#                  {{ 'Cost price'|trans({}, 'Admin.Catalog.Feature') }}#}
+{#                  <span class=\"help-box\" data-toggle=\"popover\"#}
+{#                    data-content=\"{{ \"The cost price is the price you paid for the product. Do not include the tax. It should be lower than the retail price: the difference between the two will be your margin.\"|trans({}, 'Admin.Catalog.Help') }}\" ></span>#}
+{#                </h2>#}
+{#              </div>#}
+{#              <div class=\"col-xl-2 col-lg-3 form-group\">#}
+{#                <label class=\"form-control-label\">{{ pricingForm.wholesale_price.vars.label|raw }}</label>#}
+{#                {{ form_errors(pricingForm.wholesale_price) }}#}
+{#                {{ form_widget(pricingForm.wholesale_price) }}#}
+{#              </div>#}
+{#            </div>#}
+{#          </div>#}
 
           <div class=\"col-md-12\">
             <div class=\"row mb-3\">

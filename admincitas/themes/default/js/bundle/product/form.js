@@ -318,6 +318,9 @@ var formCategory = (function() {
         };
         productCategoriesTags.createTag(tag);
 
+        var categoriesForm = $('#form_step1_categories');
+        categoriesForm.find('input[value="' + response.category.id + '"].default-category').prop('checked', true);
+
         //hide the form
         form.hideBlock();
       },

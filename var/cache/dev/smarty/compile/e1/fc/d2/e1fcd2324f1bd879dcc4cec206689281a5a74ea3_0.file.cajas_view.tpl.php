@@ -1,11 +1,11 @@
 <?php
-/* Smarty version 3.1.33, created on 2019-08-13 16:46:06
+/* Smarty version 3.1.33, created on 2019-08-14 20:03:18
   from 'C:\xampp\htdocs\siscitas\admincitas\themes\default\template\cajas_view.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '3.1.33',
-  'unifunc' => 'content_5d532f9e050a64_31282364',
+  'unifunc' => 'content_5d54af5603f8f4_97646355',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_5d532f9e050a64_31282364 (Smarty_Internal_Template $_smarty_tpl) {
+function content_5d54af5603f8f4_97646355 (Smarty_Internal_Template $_smarty_tpl) {
 ?><style>
 	.bo_search_form #toolbar_caja_dolares, #toolbar_caja_soles {
 		border-top-left-radius: 0;

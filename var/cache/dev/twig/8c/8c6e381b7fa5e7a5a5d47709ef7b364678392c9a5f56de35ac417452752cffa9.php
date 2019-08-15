@@ -59,54 +59,15 @@ class __TwigTemplate_da99487c4eeb5ff263b7080e301562c7a783b42a004295a490977726e6e
           <span class=\"help-box pull-xs-right\" data-toggle=\"popover\"
             data-content=\"";
         // line 43
-        echo twig_escape_filter($this->env, $this->env->getExtension('Symfony\Bridge\Twig\Extension\TranslationExtension')->trans("Is the product a pack (a combination of at least two existing products), a virtual product (downloadable file, service, etc.), or simply a standard, physical product?", array(), "Admin.Catalog.Help"), "html", null, true);
+        echo twig_escape_filter($this->env, $this->env->getExtension('Symfony\Bridge\Twig\Extension\TranslationExtension')->trans("¿Es tu producto  servicio o simplemente un producto físico estándar?", array(), "Admin.Catalog.Help"), "html", null, true);
         echo "\"></span>
         </div>
-        <div class=\"col-sm-2 col-md-1 form_switch_language\">
-          <div class=\"";
-        // line 46
-        echo (((twig_length_filter($this->env, (isset($context["languages"]) ? $context["languages"] : $this->getContext($context, "languages"))) == 1)) ? ("hide") : (""));
-        echo "\">
-            <select id=\"form_switch_language\" class=\"custom-select\">
-              ";
-        // line 48
-        $context['_parent'] = $context;
-        $context['_seq'] = twig_ensure_traversable((isset($context["languages"]) ? $context["languages"] : $this->getContext($context, "languages")));
-        foreach ($context['_seq'] as $context["_key"] => $context["language"]) {
-            // line 49
-            echo "                <option value=\"";
-            echo twig_escape_filter($this->env, $this->getAttribute($context["language"], "iso_code", array()), "html", null, true);
-            echo "\" ";
-            if (((isset($context["default_language_iso"]) ? $context["default_language_iso"] : $this->getContext($context, "default_language_iso")) == $this->getAttribute($context["language"], "iso_code", array()))) {
-                echo "selected=\"selected\"";
-            }
-            echo ">";
-            echo twig_escape_filter($this->env, $this->getAttribute($context["language"], "iso_code", array()), "html", null, true);
-            echo "</option>
-              ";
-        }
-        $_parent = $context['_parent'];
-        unset($context['_seq'], $context['_iterated'], $context['_key'], $context['language'], $context['_parent'], $context['loop']);
-        $context = array_intersect_key($context, $_parent) + $_parent;
-        // line 51
-        echo "            </select>
-          </div>
-        </div>
-        <div class=\"toolbar col-sm-3 col-md-2 text-md-right\">
-          <a class=\"toolbar-button btn-sales\" href=\"";
-        // line 55
-        echo twig_escape_filter($this->env, (isset($context["stats_link"]) ? $context["stats_link"] : $this->getContext($context, "stats_link")), "html", null, true);
-        echo "\" target=\"_blank\" title=\"";
-        echo twig_escape_filter($this->env, $this->env->getExtension('Symfony\Bridge\Twig\Extension\TranslationExtension')->trans("Sales", array(), "Admin.Global"), "html", null, true);
-        echo "\"
-            id=\"product_form_go_to_sales\">
-            <i class=\"material-icons\">assessment</i>
-            <span class=\"title\">";
-        // line 58
-        echo twig_escape_filter($this->env, $this->env->getExtension('Symfony\Bridge\Twig\Extension\TranslationExtension')->trans("Sales", array(), "Admin.Global"), "html", null, true);
-        echo "</span>
-          </a>
-
+";
+        // line 54
+        echo "        <div class=\"toolbar col-sm-3 col-md-2 text-md-right\">
+";
+        // line 60
+        echo "
           <a
             class=\"toolbar-button btn-quicknav btn-sidebar\"
             href=\"#\"
@@ -129,35 +90,16 @@ class __TwigTemplate_da99487c4eeb5ff263b7080e301562c7a783b42a004295a490977726e6e
         echo "</span>
           </a>
 
-          <a class=\"toolbar-button btn-help btn-sidebar\" href=\"#\"
-            title=\"";
-        // line 75
-        echo twig_escape_filter($this->env, $this->env->getExtension('Symfony\Bridge\Twig\Extension\TranslationExtension')->trans("Help", array(), "Admin.Global"), "html", null, true);
-        echo "\"
-            data-toggle=\"sidebar\"
-            data-target=\"#right-sidebar\"
-            data-url=\"";
-        // line 78
-        echo twig_escape_filter($this->env, (isset($context["help_link"]) ? $context["help_link"] : $this->getContext($context, "help_link")), "html", null, true);
-        echo "\"
-            id=\"product_form_open_help\"
-          >
-            <i class=\"material-icons\">help</i>
-            <span class=\"title\">";
-        // line 82
-        echo twig_escape_filter($this->env, $this->env->getExtension('Symfony\Bridge\Twig\Extension\TranslationExtension')->trans("Help", array(), "Admin.Global"), "html", null, true);
-        echo "</span>
-          </a>
         </div>
       </div>
       <div class=\"row\">
         <div class=\"col-lg-12\">
           ";
-        // line 88
+        // line 78
         echo $this->env->getRuntime('Symfony\Component\Form\FormRenderer')->searchAndRenderBlock((isset($context["formName"]) ? $context["formName"] : $this->getContext($context, "formName")), 'errors');
         echo "
           ";
-        // line 89
+        // line 79
         echo $this->env->getRuntime('Symfony\Component\Form\FormRenderer')->searchAndRenderBlock((isset($context["formType"]) ? $context["formType"] : $this->getContext($context, "formType")), 'errors');
         echo "
         </div>
@@ -186,7 +128,7 @@ class __TwigTemplate_da99487c4eeb5ff263b7080e301562c7a783b42a004295a490977726e6e
 
     public function getDebugInfo()
     {
-        return array (  161 => 89,  157 => 88,  148 => 82,  141 => 78,  135 => 75,  128 => 71,  121 => 67,  115 => 64,  106 => 58,  98 => 55,  92 => 51,  77 => 49,  73 => 48,  68 => 46,  62 => 43,  57 => 41,  51 => 38,  47 => 37,  42 => 34,  35 => 30,  31 => 28,  29 => 27,  25 => 25,);
+        return array (  103 => 79,  99 => 78,  89 => 71,  82 => 67,  76 => 64,  70 => 60,  67 => 54,  62 => 43,  57 => 41,  51 => 38,  47 => 37,  42 => 34,  35 => 30,  31 => 28,  29 => 27,  25 => 25,);
     }
 
     /** @deprecated since 1.27 (to be removed in 2.0). Use getSourceContext() instead */
@@ -241,23 +183,23 @@ class __TwigTemplate_da99487c4eeb5ff263b7080e301562c7a783b42a004295a490977726e6e
         <div class=\"col-sm-7 col-md-2 form_step1_type_product\">
           {{ form_widget(formType) }}
           <span class=\"help-box pull-xs-right\" data-toggle=\"popover\"
-            data-content=\"{{ \"Is the product a pack (a combination of at least two existing products), a virtual product (downloadable file, service, etc.), or simply a standard, physical product?\"|trans({}, 'Admin.Catalog.Help') }}\"></span>
+            data-content=\"{{ \"¿Es tu producto  servicio o simplemente un producto físico estándar?\"|trans({}, 'Admin.Catalog.Help') }}\"></span>
         </div>
-        <div class=\"col-sm-2 col-md-1 form_switch_language\">
-          <div class=\"{{ languages|length == 1 ? 'hide' : '' }}\">
-            <select id=\"form_switch_language\" class=\"custom-select\">
-              {% for language in languages %}
-                <option value=\"{{ language.iso_code }}\" {% if default_language_iso == language.iso_code %}selected=\"selected\"{% endif %}>{{ language.iso_code }}</option>
-              {% endfor %}
-            </select>
-          </div>
-        </div>
+{#        <div class=\"col-sm-2 col-md-1 form_switch_language\">#}
+{#          <div class=\"{{ languages|length == 1 ? 'hide' : '' }}\">#}
+{#            <select id=\"form_switch_language\" class=\"custom-select\">#}
+{#              {% for language in languages %}#}
+{#                <option value=\"{{ language.iso_code }}\" {% if default_language_iso == language.iso_code %}selected=\"selected\"{% endif %}>{{ language.iso_code }}</option>#}
+{#              {% endfor %}#}
+{#            </select>#}
+{#          </div>#}
+{#        </div>#}
         <div class=\"toolbar col-sm-3 col-md-2 text-md-right\">
-          <a class=\"toolbar-button btn-sales\" href=\"{{ stats_link }}\" target=\"_blank\" title=\"{{ 'Sales'|trans({}, 'Admin.Global') }}\"
-            id=\"product_form_go_to_sales\">
-            <i class=\"material-icons\">assessment</i>
-            <span class=\"title\">{{ 'Sales'|trans({}, 'Admin.Global') }}</span>
-          </a>
+{#          <a class=\"toolbar-button btn-sales\" href=\"{{ stats_link }}\" target=\"_blank\" title=\"{{ 'Sales'|trans({}, 'Admin.Global') }}\"#}
+{#            id=\"product_form_go_to_sales\">#}
+{#            <i class=\"material-icons\">assessment</i>#}
+{#            <span class=\"title\">{{ 'Sales'|trans({}, 'Admin.Global') }}</span>#}
+{#          </a>#}
 
           <a
             class=\"toolbar-button btn-quicknav btn-sidebar\"
@@ -272,16 +214,6 @@ class __TwigTemplate_da99487c4eeb5ff263b7080e301562c7a783b42a004295a490977726e6e
             <span class=\"title\">{{ 'Product list'|trans({}, 'Admin.Catalog.Feature') }}</span>
           </a>
 
-          <a class=\"toolbar-button btn-help btn-sidebar\" href=\"#\"
-            title=\"{{ 'Help'|trans({}, 'Admin.Global') }}\"
-            data-toggle=\"sidebar\"
-            data-target=\"#right-sidebar\"
-            data-url=\"{{ help_link }}\"
-            id=\"product_form_open_help\"
-          >
-            <i class=\"material-icons\">help</i>
-            <span class=\"title\">{{ 'Help'|trans({}, 'Admin.Global') }}</span>
-          </a>
         </div>
       </div>
       <div class=\"row\">

@@ -25,6 +25,7 @@
  */
 namespace PrestaShopBundle\Form\Admin\Product;
 
+use Pack;
 use PrestaShopBundle\Form\Admin\Category\SimpleCategory;
 use PrestaShopBundle\Form\Admin\Type\ChoiceCategoriesTreeType;
 use PrestaShopBundle\Form\Admin\Type\CommonAbstractType;
@@ -131,9 +132,9 @@ class ProductInformation extends CommonAbstractType
         $is_stock_management = $this->configuration->get('PS_STOCK_MANAGEMENT');
         $builder->add('type_product', FormType\ChoiceType::class, array(
             'choices'  => array(
-                $this->translator->trans('Standard product', [], 'Admin.Catalog.Feature') => 0,
-                $this->translator->trans('Pack of products', [], 'Admin.Catalog.Feature') => 1,
-                $this->translator->trans('Virtual product', [], 'Admin.Catalog.Feature') => 2,
+                $this->translator->trans('Producto', [], 'Admin.Catalog.Feature') => 0,
+//                $this->translator->trans('Pack of products', [], 'Admin.Catalog.Feature') => 1,
+                $this->translator->trans('Servicio', [], 'Admin.Catalog.Feature') => 2,
             ),
             'attr' => array(
                 'class' => 'custom-select',
@@ -141,6 +142,37 @@ class ProductInformation extends CommonAbstractType
             'label' =>  $this->translator->trans('Type', [], 'Admin.Catalog.Feature'),
             'required' => true,
         ))
+            ->add(
+                'pack_stock_type',
+                FormType\ChoiceType::class
+            )//see eventListener for details
+            ->add(
+                'low_stock_threshold',
+                FormType\NumberType::class,
+                array(
+                    'label' => $this->translator->trans('Low stock level', [], 'Admin.Catalog.Feature'),
+                    'attr' => array(
+                        'placeholder' => $this->translator->trans('Leave empty to disable', [], 'Admin.Catalog.Help'),
+                    ),
+                    'constraints' => array(
+                        new Assert\Type(array('type' => 'numeric')),
+                    ),
+                )
+            )
+            ->add(
+                'low_stock_alert',
+                FormType\CheckboxType::class,
+                array(
+                    'label' => $this->translator->trans(
+                        'Send me an email when the quantity is below or equals this level',
+                        [],
+                        'Admin.Catalog.Feature'
+                    ),
+                    'constraints' => array(
+                        new Assert\Type(array('type' => 'bool')),
+                    ),
+                )
+            )
         ->add('inputPackItems', TypeaheadProductPackCollectionType::class, array(
             'remote_url' => $this->context->getAdminLink('', false).'ajax_products_list.php?forceJson=1&excludeVirtuals=1&limit=20&q=%QUERY',
             'mapping_value' => 'id',
@@ -148,12 +180,12 @@ class ProductInformation extends CommonAbstractType
             'placeholder' => $this->translator->trans('Search for a product', [], 'Admin.Catalog.Help'),
             'template_collection' => '
               <h4>%s</h4>
-              <div class="ref">REF: %s</div>
+              <div class="ref" style="display: none;">REF: %s</div>
               <div class="quantity text-md-right">x%s</div>
               <button type="button" class="btn btn-danger btn-sm delete"><i class="material-icons">delete</i></button>
             ',
             'required' => false,
-            'label' => $this->translator->trans('Add products to your pack', [], 'Admin.Catalog.Feature'),
+            'label' => $this->translator->trans('Añadir insumo', [], 'Admin.Catalog.Feature'),
         ))
         ->add('name', TranslateType::class, array(
             'type' => FormType\TextType::class,
@@ -308,6 +340,51 @@ class ProductInformation extends CommonAbstractType
                 }
             }
         });
+
+
+        $builder->addEventListener(
+            FormEvents::PRE_SET_DATA,
+            function (FormEvent $event) {
+                $form = $event->getForm();
+
+                //Manage out_of_stock field with contextual values/label
+                $pack_stock_type = $this->configuration->get('PS_PACK_STOCK_TYPE');
+                $defaultChoiceLabel = $this->translator->trans('Default', [], 'Admin.Global').': ';
+                if ($pack_stock_type == Pack::STOCK_TYPE_PACK_ONLY) {
+                    $defaultChoiceLabel .= $this->translator->trans(
+                        'Decrementar solo producto.',
+                        [],
+                        'Admin.Catalog.Feature'
+                    );
+                } elseif ($pack_stock_type == Pack::STOCK_TYPE_PRODUCTS_ONLY) {
+                    $defaultChoiceLabel .= $this->translator->trans(
+                        'Decrementar solo insumos en el producto.',
+                        [],
+                        'Admin.Catalog.Feature'
+                    );
+                } else {
+                    $defaultChoiceLabel .= $this->translator->trans('Decrement both.', [], 'Admin.Catalog.Feature');
+                }
+
+                $form->add(
+                    'pack_stock_type',
+                    FormType\ChoiceType::class,
+                    array(
+                        'choices' => array(
+                            $this->translator->trans('Decrementar solo producto.', [], 'Admin.Catalog.Feature') => 0,
+                            $this->translator->trans('Decrementar solo insumos en el producto.', [], 'Admin.Catalog.Feature') => 1,
+                            $this->translator->trans('Decrement both.', [], 'Admin.Catalog.Feature')  => 2,
+                            $defaultChoiceLabel => 3,
+                        ),
+                        'expanded' => false,
+                        'required' => true,
+                        'placeholder' => false,
+                        'label' => $this->translator->trans('Opción de stock', [], 'Admin.Catalog.Feature'),
+                    )
+                );
+            }
+        );
+
     }
 
     /**

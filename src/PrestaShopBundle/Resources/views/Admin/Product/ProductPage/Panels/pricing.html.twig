@@ -87,7 +87,7 @@
                   {{ 'Manage tax rules'|trans({}, 'Admin.Catalog.Feature') }}
                 </a>
               </div>
-              <div class="col-md-12 pt-1">
+              <div class="col-md-12 pt-1 hide">
                 {{ form_widget(pricingForm.on_sale) }}
               </div>
               <div class="col-md-12">
@@ -104,22 +104,22 @@
             </div>
           </div>
 
-          <div class="col-md-12">
-            <div class="row mb-3">
-              <div class="col-md-12">
-                <h2>
-                  {{ 'Cost price'|trans({}, 'Admin.Catalog.Feature') }}
-                  <span class="help-box" data-toggle="popover"
-                    data-content="{{ "The cost price is the price you paid for the product. Do not include the tax. It should be lower than the retail price: the difference between the two will be your margin."|trans({}, 'Admin.Catalog.Help') }}" ></span>
-                </h2>
-              </div>
-              <div class="col-xl-2 col-lg-3 form-group">
-                <label class="form-control-label">{{ pricingForm.wholesale_price.vars.label|raw }}</label>
-                {{ form_errors(pricingForm.wholesale_price) }}
-                {{ form_widget(pricingForm.wholesale_price) }}
-              </div>
-            </div>
-          </div>
+{#          <div class="col-md-12">#}
+{#            <div class="row mb-3">#}
+{#              <div class="col-md-12">#}
+{#                <h2>#}
+{#                  {{ 'Cost price'|trans({}, 'Admin.Catalog.Feature') }}#}
+{#                  <span class="help-box" data-toggle="popover"#}
+{#                    data-content="{{ "The cost price is the price you paid for the product. Do not include the tax. It should be lower than the retail price: the difference between the two will be your margin."|trans({}, 'Admin.Catalog.Help') }}" ></span>#}
+{#                </h2>#}
+{#              </div>#}
+{#              <div class="col-xl-2 col-lg-3 form-group">#}
+{#                <label class="form-control-label">{{ pricingForm.wholesale_price.vars.label|raw }}</label>#}
+{#                {{ form_errors(pricingForm.wholesale_price) }}#}
+{#                {{ form_widget(pricingForm.wholesale_price) }}#}
+{#              </div>#}
+{#            </div>#}
+{#          </div>#}
 
           <div class="col-md-12">
             <div class="row mb-3">

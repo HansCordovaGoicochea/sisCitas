@@ -1,11 +1,11 @@
 <?php
-/* Smarty version 3.1.33, created on 2019-08-13 16:04:39
+/* Smarty version 3.1.33, created on 2019-08-14 19:58:55
   from 'C:\xampp\htdocs\siscitas\modules\ps_faviconnotificationbo\views\templates\hook\faviconbo.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '3.1.33',
-  'unifunc' => 'content_5d5325e7c75ec5_87486803',
+  'unifunc' => 'content_5d54ae4f6c8f24_75086045',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_5d5325e7c75ec5_87486803 (Smarty_Internal_Template $_smarty_tpl) {
+function content_5d54ae4f6c8f24_75086045 (Smarty_Internal_Template $_smarty_tpl) {
 echo '<script'; ?>
  type="text/javascript">
 /*

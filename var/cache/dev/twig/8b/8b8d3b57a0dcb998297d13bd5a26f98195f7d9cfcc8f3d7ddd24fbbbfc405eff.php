@@ -30,7 +30,7 @@ class __TwigTemplate_57ae554c76ac6a4357dbcf9f381a29e9c8bb6a57e118728c1bfec71264f
         echo twig_escape_filter($this->env, $this->env->getExtension('Symfony\Bridge\Twig\Extension\TranslationExtension')->trans("Brand", array(), "Admin.Catalog.Feature"), "html", null, true);
         echo "</h2>
   <div class=\"row\">
-    <div class=\"col-md-4\">
+    <div class=\"col-md-10\">
       <fieldset class=\"form-group\">
       ";
         // line 30
@@ -123,7 +123,7 @@ class __TwigTemplate_57ae554c76ac6a4357dbcf9f381a29e9c8bb6a57e118728c1bfec71264f
 <div id=\"manufacturer-content\" class=\"{{ form.vars.value == '' ? 'hide':'' }}\">
   <h2>{{ \"Brand\"|trans({}, 'Admin.Catalog.Feature') }}</h2>
   <div class=\"row\">
-    <div class=\"col-md-4\">
+    <div class=\"col-md-10\">
       <fieldset class=\"form-group\">
       {{ form_widget(form) }}
       <div class=\"col-md-12\">

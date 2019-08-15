@@ -86,6 +86,7 @@ var productCategoriesTags = (function () {
       var categoriesForm = $('#form_step1_categories');
       var selector = 'input[value="'+categoryId+'"].default-category';
       categoriesForm.find(selector).prop('checked', true);
+
     },
     'getTree': function () {
       var tree = JSON.parse($('#ps_categoryTree').html());
@@ -173,6 +174,8 @@ var productCategoriesTags = (function () {
           });
           var categoriesForm = $('#form_step1_categories');
           categoriesForm.find('input[value="' + categoryId + '"].category').prop('checked', true);
+          categoriesForm.find('input[value="' + categoryId + '"].default-category').prop('checked', true);
+
           $(this).val('');
         }
       }).data('ui-autocomplete')._renderItem = function(ul, item) {

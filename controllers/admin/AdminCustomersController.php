@@ -404,8 +404,10 @@ class AdminCustomersControllerCore extends AdminController
 //                    'disabled' => $obj->id ? true: false,
                     'placeholder' => 'Número de documento',
                     'button' => array(
-                        'label' => $this->trans('SUNAT&nbsp;<i class="icon-search"></i>', array(), 'Admin.Advparameters.Feature'),
+                        'label' => $this->trans('SUNAT&nbsp;<i class="icon-search" style="color: #fff"></i>', array(), 'Admin.Advparameters.Feature'),
+
                         'attributes' => array(
+                            'class' => 'sunat-button',
                             'onclick' => 'traerDatosSunat()',
                             'id' => 'buscar_sunat',
                             'disabled' => 'disabled'
@@ -506,6 +508,7 @@ class AdminCustomersControllerCore extends AdminController
                     'hint' => $this->trans('Enable or disable customer login.', array(), 'Admin.Orderscustomers.Help')
                 ),
                 array(
+                    'form_group_class' => 'hide',
                     'type' => 'switch',
                     'label' => $this->trans('¿Apto para crédito?', array(), 'Admin.Global'),
                     'name' => 'es_credito',
@@ -567,6 +570,7 @@ class AdminCustomersControllerCore extends AdminController
             $this->fields_form['input'],
             array(
                 array(
+                    'form_group_class' => 'hide',
                     'type' => 'group',
                     'label' => $this->trans('Group access', array(), 'Admin.Orderscustomers.Feature'),
                     'name' => 'groupBox',
@@ -576,6 +580,7 @@ class AdminCustomersControllerCore extends AdminController
                     'hint' => $this->trans('Select all the groups that you would like to apply to this customer.', array(), 'Admin.Orderscustomers.Help')
                 ),
                 array(
+                    'form_group_class' => 'hide',
                     'type' => 'select',
                     'label' => $this->trans('Default customer group', array(), 'Admin.Orderscustomers.Feature'),
                     'name' => 'id_default_group',

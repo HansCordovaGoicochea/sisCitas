@@ -82,7 +82,7 @@ class ProductPrice extends CommonAbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $this->tax_rules = array_merge(
-            array($this->translator->trans('No tax', [], 'Admin.Catalog.Feature') => 0),
+//            array($this->translator->trans('No tax', [], 'Admin.Catalog.Feature') => 0),
             $this->tax_rules
         );
         $builder->add(

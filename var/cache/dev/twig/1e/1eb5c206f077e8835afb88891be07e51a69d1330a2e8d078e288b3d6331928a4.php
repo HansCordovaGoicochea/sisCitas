@@ -61,32 +61,9 @@ class __TwigTemplate_4a45dcb1c825a0ae5803e7a0e64efddabd7fb50e8e4699c031976d63780
       >
         <i class=\"material-icons\">delete</i>
       </a>
-      <a
-        href=\"\"
-        data-redirect=\"";
-        // line 41
-        echo twig_escape_filter($this->env, (isset($context["preview_link"]) ? $context["preview_link"] : $this->getContext($context, "preview_link")), "html", null, true);
-        echo "\"
-        data-url-deactive=\"";
-        // line 42
-        echo twig_escape_filter($this->env, (isset($context["preview_link_deactivate"]) ? $context["preview_link_deactivate"] : $this->getContext($context, "preview_link_deactivate")), "html", null, true);
-        echo "\"
-        target=\"_blank\"
-        class=\"btn btn-secondary preview\"
-        data-toggle=\"pstooltip\"
-        id=\"product_form_preview_btn\"
-        title=\"";
-        // line 47
-        echo twig_escape_filter($this->env, $this->env->getExtension('Symfony\Bridge\Twig\Extension\TranslationExtension')->trans("See how your product sheet will look online: ALT+SHIFT+V", array(), "Admin.Catalog.Help"), "html", null, true);
-        echo "\"
-      >
-        ";
-        // line 49
-        echo twig_escape_filter($this->env, $this->env->getExtension('Symfony\Bridge\Twig\Extension\TranslationExtension')->trans("Preview", array(), "Admin.Actions"), "html", null, true);
-        echo "
-      </a>
-      ";
+";
         // line 51
+        echo "      ";
         if ((isset($context["editable"]) ? $context["editable"] : $this->getContext($context, "editable"))) {
             // line 52
             echo "      <h2 class=\"for-switch online-title\" ";
@@ -98,7 +75,7 @@ class __TwigTemplate_4a45dcb1c825a0ae5803e7a0e64efddabd7fb50e8e4699c031976d63780
             // line 53
             echo twig_escape_filter($this->env, $this->env->getExtension('Symfony\Bridge\Twig\Extension\TranslationExtension')->trans("Enable or disable the product on your shop: ALT+SHIFT+O", array(), "Admin.Catalog.Help"), "html", null, true);
             echo "\">";
-            echo twig_escape_filter($this->env, $this->env->getExtension('Symfony\Bridge\Twig\Extension\TranslationExtension')->trans("Online", array(), "Admin.Global"), "html", null, true);
+            echo twig_escape_filter($this->env, $this->env->getExtension('Symfony\Bridge\Twig\Extension\TranslationExtension')->trans("Activo", array(), "Admin.Global"), "html", null, true);
             echo "</h2>
       <h2 class=\"for-switch offline-title\" ";
             // line 54
@@ -110,7 +87,7 @@ class __TwigTemplate_4a45dcb1c825a0ae5803e7a0e64efddabd7fb50e8e4699c031976d63780
             // line 55
             echo twig_escape_filter($this->env, $this->env->getExtension('Symfony\Bridge\Twig\Extension\TranslationExtension')->trans("Enable or disable the product on your shop: ALT+SHIFT+O", array(), "Admin.Catalog.Help"), "html", null, true);
             echo "\">";
-            echo twig_escape_filter($this->env, $this->env->getExtension('Symfony\Bridge\Twig\Extension\TranslationExtension')->trans("Offline", array(), "Admin.Global"), "html", null, true);
+            echo twig_escape_filter($this->env, $this->env->getExtension('Symfony\Bridge\Twig\Extension\TranslationExtension')->trans("Inactivo", array(), "Admin.Global"), "html", null, true);
             echo "</h2>
       <input
         class=\"switch-input-lg\"
@@ -291,7 +268,7 @@ class __TwigTemplate_4a45dcb1c825a0ae5803e7a0e64efddabd7fb50e8e4699c031976d63780
 
     public function getDebugInfo()
     {
-        return array (  271 => 144,  266 => 142,  259 => 138,  254 => 136,  250 => 134,  244 => 131,  239 => 129,  235 => 127,  233 => 126,  219 => 115,  207 => 106,  202 => 104,  193 => 98,  188 => 96,  183 => 94,  174 => 88,  169 => 86,  164 => 84,  158 => 80,  152 => 77,  147 => 75,  142 => 73,  136 => 69,  134 => 68,  130 => 66,  124 => 63,  111 => 55,  105 => 54,  99 => 53,  92 => 52,  90 => 51,  85 => 49,  80 => 47,  72 => 42,  68 => 41,  57 => 33,  50 => 29,  45 => 26,  26 => 25,);
+        return array (  248 => 144,  243 => 142,  236 => 138,  231 => 136,  227 => 134,  221 => 131,  216 => 129,  212 => 127,  210 => 126,  196 => 115,  184 => 106,  179 => 104,  170 => 98,  165 => 96,  160 => 94,  151 => 88,  146 => 86,  141 => 84,  135 => 80,  129 => 77,  124 => 75,  119 => 73,  113 => 69,  111 => 68,  107 => 66,  101 => 63,  88 => 55,  82 => 54,  76 => 53,  69 => 52,  66 => 51,  57 => 33,  50 => 29,  45 => 26,  26 => 25,);
     }
 
     /** @deprecated since 1.27 (to be removed in 2.0). Use getSourceContext() instead */
@@ -342,23 +319,23 @@ class __TwigTemplate_4a45dcb1c825a0ae5803e7a0e64efddabd7fb50e8e4699c031976d63780
       >
         <i class=\"material-icons\">delete</i>
       </a>
-      <a
-        href=\"\"
-        data-redirect=\"{{ preview_link }}\"
-        data-url-deactive=\"{{ preview_link_deactivate }}\"
-        target=\"_blank\"
-        class=\"btn btn-secondary preview\"
-        data-toggle=\"pstooltip\"
-        id=\"product_form_preview_btn\"
-        title=\"{{ 'See how your product sheet will look online: ALT+SHIFT+V'|trans({}, 'Admin.Catalog.Help') }}\"
-      >
-        {{ 'Preview'|trans({}, 'Admin.Actions')}}
-      </a>
+{#      <a#}
+{#        href=\"\"#}
+{#        data-redirect=\"{{ preview_link }}\"#}
+{#        data-url-deactive=\"{{ preview_link_deactivate }}\"#}
+{#        target=\"_blank\"#}
+{#        class=\"btn btn-secondary preview\"#}
+{#        data-toggle=\"pstooltip\"#}
+{#        id=\"product_form_preview_btn\"#}
+{#        title=\"{{ 'See how your product sheet will look online: ALT+SHIFT+V'|trans({}, 'Admin.Catalog.Help') }}\"#}
+{#      >#}
+{#        {{ 'Preview'|trans({}, 'Admin.Actions')}}#}
+{#      </a>#}
       {% if editable %}
       <h2 class=\"for-switch online-title\" {% if not is_active %}style=\"display:none;\"{% endif %} data-toggle=\"pstooltip\"
-          title=\"{{ 'Enable or disable the product on your shop: ALT+SHIFT+O'|trans({}, 'Admin.Catalog.Help') }}\">{{ 'Online'|trans({}, 'Admin.Global') }}</h2>
+          title=\"{{ 'Enable or disable the product on your shop: ALT+SHIFT+O'|trans({}, 'Admin.Catalog.Help') }}\">{{ 'Activo'|trans({}, 'Admin.Global') }}</h2>
       <h2 class=\"for-switch offline-title\" {% if is_active %}style=\"display:none;\"{% endif %} data-toggle=\"pstooltip\"
-          title=\"{{ 'Enable or disable the product on your shop: ALT+SHIFT+O'|trans({}, 'Admin.Catalog.Help') }}\">{{ 'Offline'|trans({}, 'Admin.Global') }}</h2>
+          title=\"{{ 'Enable or disable the product on your shop: ALT+SHIFT+O'|trans({}, 'Admin.Catalog.Help') }}\">{{ 'Inactivo'|trans({}, 'Admin.Global') }}</h2>
       <input
         class=\"switch-input-lg\"
         id=\"form_step1_active\"

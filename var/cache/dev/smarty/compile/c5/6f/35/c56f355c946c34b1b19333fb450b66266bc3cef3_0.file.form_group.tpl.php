@@ -1,11 +1,11 @@
 <?php
-/* Smarty version 3.1.33, created on 2019-08-13 19:31:24
+/* Smarty version 3.1.33, created on 2019-08-14 20:16:19
   from 'C:\xampp\htdocs\siscitas\admincitas\themes\default\template\helpers\form\form_group.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '3.1.33',
-  'unifunc' => 'content_5d53565c785938_08274294',
+  'unifunc' => 'content_5d54b2635b2500_90545133',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_5d53565c785938_08274294 (Smarty_Internal_Template $_smarty_tpl) {
+function content_5d54b2635b2500_90545133 (Smarty_Internal_Template $_smarty_tpl) {
 if (count($_smarty_tpl->tpl_vars['groups']->value) && isset($_smarty_tpl->tpl_vars['groups']->value)) {?>
 <div class="row">
 	<div class="col-lg-6">

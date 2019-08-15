@@ -1,11 +1,11 @@
 <?php
-/* Smarty version 3.1.33, created on 2019-08-13 17:11:21
+/* Smarty version 3.1.33, created on 2019-08-14 20:07:13
   from 'C:\xampp\htdocs\siscitas\admincitas\themes\default\template\controllers\stats\stats.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '3.1.33',
-  'unifunc' => 'content_5d533589ac3af1_12344452',
+  'unifunc' => 'content_5d54b041ef4bb5_70668587',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_5d533589ac3af1_12344452 (Smarty_Internal_Template $_smarty_tpl) {
+function content_5d54b041ef4bb5_70668587 (Smarty_Internal_Template $_smarty_tpl) {
 ?>
 		<div class="panel">
 			<?php if ($_smarty_tpl->tpl_vars['module_name']->value) {?>

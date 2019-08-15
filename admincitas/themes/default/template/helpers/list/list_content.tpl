@@ -26,7 +26,8 @@
 <tbody>
 {if count($list)}
 {foreach $list AS $index => $tr}
-	<tr{if $position_identifier} id="tr_{$position_group_identifier}_{$tr.$identifier}_{if isset($tr.position['position'])}{$tr.position['position']}{else}0{/if}"{/if} class="{if isset($tr.class)}{$tr.class}{/if} {if $tr@iteration is odd by 1}odd{/if}"{if isset($tr.color) && $color_on_bg} style="background-color: {$tr.color}"{/if} >
+
+	<tr{if $position_identifier} id="tr_{$position_group_identifier}_{$tr.$identifier}_{if isset($tr.position['position'])}{$tr.position['position']}{else}0{/if}"{/if} class="{if isset($tr.class)}{$tr.class}{/if} "{if isset($tr.color) && $color_on_bg} style="background-color: {$tr.color}"{/if} >
 		{if $bulk_actions && $has_bulk_actions}
 			<td class="row-selector text-center">
 				{if isset($list_skip_actions.delete)}
@@ -60,7 +61,8 @@
 				{if isset($params.badge_warning) && $params.badge_warning && isset($tr.badge_warning) && $tr.badge_warning == $params.badge_warning}<span class="badge badge-warning">{/if}
 				{if isset($params.badge_danger) && $params.badge_danger && isset($tr.badge_danger) && $tr.badge_danger == $params.badge_danger}<span class="badge badge-danger">{/if}
 				{if isset($params.color) && isset($tr[$params.color])}
-					<span class="label color_field" style="background-color:{$tr[$params.color]};color:{if Tools::getBrightness($tr[$params.color]) < 128}white{else}#383838{/if}">
+					<span class="label color_field {if isset($params.tooltip) && $tr[$params.tooltip]}label-tooltip" data-toggle="tooltip" data-original-title="{$tr[$params.tooltip]}" data-html="true" data-placement="top"{else}"{/if} style="background-color:{$tr[$params.color]};color:{if Tools::getBrightness($tr[$params.color]) < 128}white{else}#383838{/if}">
+
 				{/if}
 				{if isset($tr.$key)}
 					{if isset($params.active)}
@@ -103,6 +105,9 @@
 						{else}
 							{displayPrice price=$tr.$key}
 						{/if}
+					{elseif isset($params.sufixAche) && $params.sufixAche}
+
+						{$params.sufixAche} {$tr.$key}
 					{elseif isset($params.float)}
 						{$tr.$key}
 					{elseif isset($params.type) && $params.type == 'date'}

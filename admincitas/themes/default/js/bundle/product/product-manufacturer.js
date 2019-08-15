@@ -1,3 +1,9 @@
+$('#form_step1_name_1').keyup(function(){
+  this.value = this.value.toUpperCase();
+
+});
+
+
 /**
  * Manufacturer management
  */

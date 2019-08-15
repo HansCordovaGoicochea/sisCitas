@@ -70,6 +70,7 @@ class PhpEncryption extends \PhpEncryption {};
 class PhpEncryptionEngine extends \PhpEncryptionEngine {};
 class PhpEncryptionLegacyEngine extends \PhpEncryptionLegacyEngine {};
 class PosArqueoscaja extends \PosArqueoscaja {};
+class PosOrdercomprobantes extends \PosOrdercomprobantes {};
 class PrestaShopBackup extends \PrestaShopBackup {};
 class PrestaShopCollection extends \PrestaShopCollection {};
 class PrestaShopLogger extends \PrestaShopLogger {};

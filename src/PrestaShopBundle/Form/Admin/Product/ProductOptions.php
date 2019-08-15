@@ -79,10 +79,11 @@ class ProductOptions extends CommonAbstractType
         $this->locales = $legacyContext->getLanguages();
         $this->router = $router;
 
-        $this->suppliers = $this->formatDataChoicesList(
-            $supplierDataProvider->getSuppliers(),
-            'id_supplier'
-        );
+        $this->suppliers = [];
+//        $this->suppliers = $this->formatDataChoicesList(
+//            $supplierDataProvider->getSuppliers(),
+//            'id_supplier'
+//        );
 
         $this->fullAttachmentList = $attachmentDataprovider->getAllAttachments(
             $this->context->getLanguages()[0]['id_lang']

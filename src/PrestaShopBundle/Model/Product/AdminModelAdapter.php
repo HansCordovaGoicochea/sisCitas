@@ -450,7 +450,11 @@ class AdminModelAdapter extends \PrestaShopBundle\Model\AdminModelAdapter
                 ],
                 'id_manufacturer' => $this->product->id_manufacturer,
                 'features' => $this->getFormFeatures(),
-                'images' => $this->productAdapter->getImages($this->product->id, $this->locales[0]['id_lang'])
+                'images' => $this->productAdapter->getImages($this->product->id, $this->locales[0]['id_lang']),
+
+                'low_stock_threshold' => $this->product->low_stock_threshold,
+                'low_stock_alert' => (bool) $this->product->low_stock_alert,
+                'pack_stock_type' => $this->product->pack_stock_type,
             ],
             'step2' => [
                 'price' => $this->product->price,
@@ -483,12 +487,9 @@ class AdminModelAdapter extends \PrestaShopBundle\Model\AdminModelAdapter
                 'id_product_attributes' => $this->getProductAttributes(),
                 'out_of_stock' => $this->product->out_of_stock,
                 'minimal_quantity' => $this->product->minimal_quantity,
-                'low_stock_threshold' => $this->product->low_stock_threshold,
-                'low_stock_alert' => (bool) $this->product->low_stock_alert,
                 'available_now' => $this->product->available_now,
                 'available_later' => $this->product->available_later,
                 'available_date' => $this->product->available_date,
-                'pack_stock_type' => $this->product->pack_stock_type,
                 'virtual_product' => $this->getVirtualProductData(),
             ],
             'step4' => [

@@ -74,6 +74,10 @@
               'formPriceShortcut': form.step1.price_shortcut,
               'formPriceShortcutTTC': form.step1.price_ttc_shortcut,
               'formCategories': form.step1,
+
+              'formPackStockType': form.step1.pack_stock_type,
+              'formLowStockThreshold': form.step1.low_stock_threshold,
+              'formLowStockAlert': form.step1.low_stock_alert,
             })
           }}
         {% endblock %}
@@ -86,13 +90,12 @@
               'productId': id_product,
               'formStockQuantity': formStockQuantity,
               'formStockMinimalQuantity': form.step3.minimal_quantity,
-              'formLowStockThreshold': form.step3.low_stock_threshold,
-              'formLowStockAlert': form.step3.low_stock_alert,
+
               'formVirtualProduct': form.step3.virtual_product,
               'asm_globally_activated': asm_globally_activated,
               'formType': form.step1.type_product,
               'formAdvancedStockManagement': form.step3.advanced_stock_management,
-              'formPackStockType': form.step3.pack_stock_type,
+
               'formStep3': form.step3,
               'formCombinations': formCombinations,
               'has_combinations': has_combinations,

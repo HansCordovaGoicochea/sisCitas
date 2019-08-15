@@ -3479,6 +3479,18 @@
     'type' => 'class',
     'override' => false,
   ),
+  'PosOrdercomprobantes' => 
+  array (
+    'path' => '',
+    'type' => 'class',
+    'override' => false,
+  ),
+  'PosOrdercomprobantesCore' => 
+  array (
+    'path' => 'classes/PosOrdercomprobantes.php',
+    'type' => 'class',
+    'override' => false,
+  ),
   'PrestaShopAutoload' => 
   array (
     'path' => 'classes/PrestaShopAutoload.php',
