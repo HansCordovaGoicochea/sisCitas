@@ -72,7 +72,8 @@ class AdminCustomersControllerCore extends AdminController
         $this->fields_list = array(
             'id_customer' => array(
                 'title' => $this->trans('ID', array(), 'Admin.Global'),
-                'class' => 'hide'
+                'class' => 'hide',
+                'align' => 'hide'
             ),
             'date_add' => array(
                 'title' => $this->trans('Registration', array(), 'Admin.Orderscustomers.Feature'),
@@ -1260,9 +1261,11 @@ class AdminCustomersControllerCore extends AdminController
             $res = $customer->add();
             if ($res){
                 $customer->updateGroup(array($customer->id_default_group));
-                $order = new Order((int)Tools::getValue('order_id'));
-                $order->id_customer = $customer->id;
-                $r = $order->update();
+                if (Tools::getValue('order_id')){
+                    $order = new Order((int)Tools::getValue('order_id'));
+                    $order->id_customer = $customer->id;
+                    $order->update();
+                }
             }
             $data_json['cliente'] = $customer;
             $data_json['cliente']->cod_sunat = $td;
@@ -1281,9 +1284,11 @@ class AdminCustomersControllerCore extends AdminController
 
         if (!empty($cliente)) {
 //            d($address);
-            $order = new Order((int)Tools::getValue('id_order'));
-            $order->id_customer = $cliente['id_customer'];
-            $order->update();
+            if (Tools::getValue('id_order')){
+                $order = new Order((int)Tools::getValue('id_order'));
+                $order->id_customer = $cliente['id_customer'];
+                $order->update();
+            }
             $rtn = array(
                 "success" 	=> true,
                 "result" 	=> $cliente
