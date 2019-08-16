@@ -48,7 +48,7 @@
         </a>
       </div>
     {/if}
-    {if isset($maintenance_mode) && $maintenance_mode == true}
+    {if isset($maintenance_mode) && $maintenance_mode == true && 1 == 2}
       <div class="component hide-mobile-sm hide" id="header-maintenance-mode-container">
         <a class="link shop-state"
            id="maintenance-mode"

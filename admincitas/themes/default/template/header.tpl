@@ -211,7 +211,7 @@
 			</div>
 			{/if}
 
-			{if isset($maintenance_mode) && $maintenance_mode == true}
+			{if isset($maintenance_mode) && $maintenance_mode == true && 1 == 2}
 			<div class="component hide-mobile-sm">
 				<a class="shop-state label-tooltip" id="maintenance-mode"
 					 href="{$link->getAdminLink('AdminMaintenance')|escape:'html':'UTF-8'}"
