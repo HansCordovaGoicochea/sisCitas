@@ -306,7 +306,7 @@ var formCategory = (function() {
         } else {
           parentElement.next('ul').append(html);
         }
-
+  
         //inject new category in parent category selector
         $('#form_step1_new_category_id_parent').append('<option value="' + response.category.id + '">' + response.category.name[1] + '</option>');
 
