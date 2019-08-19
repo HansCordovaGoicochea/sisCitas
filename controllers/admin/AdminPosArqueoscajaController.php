@@ -123,9 +123,9 @@ class AdminPosArqueoscajaControllerCore extends AdminController
 
     }
 
-    public function setMedia()
+    public function setMedia($isNewTheme = false)
     {
-        parent::setMedia();
+        parent::setMedia($isNewTheme);
 
         $this->addCSS(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/css/datatables.min.css');
         $this->addJs(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/js/datatables.min.js');
