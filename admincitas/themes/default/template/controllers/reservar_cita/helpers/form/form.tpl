@@ -6,7 +6,89 @@
         border-color: #0264af!important;
         color: #fff!important;
     }
+
+    .container {
+        width: 100%;
+        font-family: "Arial";
+    }
+
+    .progressbar {
+        counter-reset: step;
+    }
+    .progressbar li {
+        list-style: none;
+        display: inline-block;
+        width: 30.33%;
+        position: relative;
+        text-align: center;
+        cursor: pointer;
+    }
+    .progressbar li:before {
+        /*content: counter(step);
+        counter-increment: step;*/
+        content: "";
+        width: 30px;
+        height: 30px;
+        line-height : 30px;
+        border: 1px solid #E9E9E9;
+        border-radius: 100%;
+        display: block;
+        text-align: center;
+        margin: 0 auto 10px auto;
+        color: white;
+        background-color: #E9E9E9;
+
+    }
+    .progressbar li:after {
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: 4px;
+        background-color: #E9E9E9;
+        top: 14px;
+        left: -50%;
+        z-index : -1;
+    }
+    .progressbar li:first-child:after {
+        content: none;
+    }
+    .progressbar li.active {
+        color: #1181F2;
+    }
+    .progressbar li.active:before {
+        font-family: FontAwesome, serif;
+        border-color: #1181F2;
+        background-color: #1181F2;
+        animation: pulse 2s infinite;
+        content: '\f00c';
+
+    }
+    .progressbar li.active + li:after {
+        background-color: #1181F2;
+        background: linear-gradient(to right, #1181F2 50%, #E9E9E9 50%);
+    }
+
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(33,131,221, 0.4);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(33,131,221, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(33,131,221, 0);
+        }
+    }
 </style>
+<div class="container">
+    <ul class="progressbar">
+        <li class="active">Pendiente</li>
+        <li>Atendido</li>
+        <li>Facturado</li>
+    </ul>
+</div>
+
+
 <div class="row" id="form_div_cita">
     <input type="hidden" id="id_reservar_cita" name="id_reservar_cita" value="">
     <div class="panel">
@@ -349,8 +431,8 @@
     $('.datepicker').datepicker({
         prevText: '',
         nextText: '',
-        // dateFormat: 'yy-mm-dd',
-        dateFormat: 'dd/mm/yy',
+        dateFormat: 'yy-mm-dd',
+        // dateFormat: 'dd/mm/yy',
         changeYear: true,
         changeMonth: true,
         yearRange: "-100:+0", // last hundred years

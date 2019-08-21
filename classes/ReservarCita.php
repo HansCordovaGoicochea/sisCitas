@@ -12,6 +12,10 @@ class ReservarCitaCore extends ObjectModel
     public $color;
     public $observacion;
     public $id_order;
+    //0 pendiente
+    //1 cancelado
+    //2 atendido
+    //3 facturado
     public $estado_actual;
     public $id_employee;
     public $id_shop;

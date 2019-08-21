@@ -92,8 +92,12 @@ class AdminReservarCitaControllerCore extends AdminController
         }else{
             $obj = new ReservarCita();
         }
-        d( date("Y-m-d H:i:s", strtotime($params['fecha_inicio'])));
-        $obj->fecha_inicio = Tools::getFormatFechaGuardar($params['fecha_inicio']);
+        //formatear fecha con hora 12 horas
+        $startdate = $params['fecha_inicio'];
+        $myDateTime = DateTime::createFromFormat('d/m/Y h:i A',$startdate);
+        $fecha_inicio = $myDateTime->format('Y-m-d H:i:s');
+
+        $obj->fecha_inicio = $fecha_inicio;
 
 
         die(json_encode(array(
