@@ -960,6 +960,7 @@ class AdminControllerCore extends Controller
                 }
 
                 // If the method named after the action exists, call "before" hooks, then call action method, then call "after" hooks
+//                d($this->action);
                 if (!empty($this->action) && method_exists($this, 'process'.ucfirst(Tools::toCamelCase($this->action)))) {
                     // Hook before action
                     Hook::exec('actionAdmin'.ucfirst($this->action).'Before', array('controller' => $this));
@@ -1287,6 +1288,7 @@ class AdminControllerCore extends Controller
 
         return $object;
     }
+
 
     /**
      * Change object status (active, inactive)

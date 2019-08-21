@@ -80,17 +80,17 @@
         }
     }
 </style>
-<div class="container">
-    <ul class="progressbar">
-        <li class="active">Pendiente</li>
-        <li>Atendido</li>
-        <li>Facturado</li>
-    </ul>
-</div>
+{*<div class="container">*}
+{*    <ul class="progressbar">*}
+{*        <li class="active">Pendiente</li>*}
+{*        <li>Atendido</li>*}
+{*        <li>Facturado</li>*}
+{*    </ul>*}
+{*</div>*}
 
 
 <div class="row" id="form_div_cita">
-    <input type="hidden" id="id_reservar_cita" name="id_reservar_cita" value="">
+    <input type="hidden" id="id_reservar_cita" name="id_reservar_cita" value="{$cita->id}">
     <div class="panel">
         <div class="panel-heading">
             <i class="icon-table"></i>&nbsp;Cita
@@ -103,24 +103,24 @@
                         <select name="id_colaborador" id="id_colaborador" class="chosen required">
                             <option value="">{l s='-- Elija un Colaborador --' d='Admin.Actions'}</option>
                             {foreach $colaboradores as $employee}
-                                <option value="{$employee.id_employee}"> {$employee.firstname} {$employee.lastname}</option>
+                                <option value="{$employee.id_employee}" {if $cita->id_colaborador == $employee.id_employee}selected{/if}> {$employee.firstname} {$employee.lastname}</option>
                             {/foreach}
                         </select>
                     </div>
                     <div class="form-group col-lg-6">
                         <label for="fecha_inicio" class="control-label required">Fecha y Hora:</label>
                         <div class="input-group" id="timepicker">
-                            <input type="text" class="form-control datetimepicker" id="fecha_inicio" name="fecha_inicio" autocomplete="off" value="">
+                            <input type="text" class="form-control datetimepicker" id="fecha_inicio" name="fecha_inicio" autocomplete="off" value="{$cita->fecha_inicio|date_format:"%d/%m/%Y %l:%M %p"}">
                             <span class="input-group-append input-group-addon">
                                 <span class="input-group-text"><i class="fa fa-calendar"></i></span>
                             </span>
                         </div>
                     </div>
                     <div class="form-group">
-                        <input type="hidden" id="product_id" name="product_id" value="0" />
+                        <input type="hidden" id="product_id" name="product_id" value="{$cita->product_id}"/>
                         <label for="product_id" class="control-label required">Servicio:</label>
                         <div class="input-group">
-                            <input type="text" id="product_name" name="product_name" value="" autocomplete="off" placeholder="Buscar servicio"/>
+                            <input type="text" id="product_name" name="product_name" value="{$cita->product_name}" autocomplete="off" placeholder="Buscar servicio"/>
                             <div class="input-group-addon">
                                 <i class="icon-search"></i>
                             </div>
@@ -128,26 +128,26 @@
                     </div>
                     <div class="form-group">
                         <label for="product_id" class="control-label">Observación:</label>
-                        <textarea name="observacion" id="observacion" rows="2"></textarea>
+                        <textarea name="observacion" id="observacion" rows="2">{$cita->observacion}</textarea>
                     </div>
                     <div class="form-group col-lg-4">
                         <label for="tipo_doc">Estado Actual:</label>
                         <select name="estado_actual" id="estado_actual" class="chosen">
-                            <option value="0">Pendiente</option>
-                            <option value="1">Atendido</option>
-                            <option value="2">Cancelado</option>
-                            <option value="3">Facturado</option>
+                            <option value="0" {if $cita->estado_actual == 0}selected{/if}>Pendiente</option>
+                            <option value="1" {if $cita->estado_actual == 1}selected{/if}>Atendido</option>
+                            <option value="2" {if $cita->estado_actual == 2}selected{/if}>Cancelado</option>
+                            <option value="3" {if $cita->estado_actual == 3}selected{/if}>Facturado</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6" id="div_datos_cliente">
 
-{*                    <input type="hidden" class="input_ache" name="id_customer" id="id_customer" value="'+data.result.id_customer+'">*}
+                    <input type="hidden" class="input_ache" name="id_customer" id="id_customer" value="{$cita->id_customer}">
                     <div class="form-group col-lg-4">
                         <label for="tipo_doc" class="control-label required">Tipo Doc.:</label>
                         <select name="cb_tipo_documento" id="cb_tipo_documento" class="form-control">
                             {foreach $tipo_documentos as $doc}
-                                <option value="{$doc['id_tipodocumentolegal']}" data-codsunat="{$doc['cod_sunat']}">- {$doc['nombre']} -</option>
+                                <option value="{$doc['id_tipodocumentolegal']}" data-codsunat="{$doc['cod_sunat']}" {if $customer->id_document == $doc['id_tipodocumentolegal']}selected{/if}>- {$doc['nombre']} -</option>
                             {/foreach}
                         </select>
                     </div>
@@ -155,7 +155,7 @@
                         <label for="nro_doc" class="control-label required">N° Doc:</label>
                         <div class="row">
                             <div class="col-lg-9 col-xs-9">
-                                <input type="text" class="form-control" id="txtNumeroDocumento" name="txtNumeroDocumento" placeholder="Número de documento" maxlength="8" onkeypress="return (event.charCode == 8 || event.charCode == 0 || event.charCode == 13) ? null : event.charCode >= 48 && event.charCode <= 57">
+                                <input type="text" class="form-control" id="txtNumeroDocumento" name="txtNumeroDocumento" placeholder="Número de documento" maxlength="8" onkeypress="return (event.charCode == 8 || event.charCode == 0 || event.charCode == 13) ? null : event.charCode >= 48 && event.charCode <= 57" value="{$customer->num_document}">
                             </div>
                             <div class="col-lg-2 col-xs-2">
                                 <button type="button" class="btn btn-default sunat-button" onclick="traerDatosSunat()" id="buscar_sunat">
@@ -166,19 +166,19 @@
                     </div>
                     <div class="form-group col-lg-6">
                         <label for="txtNombre" class="control-label required">Cliente:</label>
-                        <input type="text" class="form-control" id="txtNombre" name="txtNombre">
+                        <input type="text" class="form-control" id="txtNombre" name="txtNombre" value="{$customer->firstname}">
                     </div>
                     <div class="form-group col-lg-6">
                         <label for="txtDireccion" class="control-label">Dirección:</label>
-                        <input type="text" class="form-control" id="txtDireccion" name="txtDireccion">
+                        <input type="text" class="form-control" id="txtDireccion" name="txtDireccion" value="{$customer->direccion}">
                     </div>
                     <div class="form-group col-lg-6">
                         <label for="birthday" class="control-label required">Fecha Nacimiento:</label>
-                        <input type="text" class="form-control datepicker" id="birthday" name="birthday">
+                        <input type="text" class="form-control datepicker" id="birthday" name="birthday" value="{$customer->birthday|date_format:"%d/%m/%Y"}">
                     </div>
                     <div class="form-group col-lg-6">
                         <label for="celular" class="control-label">Celular:</label>
-                        <input type="text" class="form-control" id="celular" name="celular">
+                        <input type="text" class="form-control" id="celular" name="celular" value="{$customer->telefono_celular}">
                     </div>
                 </div>
             </div>
@@ -190,6 +190,9 @@
             <a class="btn btn-default" onclick="window.history.back();">
                 <i class="process-icon-cancel"></i> Cancelar
             </a>
+            <a class="btn btn-default" href="{$link->getAdminLink('AdminReservarCita')|addslashes}">
+                <i class="process-icon-back"></i> Lista
+            </a>
         </div>
     </div>
 </div>
@@ -199,38 +202,56 @@
 
     
     $('#cita_guardar_btn').click(function () {
-        $.ajax({
-            type: "POST",
-            url: "{$link->getAdminLink('AdminReservarCita')|addslashes}",
-            async: true,
-            dataType: "json",
-            data: {
-                ajax: "1",
-                token: "{getAdminToken tab='AdminReservarCita'}",
-                tab: "AdminReservarCita",
-                action: "guardarCita",
-                // data: $('#form_div_cita').serialize() + "&moredata=" + morevalue
-                data: $('#form_div_cita').find("select, textarea, input").serialize()
-            },
-            beforeSend: function () {
-                $('body').waitMe({
-                    effect: 'timer',
-                    text: 'Guardando...',
-                    color: '#000',
-                    maxSize: '',
-                    textPos: 'vertical',
-                    fontSize: '',
-                    source: ''
-                });
-            },
-            success: function (res) {
+        if (
+            $('#id_colaborador :selected').val() !== "" &&
+            $('#fecha_inicio').val() !== "" &&
+            $('#product_id').val() !== "" &&
+            $.trim($('#product_name').val()) !== "" &&
+            $.trim($('#txtNumeroDocumento').val()) !== "" &&
+            $.trim($('#txtNombre').val()) !== ""
+        ){
+            $.ajax({
+                type: "POST",
+                url: "{$link->getAdminLink('AdminReservarCita')|addslashes}",
+                async: true,
+                dataType: "json",
+                data: {
+                    ajax: "1",
+                    token: "{getAdminToken tab='AdminReservarCita'}",
+                    tab: "AdminReservarCita",
+                    action: "guardarCita",
+                    // data: $('#form_div_cita').serialize() + "&moredata=" + morevalue
+                    data: $('#form_div_cita').find("select, textarea, input").serialize()
+                },
+                beforeSend: function () {
+                    $('body').waitMe({
+                        effect: 'timer',
+                        text: 'Guardando...',
+                        color: '#000',
+                        maxSize: '',
+                        textPos: 'vertical',
+                        fontSize: '',
+                        source: ''
+                    });
+                },
+                success: function (res) {
+                    if (res.respuesta === 'ok'){
+                        $('#id_reservar_cita').val(res.cita.id);
+                        {*window.location.href = "{$link->getAdminLink('AdminReservarCita')|addslashes}&updatereservar_cita&id_reservar_cita="+res.cita.id;*}
+                    }else{
+                        $.growl.error({ title: "", message:"Error al guardar"});
+                    }
+                },
+                complete: function (res) {
+                    $('body').waitMe('hide');
+                }
+            });
+        }else{
+            jAlert("Faltan datos para crear la cita");
+        }
 
 
-            },
-            complete: function (res) {
-                $('body').waitMe('hide');
-            }
-        })
+
     });
     
     function limitText(field, maxChar){
@@ -293,6 +314,7 @@
                         }
                         $('#txtNombre').val(data.result.firstname);
                         $('#txtDireccion').val(data.result.direccion);
+                        $('#celular').val(data.result.celular);
 
                     }
 
@@ -301,6 +323,7 @@
 
                     $('#txtNombre').val("");
                     $('#txtDireccion').val("");
+                    $('#celular').val("");
 
                     $.ajax({
                         type: "POST",
@@ -344,6 +367,7 @@
                                 }
                                 $('#txtNombre').val("");
                                 $('#txtDireccion').val("");
+                                $('#celular').val("");
 
                                 $('body').waitMe('hide');
                             }
@@ -431,8 +455,8 @@
     $('.datepicker').datepicker({
         prevText: '',
         nextText: '',
-        dateFormat: 'yy-mm-dd',
-        // dateFormat: 'dd/mm/yy',
+        // dateFormat: 'yy-mm-dd',
+        dateFormat: 'dd/mm/yy',
         changeYear: true,
         changeMonth: true,
         yearRange: "-100:+0", // last hundred years

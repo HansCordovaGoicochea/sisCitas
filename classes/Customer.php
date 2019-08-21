@@ -183,13 +183,13 @@ class CustomerCore extends ObjectModel
         'primary' => 'id_customer',
         'fields' => array(
             'secure_key' => array('type' => self::TYPE_STRING, 'validate' => 'isMd5', 'copy_post' => false),
-            'lastname' => array('type' => self::TYPE_STRING, 'validate' => 'isName', 'size' => 255),
+            'lastname' => array('type' => self::TYPE_STRING, 'size' => 255),
             'firstname' => array('type' => self::TYPE_STRING, 'size' => 255),
             'email' => array('type' => self::TYPE_STRING, 'validate' => 'isEmail', 'size' => 128),
             'passwd' => array('type' => self::TYPE_STRING, 'validate' => 'isPasswd', 'size' => 60),
             'last_passwd_gen' => array('type' => self::TYPE_STRING, 'copy_post' => false),
             'id_gender' => array('type' => self::TYPE_INT, 'validate' => 'isUnsignedId'),
-            'birthday' => array('type' => self::TYPE_DATE, 'validate' => 'isBirthDate'),
+            'birthday' => array('type' => self::TYPE_DATE),
             'newsletter' => array('type' => self::TYPE_BOOL, 'validate' => 'isBool'),
             'newsletter_date_add' => array('type' => self::TYPE_DATE, 'copy_post' => false),
             'ip_registration_newsletter' => array('type' => self::TYPE_STRING, 'copy_post' => false),
@@ -293,7 +293,9 @@ class CustomerCore extends ObjectModel
      */
     public function update($nullValues = false)
     {
+
         $this->birthday = (empty($this->years) ? $this->birthday : (int) $this->years.'-'.(int) $this->months.'-'.(int) $this->days);
+
 
         if ($this->newsletter && !Validate::isDate($this->newsletter_date_add)) {
             $this->newsletter_date_add = date('Y-m-d H:i:s');
@@ -315,7 +317,6 @@ class CustomerCore extends ObjectModel
         } catch (\PrestaShopException $exception) {
             $message = $exception->getMessage();
             error_log($message);
-
             return false;
         }
     }

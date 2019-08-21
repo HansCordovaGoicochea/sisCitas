@@ -309,6 +309,19 @@ class EmployeeCore extends ObjectModel
 		');
     }
 
+    public static function getColaboradores($activeOnly = true)
+    {
+        return Db::getInstance()->executeS('
+			SELECT `id_employee`, `firstname`, `lastname`
+			FROM `'._DB_PREFIX_.'employee` e
+			LEFT JOIN `'._DB_PREFIX_.'profile` p ON (e.`id_profile` = p.`id_profile`)
+			LEFT JOIN `'._DB_PREFIX_.'profile_lang` pl ON (p.`id_profile` = pl.`id_profile` AND pl.`id_lang` = '.Context::getContext()->language->id.')
+			WHERE pl.name = "Colaborador"
+			'.($activeOnly ? ' AND `active` = 1' : '').'
+			ORDER BY `lastname` ASC
+		');
+    }
+
     /**
      * Return employee instance from its e-mail (optionally check password)
      *
