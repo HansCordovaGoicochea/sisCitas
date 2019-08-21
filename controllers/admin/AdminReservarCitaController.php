@@ -67,24 +67,41 @@ class AdminReservarCitaControllerCore extends AdminController
         );
 
         $colaboradores = Employee::getEmployees(true);
+        $tipo_documentos = Tipodocumentolegal::getAllTipDoc();
         $this->context->smarty->assign(array(
-            'colaboradores' => $colaboradores
+            'colaboradores' => $colaboradores,
+            'tipo_documentos' => $tipo_documentos
         ));
 
         return parent::renderForm();
     }
 
-    public function ajaxProcessGetCitasByColaborador()
+    public function ajaxProcessGuardarCita()
     {
-        $id_colaborador = Tools::getValue('id_colaborador');
+        $data = Tools::getValue('data');
+        $params = array();
+        parse_str($data, $params);
 
-        $citas = ReservarCita::getCitasByColadorador($id_colaborador);
+        $id_reservar_cita = Tools::getValue('id_reservar_cita');
+
+        $customer = new Customer((int)$params['id_customer']);
+        $product = new Product((int)$params['product_id']);
+
+        if ($id_reservar_cita){
+            $obj = new ReservarCita((int)$id_reservar_cita);
+        }else{
+            $obj = new ReservarCita();
+        }
+        d( date("Y-m-d H:i:s", strtotime($params['fecha_inicio'])));
+        $obj->fecha_inicio = Tools::getFormatFechaGuardar($params['fecha_inicio']);
+
 
         die(json_encode(array(
             "respuesta" => "ok",
-            "citas" => $citas
+
         )));
     }
+
 
     public function ajaxProcessGetProductByName()
     {
