@@ -302,7 +302,7 @@ class EmployeeCore extends ObjectModel
     public static function getEmployees($activeOnly = true)
     {
         return Db::getInstance()->executeS('
-			SELECT `id_employee`, `firstname`, `lastname`
+			SELECT `id_employee`, `firstname`, `lastname`, CONCAT_WS(" ", `firstname`, `lastname`) AS name_employee
 			FROM `'._DB_PREFIX_.'employee`
 			'.($activeOnly ? ' WHERE `active` = 1' : '').'
 			ORDER BY `lastname` ASC
@@ -312,7 +312,7 @@ class EmployeeCore extends ObjectModel
     public static function getColaboradores($activeOnly = true)
     {
         return Db::getInstance()->executeS('
-			SELECT `id_employee`, `firstname`, `lastname`
+			SELECT `id_employee`, `firstname`, `lastname`, CONCAT_WS(" ", `firstname`, `lastname`) AS name_employee
 			FROM `'._DB_PREFIX_.'employee` e
 			LEFT JOIN `'._DB_PREFIX_.'profile` p ON (e.`id_profile` = p.`id_profile`)
 			LEFT JOIN `'._DB_PREFIX_.'profile_lang` pl ON (p.`id_profile` = pl.`id_profile` AND pl.`id_lang` = '.Context::getContext()->language->id.')
