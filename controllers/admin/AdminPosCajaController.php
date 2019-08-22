@@ -28,7 +28,7 @@ class AdminPosCajaControllerCore extends AdminController
         $this->_join .= 'LEFT JOIN `'._DB_PREFIX_.'employee` ea ON (ea.`id_employee` = a.`id_employee` AND a.`id_shop` = '.$this->context->shop->id.')';
 
 		$this->fields_list = array(
-			'id_pos_caja' => array('title' => $this->l('ID'), 'align' => 'center', 'class' => 'fixed-width-xs'),
+			'id_pos_caja' => array('title' => $this->l('ID'), 'align' => 'center', 'class' => 'fixed-width-xs',),
 			'nombre_caja' => array('title' => $this->l('Nombre de Caja')),
             'empleado_apertura' => array('title' => $this->l('Empleado'), 'class' => 'fixed-width-lg', 'havingFilter' => true),
             'estado_caja' => array('title' => $this->l('Estado'), 'class' => 'fixed-width-lg', 'havingFilter' => true),
@@ -36,6 +36,8 @@ class AdminPosCajaControllerCore extends AdminController
         );
 
 	}
+
+
 
 	public function initPageHeaderToolbar(){
 		if (empty($this->display))

@@ -30,11 +30,10 @@ class PosCajaCore extends ObjectModel
     public static function getCajas()
     {
 
-        return Db::getInstance()->getRow('
+        return Db::getInstance()->executeS('
 			SELECT *
 			FROM `' . _DB_PREFIX_ . 'pos_caja`
-			WHERE estado_apertura = 1 AND `id_shop` = ' . Context::getContext()->shop->id . '
-			ORDER BY fecha_apertura DESC
+			WHERE estado_apertura = 0 AND `id_shop` = ' . Context::getContext()->shop->id . '
 		');
 
     }
