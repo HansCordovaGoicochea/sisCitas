@@ -36,7 +36,7 @@
 {*</style>*}
 {*{assign var="monto_caja_abierta" value=PosArqueoscaja::getCajaLast($shop->id)}*}
 {*{d($monto_caja_abierta)}*}
-<form id="header_search" class="component bo_search_form toolbar_cajas_form form-inline">
+<form id="header_search" class="component bo_search_form toolbar_cajas_form form-inline" style="display:block!important;">
 {*	{if !empty($monto_caja_abierta) && $monto_caja_abierta['estado'] == 1}*}
 {*	Caja Soles*}
 {*	<div class="form-group div_soles">*}

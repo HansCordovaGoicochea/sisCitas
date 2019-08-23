@@ -81,6 +81,11 @@
 		var update_success_msg = '{l s='Successful update.' js=1 d='Admin.Notifications.Success'}';
 		var errorLogin = '{l s='PrestaShop was unable to log in to Addons. Please check your credentials and your Internet connection.' js=1 d='Admin.Notifications.Warning'}';
 		var search_product_msg = '{l s='Search for a product' js=1 d='Admin.Orderscustomers.Feature'}';
+
+		var new_cita_msg = '{l s='Se a realizado una nueva cita.' js=1 d='Admin.Navigation.Header'}';
+		var see_cita_msg = '{l s='Ver esta cita' js=1 d='Admin.Orderscustomers.Feature'}';
+		var token_admin_citas = '{getAdminToken tab='AdminReservarCita'}';
+
 	</script>
 {/if}
 {if isset($css_files)}
@@ -112,87 +117,6 @@
 		<nav id="header_infos" role="navigation">
 			<i class="material-icons js-mobile-menu">menu</i>
 
-			{* Logo *}
-{*			<a id="header_logo" href="{$default_tab_link|escape:'html':'UTF-8'}"></a>*}
-{*			<span id="shop_version">{$ps_version}</span>*}
-
-			{* Quick access *}
-			{if count($quick_access) >= 0}
-				<div id="header_quick" class="component hide">
-					<div class="dropdown">
-						<button
-							 id="quick_select"
-							 class="btn btn-link dropdown-toggle"
-							 data-toggle="dropdown"
-						>{l s='Quick Access' d='Admin.Navigation.Header'} <i class="material-icons">arrow_drop_down</i></button>
-						<ul class="dropdown-menu">
-							{foreach $quick_access as $quick}
-								<li {if $link->matchQuickLink({$quick.link})}{assign "matchQuickLink" $quick.id_quick_access}class="active"{/if}>
-									<a href="{$quick.link|escape:'html':'UTF-8'}" {if $quick.new_window}target="_blank"{/if}>
-										{$quick.name}
-									</a>
-								</li>
-							{/foreach}
-							<li class="divider"></li>
-							<li>
-								<a href="{$link->getAdminLink("AdminQuickAccesses")|addslashes}">
-									<i class="material-icons">settings</i>
-									{l s='Manage quick accesses' d='Admin.Navigation.Header'}
-								</a>
-							</li>
-						</ul>
-					</div>
-				</div>
-				{$quick_access_current_link_name = " - "|explode:$quick_access_current_link_name}
-				<script>
-					$(function() {
-						$('.ajax-quick-link').on('click', function(e){
-							e.preventDefault();
-
-							var method = $(this).data('method');
-
-							if(method == 'add')
-								var name = prompt('{l s='Please name this shortcut:' js=1 d='Admin.Navigation.Header'}', '{$quick_access_current_link_name.0|truncate:32}');
-
-							if(method == 'add' && name || method == 'remove')
-							{
-								$.ajax({
-									type: 'POST',
-									headers: { "cache-control": "no-cache" },
-									async: false,
-									url: "{$link->getAdminLink('AdminQuickAccesses')}" + "&action=GetUrl" + "&rand={1|rand:200}" + "&ajax=1" + "&method=" + method + ( $(this).data('quicklink-id') ? "&id_quick_access=" + $(this).data('quicklink-id') : ""),
-									data: {
-										"url": "{$link->getQuickLink($smarty.server['REQUEST_URI']|escape:'javascript')}",
-										"name": name,
-										"icon": "{$quick_access_current_link_icon}"
-									},
-									dataType: "json",
-									success: function(data) {
-										var quicklink_list ='';
-										$.each(data, function(index,value){
-											if (typeof data[index]['name'] !== 'undefined')
-												quicklink_list += '<li><a href="' + data[index]['link'] + '&token=' + data[index]['token'] + '">' + data[index]['name'] + '</a></li>';
-										});
-
-										if (typeof data['has_errors'] !== 'undefined' && data['has_errors'])
-											$.each(data, function(index, value)
-											{
-												if (typeof data[index] == 'string')
-													$.growl.error({ title: "", message: data[index]});
-											});
-										else if (quicklink_list)
-										{
-											$("#header_quick ul.dropdown-menu").html(quicklink_list);
-											showSuccessMessage(update_success_msg);
-										}
-									}
-								});
-							}
-						});
-					});
-				</script>
-			{/if}
-
 			{* Search *}
 			{include file="cajas_view.tpl" show_clear_btn=1}
 
@@ -211,50 +135,8 @@
 			</div>
 			{/if}
 
-			{if isset($maintenance_mode) && $maintenance_mode == true && 1 == 2}
-			<div class="component hide-mobile-sm">
-				<a class="shop-state label-tooltip" id="maintenance-mode"
-					 href="{$link->getAdminLink('AdminMaintenance')|escape:'html':'UTF-8'}"
-					 data-toggle="tooltip"
-					 data-placement="bottom"
-					 data-html="true"
-					 title="<p class='text-left text-nowrap'><strong>{l s='Your shop is in maintenance.' d='Admin.Navigation.Notification'}</strong></p><p class='text-left'>{l s='Your visitors and customers cannot access your shop while in maintenance mode.%s To manage the maintenance settings, go to Shop Parameters > Maintenance tab.' sprintf=['<br />'] d='Admin.Navigation.Notification'}</p>"
-				>
-					<i class="material-icons">build</i>
-					<span>{l s='Maintenance mode' d='Admin.Navigation.Header'}</span>
-				</a>
-			</div>
-			{/if}
-
-			{* Shop name *}
-			{if {$base_url} && 1==2}
-				<ul id="header-list" class="header-list">
-					<li class="shopname" data-mobile="true" data-from="header-list" data-target="menu">
-						{if isset($is_multishop) && $is_multishop && $shop_list &&
-							(isset($multishop_context) &&
-							$multishop_context & Shop::CONTEXT_GROUP ||
-							$multishop_context & Shop::CONTEXT_SHOP ||
-							$multishop_context & Shop::CONTEXT_ALL
-						)}
-							<ul id="header_shop" class="shop-state">
-								<li class="dropdown">
-									<i class="material-icons">visibility</i>
-									{$shop_list}
-								</li>
-							</ul>
-						{else}
-							<a id="header_shopname" class="shop-state" href="{$base_url|escape:'html':'UTF-8'}" target="_blank">
-								<i class="material-icons">visibility</i>
-								{l s='View my shop' d='Admin.Navigation.Header'}
-							</a>
-						{/if}
-					</li>
-				</ul>
-			{/if}
-
 			{* Notifications *}
-			{if $show_new_orders || $show_new_customers || $show_new_messages}
-				<ul class="header-list component">
+			<ul class="header-list component">
 					<li id="notification" class="dropdown">
 						<a href="javascript:void(0);" class="notification dropdown-toggle notifs">
 							<i class="material-icons">notifications_none</i>
@@ -265,66 +147,39 @@
 						<div class="dropdown-menu dropdown-menu-right notifs_dropdown">
 							<div class="notifications">
 								<ul class="nav nav-tabs" role="tablist">
-									{$active = "active"}
-									{if $show_new_orders}
-										<li class="nav-item {$active}">
-											<a class="nav-link" data-toggle="tab" data-type="order" href="#orders-notifications" role="tab" id="orders-tab">{l s='Latest orders' d='Admin.Navigation.Header'}<span id="orders_notif_value"></span></a>
-										</li>
-										{$active = ""}
-									{/if}
-									{if $show_new_customers}
-										<li class="nav-item {$active}">
-											<a class="nav-link" data-toggle="tab" data-type="customer" href="#customers-notifications" role="tab" id="customers-tab">{l s='New customers' d='Admin.Navigation.Header'}<span id="customers_notif_value"></span></a>
-										</li>
-										{$active = ""}
-									{/if}
-									{if $show_new_messages}
-										<li class="nav-item {$active}">
-											<a class="nav-link" data-toggle="tab" data-type="customer_message" href="#messages-notifications" role="tab" id="messages-tab">{l s='Messages' d='Admin.Global'}<span id="customer_messages_notif_value"></span></a>
-										</li>
-										{$active = ""}
-									{/if}
-								</ul>
 
+									<li class="nav-item active" style="width: 50%">
+										<a class="nav-link" data-toggle="tab" data-type="cita" href="#citas-notifications" role="tab" id="orders-tab">{l s='Prox. Citas' d='Admin.Navigation.Header'}<span id="citas_notif_value"></span></a>
+									</li>
+
+									<li class="nav-item" style="width: 50%">
+										<a class="nav-link" data-toggle="tab" data-type="cumples" href="#cumples-notifications" role="tab" id="cumples-tab">{l s='Prox. Cumpleaños' d='Admin.Navigation.Header'}<span id="customers_notif_value"></span></a>
+									</li>
+
+								</ul>
 								<!-- Tab panes -->
 								<div class="tab-content">
-									{$active = "active"}
-									{if $show_new_orders}
-										<div class="tab-pane {$active} empty" id="orders-notifications" role="tabpanel">
+
+										<div class="tab-pane active empty" id="citas-notifications" role="tabpanel">
 											<p class="no-notification">
-												{l s='No new order for now :(' d='Admin.Navigation.Notification'}<br>
-												{$no_order_tip}
+												{l s='No hay próximas citas por ahora. :(' d='Admin.Navigation.Notification'}<br>
 											</p>
 											<div class="notification-elements"></div>
 										</div>
-										{$active = ""}
-									{/if}
-									{if $show_new_customers}
-										<div class="tab-pane {$active} empty" id="customers-notifications" role="tabpanel">
+
+										<div class="tab-pane empty" id="cumples-notifications" role="tabpanel">
 											<p class="no-notification">
-												{l s='No new customer for now :(' d='Admin.Navigation.Notification'}<br>
-												{$no_customer_tip}
+												{l s='No hay próximos cumpleaños por ahora. :(' d='Admin.Navigation.Notification'}<br>
 											</p>
 											<div class="notification-elements"></div>
 										</div>
-										{$active = ""}
-									{/if}
-									{if $show_new_messages}
-										<div class="tab-pane {$active} empty" id="messages-notifications" role="tabpanel">
-											<p class="no-notification">
-												{l s='No new message for now.' d='Admin.Navigation.Notification'}<br>
-												{$no_customer_message_tip}
-											</p>
-											<div class="notification-elements"></div>
-										</div>
-										{$active = ""}
-									{/if}
+
 								</div>
 							</div>
 						</div>
 					</li>
 				</ul>
-			{/if}
+
 
 			{* Employee *}
 			<ul id="header_employee_box" class="component">
@@ -344,9 +199,9 @@
 						<li class="text-center text-nowrap username" data-mobile="true" data-from="employee_links" data-target="menu">{$employee->firstname} {$employee->lastname}</li>
 						<li class="divider"></li>
 						<li><a class="admin-link" href="{$link->getAdminLink('AdminEmployees')|escape:'html':'UTF-8'}&amp;id_employee={$employee->id|intval}&amp;updateemployee"><i class="material-icons">settings_applications</i> {l s='Your profile' d='Admin.Navigation.Header'}</a></li>
-						{if $host_mode}
-							<li><a href="https://www.prestashop.com/cloud/" class="_blank"><i class="material-icons">settings_applications</i> {l s='My PrestaShop account' d='Admin.Navigation.Header'}</a></li>
-						{/if}
+{*						{if $host_mode}*}
+{*							<li><a href="https://www.prestashop.com/cloud/" class="_blank"><i class="material-icons">settings_applications</i> {l s='My PrestaShop account' d='Admin.Navigation.Header'}</a></li>*}
+{*						{/if}*}
 						<li class="signout" data-mobile="true" data-from="employee_links" data-target="menu" data-after="true"><a id="header_logout" href="{$login_link|escape:'html':'UTF-8'}&amp;logout"><i class="material-icons">power_settings_new</i> {l s='Sign out' d='Admin.Navigation.Header'}</a></li>
 					</ul>
 				</li>

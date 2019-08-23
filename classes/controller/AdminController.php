@@ -2776,6 +2776,8 @@ class AdminControllerCore extends Controller
             'no_order_tip' => $this->getNotificationTip('order'),
             'no_customer_tip' => $this->getNotificationTip('customer'),
             'no_customer_message_tip' => $this->getNotificationTip('customer_message'),
+            'no_citas_tip' => $this->getNotificationTip('citas'),
+            'no_cumples_tip' => $this->getNotificationTip('cumples'),
         ));
 
         if ($this->display_header) {
