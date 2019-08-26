@@ -44,8 +44,16 @@ if (Configuration::get('PS_SMARTY_CACHING_TYPE') == 'mysql') {
     include _PS_CLASS_DIR_.'Smarty/SmartyCacheResourceMysql.php';
     $smarty->caching_type = 'mysql';
 }
+
+//Cuando está en modo de producción debe establecerse en false, ya que dará un aumento del 30% al tiempo de carga de la página.
+//_PS_SMARTY_NO_COMPILE_', 0);
+//_PS_SMARTY_CHECK_COMPILE_', 1);
+//'_PS_SMARTY_FORCE_COMPILE_', 2);
 $smarty->force_compile = (Configuration::get('PS_SMARTY_FORCE_COMPILE') == _PS_SMARTY_FORCE_COMPILE_) ? true : false;
+
+//debe dejarse true en modo de desarrollo.
 $smarty->compile_check = (Configuration::get('PS_SMARTY_FORCE_COMPILE') >= _PS_SMARTY_CHECK_COMPILE_) ? true : false;
+
 $smarty->debug_tpl = _PS_ALL_THEMES_DIR_.'debug.tpl';
 
 /* Use this constant if you want to load smarty without all PrestaShop functions */

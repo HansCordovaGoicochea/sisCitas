@@ -237,6 +237,7 @@
                 success: function (res) {
                     if (res.respuesta === 'ok'){
                         $('#id_reservar_cita').val(res.cita.id);
+                        $.growl.notice({ title: "", message:"Guardado Correctamente"});
                         {*window.location.href = "{$link->getAdminLink('AdminReservarCita')|addslashes}&updatereservar_cita&id_reservar_cita="+res.cita.id;*}
                     }else{
                         $.growl.error({ title: "", message:"Error al guardar"});

@@ -2617,10 +2617,14 @@ class AdminControllerCore extends Controller
 
     public function setMedia($isNewTheme = false)
     {
+
+
         if ($isNewTheme) {
             $this->addCSS(__PS_BASE_URI__.$this->admin_webpath.'/themes/new-theme/public/theme.css', 'all', 1);
             $this->addJS(__PS_BASE_URI__.$this->admin_webpath.'/themes/new-theme/public/main.bundle.js');
             $this->addjQueryPlugin(array('chosen'));
+
+            $this->addJS(_PS_JS_DIR_.'admin/notifications_ache.js');
         } else {
 
             //Bootstrap
@@ -2646,7 +2650,11 @@ class AdminControllerCore extends Controller
             }
 
             if (!Tools::getValue('submitFormAjax')) {
-                $this->addJS(_PS_JS_DIR_.'admin/notifications.js');
+
+                if (Configuration::get('PS_SHOW_NEW_ORDERS') || Configuration::get('PS_SHOW_NEW_CUSTOMERS') || Configuration::get('PS_SHOW_NEW_MESSAGES')){
+                    $this->addJS(_PS_JS_DIR_.'admin/notifications.js');
+                }
+                $this->addJS(_PS_JS_DIR_.'admin/notifications_ache.js');
             }
 
             if (defined('_PS_HOST_MODE_') && _PS_HOST_MODE_) {
@@ -4140,6 +4148,8 @@ class AdminControllerCore extends Controller
                 return $this->context->smarty->createTemplate('controllers'.DIRECTORY_SEPARATOR.$this->override_folder.$tpl_name, $this->context->smarty);
             }
         }
+
+
 
         return $this->context->smarty->createTemplate($this->context->smarty->getTemplateDir(0).$tpl_name, $this->context->smarty);
     }

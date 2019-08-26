@@ -96,7 +96,7 @@ class AdminPosCajaControllerCore extends AdminController
         );
         $this->fields_form['input'][] = array(
             'type' => 'switch',
-            'label' => $this->l('estado_apertura'),
+            'label' => $this->l('Estado'),
             'name' => 'active',
             'required' => false,
             'is_bool' => true,
@@ -105,12 +105,12 @@ class AdminPosCajaControllerCore extends AdminController
                 array(
                     'id' => 'estado_on',
                     'value' => 1,
-                    'label' => $this->l('Abierto')
+                    'label' => 'Abierto'
                 ),
                 array(
                     'id' => 'estado_off',
                     'value' => 0,
-                    'label' => $this->l('Cerrado')
+                    'label' => 'Cerrado'
                 )
             ),
             'hint' => $this->l('Este campo nos indica si la caja esta abierta.')

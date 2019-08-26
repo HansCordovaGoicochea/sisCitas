@@ -75,11 +75,11 @@ class AdminCustomersControllerCore extends AdminController
                 'class' => 'hide',
                 'align' => 'hide'
             ),
-            'date_add' => array(
-                'title' => $this->trans('Registration', array(), 'Admin.Orderscustomers.Feature'),
-                'type' => 'date',
-                'align' => 'text-right'
-            ),
+//            'date_add' => array(
+//                'title' => $this->trans('Registration', array(), 'Admin.Orderscustomers.Feature'),
+//                'type' => 'date',
+//                'align' => 'text-right'
+//            ),
             'firstname' => array(
                 'title' => $this->trans('Cliente', array(), 'Admin.Global')
             ),
@@ -99,6 +99,11 @@ class AdminCustomersControllerCore extends AdminController
             ),
             'telefono_celular' => array(
                 'title' => $this->trans('Celular', array(), 'Admin.Global')
+            ),
+            'birthday' => array(
+                'title' => $this->trans('Fecha Nacimiento', array(), 'Admin.Orderscustomers.Feature'),
+                'type' => 'date',
+                'align' => 'text-right'
             ),
         );
 
@@ -127,7 +132,6 @@ class AdminCustomersControllerCore extends AdminController
                 'orderby' => false,
                 'filter_key' => 'a!active'
             ),
-
         ));
 
         $this->shopLinkType = 'shop';

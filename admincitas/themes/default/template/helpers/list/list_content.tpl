@@ -178,6 +178,7 @@
 				{/if}
 			{/foreach}
 			{if $compiled_actions|count > 0}
+				{$compiled_actions =  $compiled_actions|array_filter}
 				{if $compiled_actions|count > 1}<div class="btn-group-action">{/if}
 				<div class="btn-group pull-right">
 					{$compiled_actions[0]}

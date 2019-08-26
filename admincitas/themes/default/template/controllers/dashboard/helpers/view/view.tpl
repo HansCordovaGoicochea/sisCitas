@@ -63,7 +63,14 @@
 	<div class="row">
 		<div class="col-md-12 col-lg-12" id="hookDashboardZoneTwo">
 
-		</div>
+				<strong>dsfsdfsdfsdfsdfds</strong>
+				<strong class="pull-right">25</strong>
+				<div class="progress">
+					<div class="progress-bar progress-bar-info" role="progressbar" aria-valuemin="0" aria-valuemax="999999999999999999" style="width: 100px;">
+						<span></span>
+					</div>
+				</div>
 
+		</div>
 	</div>
 </div>

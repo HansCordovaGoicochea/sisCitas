@@ -30,6 +30,70 @@
 		margin: 0 auto;
 		pointer-events:all;
 	}
+
+	/*stilos de cajas de billetes*/
+
+	#contBilletes {
+		max-width: 522px;
+		margin: 10px auto;
+	}
+
+	.row .threecol {
+		width: 23.4%;
+	}
+
+	.contBillete {
+		padding: 0 !important;
+		margin-top: 3px;
+		margin-bottom: 3px;
+	}
+
+	.onecol, .twocol, .threecol, .fourcol, .fivecol, .sixcol, .sevencol, .eightcol, .ninecol, .tencol, .elevencol {
+		margin-right: 1.8%;
+		float: left;
+		min-height: 1px;
+	}
+
+	.contBillete button.billete {
+		margin: 0;
+		border: 0 none;
+		padding: 7px;
+		border-top-right-radius: 0;
+		border-top-left-radius: 5px;
+		border-bottom-left-radius: 5px;
+		border-bottom-right-radius: 0;
+	}
+	.row .sixcol {
+		width: 49%;
+	}
+
+	.contBillete input.billeteomoneda, .contBillete input.billeteomoneda2 {
+		background-color: #fff;
+		color: #000;
+		padding: 7px;
+		border: 0 none;
+		width: 49% !important;
+		border-top-left-radius: 0;
+		border-bottom-left-radius: 0;
+		border-top-right-radius: 5px;
+		border-bottom-right-radius: 5px;
+		border: 1px solid #e3e3e3;
+	}
+
+	.billeteomoneda {
+		width: 43px !important;
+		margin-right: 5px;
+		float: left;
+		text-align: center;
+	}
+
+	.last {
+		margin-right: 0px !important;
+	}
+
+	.hasContent{
+		background:#DFF0D8 !important
+	}
 </style>
 <div class="modal fade" id="nuevo_arqueo{$table}">
 	<div class="vertical-alignment-helper">
@@ -62,6 +126,59 @@
 									   class="form-control text-center col-lg-2 contadorCaja" name="monto_apertura" id="monto_apertura" aria-describedby="helpId"
 									   value="0.00" step="0.10">
 							</div>
+						</div>
+					</div>
+					<div class="row text-center">
+						<label class="text-center">o seleccione uno a uno los billetes/monedas:</label>
+					</div>
+					<div id="contBilletes" class="row">
+						<div class="contBillete threecol">
+							<button class="billete sixcol ui-btn ui-shadow ui-corner-all">500</button>
+							<input type="text" data-role="none" class="billeteomoneda  sixcol last" name="billeteOmoneda[500]" value="">
+						</div>
+						<div class="contBillete threecol">
+							<button class="billete sixcol ui-btn ui-shadow ui-corner-all">200</button>
+							<input type="text" data-role="none" class="billeteomoneda  sixcol last" name="billeteOmoneda[200]" value="">
+						</div>
+						<div class="contBillete threecol">
+							<button class="billete sixcol ui-btn ui-shadow ui-corner-all">100</button>
+							<input type="text" data-role="none" class="billeteomoneda  sixcol last" name="billeteOmoneda[100]" value="">
+						</div>
+						<div class="contBillete threecol last">
+							<button class="billete sixcol ui-btn ui-shadow ui-corner-all">50</button>
+							<input type="text" data-role="none" class="billeteomoneda  sixcol last" name="billeteOmoneda[50]" value="">
+						</div>
+						<div class="contBillete threecol">
+							<button class="billete sixcol ui-btn ui-shadow ui-corner-all">20</button>
+							<input type="text" data-role="none" class="billeteomoneda  sixcol last" name="billeteOmoneda[20]" value="">
+						</div>
+						<div class="contBillete threecol">
+							<button class="billete sixcol ui-btn ui-shadow ui-corner-all">10</button>
+							<input type="text" data-role="none" class="billeteomoneda  sixcol last" name="billeteOmoneda[10]" value="">
+						</div>
+						<div class="contBillete threecol">
+							<button class="billete sixcol ui-btn ui-shadow ui-corner-all">5</button>
+							<input type="text" data-role="none" class="billeteomoneda  sixcol last" name="billeteOmoneda[5]" value="">
+						</div>
+						<div class="contBillete threecol last">
+							<button class="billete sixcol ui-btn ui-shadow ui-corner-all">2</button>
+							<input type="text" data-role="none" class="billeteomoneda  sixcol last" name="billeteOmoneda[2]" value="">
+						</div>
+						<div class="contBillete threecol">
+							<button class="billete sixcol ui-btn ui-shadow ui-corner-all">1</button>
+							<input type="text" data-role="none" class="billeteomoneda  sixcol last" name="billeteOmoneda[1]" value="">
+						</div>
+						<div class="contBillete threecol">
+							<button class="billete sixcol ui-btn ui-shadow ui-corner-all">0.5</button>
+							<input type="text" data-role="none" class="billeteomoneda  sixcol last" name="billeteOmoneda[0.5]" value="">
+						</div>
+						<div class="contBillete threecol">
+							<button class="billete sixcol ui-btn ui-shadow ui-corner-all">0.2</button>
+							<input type="text" data-role="none" class="billeteomoneda  sixcol last" name="billeteOmoneda[0.2]" value="">
+						</div>
+						<div class="contBillete threecol last">
+							<button class="billete sixcol ui-btn ui-shadow ui-corner-all">0.1</button>
+							<input type="text" data-role="none" class="billeteomoneda  sixcol last" name="billeteOmoneda[0.1]" value="">
 						</div>
 					</div>
 					<p>
@@ -180,4 +297,41 @@
 		}
 
 	})
+
+
+	$(".billeteomoneda").on("keyup",function(event){
+		var valor = 0;
+		$(".billeteomoneda").each(function(){
+			var valInput = $(this).val();
+			if(valInput !== "")
+				valor += valInput * $(this).prev('button').text();
+		});
+		$("#abrirCaja .contadorCaja").val(valor);
+		efectoGuardado("#abrirCaja .contadorCaja");
+	});
+
+	function efectoGuardado(elemento){
+		if($(elemento).is("input")){
+			$(elemento).addClass("hasContent");
+			setTimeout(function(){ $(elemento).removeClass("hasContent"); }, 300);
+		}else if($(elemento).is("select")){
+			var colorAntes = $(elemento).css('backgroundColor');
+			$(elemento+'-button').animate({ backgroundColor: "#DFF0D8"}, 200 ).delay(300).animate({ backgroundColor: colorAntes}, 200 );
+		}else{
+			var colorAntes = $(elemento).css('backgroundColor');
+			if(typeof colorAntes == "undefined")
+				colorAntes = "#FFFFFF";
+			else
+				colorAntes = rgb2hex(colorAntes);
+			$(elemento).animate({ backgroundColor: "#DFF0D8"}, 200 ).delay(300).animate({ backgroundColor: colorAntes}, 200 );
+		}
+	}
+
+	function rgb2hex(rgb){
+		rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
+		return (rgb && rgb.length === 4) ? "#" +
+				("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
+				("0" + parseInt(rgb[2],10).toString(16)).slice(-2) +
+				("0" + parseInt(rgb[3],10).toString(16)).slice(-2) : '';
+	}
 </script>

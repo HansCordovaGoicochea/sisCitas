@@ -74,6 +74,16 @@
     var update_success_msg = '{l s='Update successful' js=1}';
     var errorLogin = '{l s='PrestaShop was unable to log in to Addons. Please check your credentials and your Internet connection.' js=1}';
     var search_product_msg = '{l s='Search for a product' js=1}';
+
+
+    var new_cita_msg = '{l s='Se a realizado una nueva cita.' js=1 d='Admin.Navigation.Header'}';
+    var see_cita_msg = '{l s='Ver esta cita' js=1 d='Admin.Orderscustomers.Feature'}';
+    var token_admin_citas = '{getAdminToken tab='AdminReservarCita'}';
+
+    var new_noti_ache_msg = '{l s='Se a realizado una nueva cita.' js=1 d='Admin.Navigation.Header'}';
+    var see_noti_ache_msg = '{l s='Ver esta cita' js=1 d='Admin.Orderscustomers.Feature'}';
+    var admin_noti_ache_ajax_url = '{$link->getAdminLink("AdminNotificationAche")|addslashes}';
+    var token_admin_noti_ache = '{getAdminToken tab='AdminNotificationAche'}';
   </script>
 {/if}
 
