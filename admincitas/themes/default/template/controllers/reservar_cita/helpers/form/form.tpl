@@ -174,7 +174,7 @@
                     </div>
                     <div class="form-group col-lg-6">
                         <label for="birthday" class="control-label required">Fecha Nacimiento:</label>
-                        <input type="text" class="form-control datepicker" id="birthday" name="birthday" value="{$customer->birthday|date_format:"%d/%m/%Y"}">
+                        <input type="text" class="form-control datepicker" id="birthday" name="birthday" value="{if $customer->birthday}{$customer->birthday|date_format:"%d/%m/%Y"}{/if}">
                     </div>
                     <div class="form-group col-lg-6">
                         <label for="celular" class="control-label">Celular:</label>

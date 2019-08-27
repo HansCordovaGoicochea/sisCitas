@@ -166,9 +166,12 @@ var displayFieldsManager = (function() {
           $('#form-nav a[href="#step4"]').hide();
           showVariationsSelector.find('input[value="0"]').attr('checked', true);
           $('#form-nav a[href="#step3"]').text(translate_javascripts['Virtual product']);
+
+          $('#product_qty_0_shortcut_div, #quantities, #div_alerta_stock').hide();
         } else {
           showVariationsSelector.show();
           $('#form-nav a[href="#step3"]').text(translate_javascripts['Quantities']);
+          $('#product_qty_0_shortcut_div, #quantities, #div_alerta_stock').show();
         }
       }
 
@@ -180,17 +183,17 @@ var displayFieldsManager = (function() {
       }
 
       /** check quantity / combinations display */
-      if (showVariationsSelector.find('input:checked').val() === '1' || $('#accordion_combinations tr:not(#loading-attribute)').length > 0) {
-        combinationsBlock.show();
-
-        $('#specific-price-combination-selector').removeClass('hide').show();
-        $('#form-nav a[href="#step3"]').text(translate_javascripts['Combinations']);
-        $('#product_qty_0_shortcut_div, #quantities').hide();
-      } else {
-        combinationsBlock.hide();
-        $('#specific-price-combination-selector').hide();
-        $('#product_qty_0_shortcut_div, #quantities').show();
-      }
+      // if (showVariationsSelector.find('input:checked').val() === '1' || $('#accordion_combinations tr:not(#loading-attribute)').length > 0) {
+      //   combinationsBlock.show();
+      //
+      //   $('#specific-price-combination-selector').removeClass('hide').show();
+      //   $('#form-nav a[href="#step3"]').text(translate_javascripts['Combinations']);
+      //   $('#product_qty_0_shortcut_div, #quantities').hide();
+      // } else {
+      //   combinationsBlock.hide();
+      //   $('#specific-price-combination-selector').hide();
+      //   $('#product_qty_0_shortcut_div, #quantities').show();
+      // }
 
       /** Tooltip for product type combinations */
       if ($('input[name="show_variations"][value="1"]:checked').length >= 1) {

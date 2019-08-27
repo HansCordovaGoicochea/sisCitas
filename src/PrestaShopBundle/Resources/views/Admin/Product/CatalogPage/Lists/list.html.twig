@@ -55,9 +55,9 @@
         <td>
             {{ product.name_category|default('') }}
         </td>
-        <td>
-            {{ product.name_manufacturer|default('') }}
-        </td>
+{#        <td>#}
+{#            {{ product.name_manufacturer|default('') }}#}
+{#        </td>#}
         <td class="text-center">
             <a href="{{ product.url|default('') }}#tab-step2">{{ product.price_final|default('N/A'|trans({}, 'Admin.Global')) }}</a>
         </td>
@@ -96,11 +96,15 @@
                     {% if product.sav_quantity is defined and product.sav_quantity > 0 %}
                         {{ intCast(product.sav_quantity) }}
                     {% else %}
-                        {{ intCast(product.sav_quantity)|default('N/A'|trans({}, 'Admin.Global')) }}
+                        {% if product.is_virtual == 1%}
+                            --
+                        {% else %}
+                            {{ intCast(product.sav_quantity)|default('N/A'|trans({}, 'Admin.Global')) }}
+                        {% endif %}
                     {% endif %}
 
                 </a>
-                {% if product.sav_quantity <= product.low_stock_threshold %}
+                {% if product.sav_quantity <= product.low_stock_threshold AND product.is_virtual == 0%}
                 <span data-toggle="pstooltip" data-placement="top" data-html="true" title="" class="stock-warning ico ml-2" data-original-title="<div class=&quot;text-sm-left&quot;>
                 <p>Este producto se encuentra por debajo del nivel de stock más bajo que has definido.</p>
                 <p><strong>Nivel de stock bajo: {{ product.low_stock_threshold }}</strong></p>

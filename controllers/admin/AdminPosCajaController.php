@@ -85,7 +85,7 @@ class AdminPosCajaControllerCore extends AdminController
             'name' => 'id_employee',
             'required' => true,
             'options' => array(
-                'query' => Employee::getEmployees(true),
+                'query' => Employee::getCajeros(true),
                 'id' => 'id_employee',
                 'name' => 'name_employee',
                 'default' => array(

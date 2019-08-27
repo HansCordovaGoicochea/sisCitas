@@ -52,9 +52,9 @@
           <th scope="col">
             {{ ps.sortable_column_header("Category"|trans({}, 'Admin.Catalog.Feature'), 'name_category', orderBy, sortOrder) }}
           </th>
-          <th scope="col">
-            {{ ps.sortable_column_header("Marca"|trans({}, 'Admin.Catalog.Feature'), 'name_manufacturer', orderBy, sortOrder) }}
-          </th>
+{#          <th scope="col">#}
+{#            {{ ps.sortable_column_header("Marca"|trans({}, 'Admin.Catalog.Feature'), 'name_manufacturer', orderBy, sortOrder) }}#}
+{#          </th>#}
           <th scope="col" class="text-center" style="width: 9%">
             {{ ps.sortable_column_header("Precio Venta"|trans({}, 'Admin.Catalog.Feature'), 'price_final', orderBy, sortOrder) }}
           </th>
@@ -121,15 +121,15 @@
               value="{{ filter_column_name_category }}"
             />
           </th>
-            <th>
-                <input
-                        type="text"
-                        class="form-control"
-                        placeholder="{{ "Buscar Marca"|trans({}, 'Admin.Catalog.Help') }}"
-                        name="filter_column_name_manufacturer"
-                        value="{{ filter_column_name_manufacturer }}"
-                />
-            </th>
+{#            <th>#}
+{#                <input#}
+{#                        type="text"#}
+{#                        class="form-control"#}
+{#                        placeholder="{{ "Buscar Marca"|trans({}, 'Admin.Catalog.Help') }}"#}
+{#                        name="filter_column_name_manufacturer"#}
+{#                        value="{{ filter_column_name_manufacturer }}"#}
+{#                />#}
+{#            </th>#}
           <th class="text-center"></th>
 {#          <th class="text-center"></th>#}
 

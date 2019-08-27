@@ -109,7 +109,7 @@
                 {% endif %}
 
 {#                <h2>{{ 'Stock alerts'|trans({}, 'Admin.Catalog.Feature') }}</h2>#}
-                <fieldset class="form-group">
+                <fieldset class="form-group" id="div_alerta_stock">
                   <div class="row">
                     <div class="col-md-12">
                       <h2 class="form-control-label">
@@ -134,17 +134,17 @@
           <div class="col-md-3">
             <div class="form-group">
               <h2>
-                {{ "Price"|trans({}, 'Admin.Global') }}
+                {{ "Precio Venta"|trans({}, 'Admin.Global') }}
                 <span class="help-box" data-toggle="popover"
                       data-content="{{ "This is the retail price at which you intend to sell this product to your customers. The tax included price will change according to the tax rule you select."|trans({}, 'Admin.Catalog.Help') }}" ></span>
               </h2>
               <div class="row">
-                <div class="col-md-6 ">
-                  <label class="form-control-label">{{ "Tax included"|trans({}, 'Admin.Catalog.Feature') }}</label>
+                <div class="col-md-12 mt-1 ">
+{#                  <label class="form-control-label">{{ "Tax included"|trans({}, 'Admin.Catalog.Feature') }}</label>#}
                   {{ form_widget(formPriceShortcutTTC) }}
                   {{ form_errors(formPriceShortcutTTC) }}
                 </div>
-                <div class="col-md-6 col-offset-md-1">
+                <div class="col-md-6 col-offset-md-1 hide">
                   <label class="form-control-label">{{ "Tax excluded"|trans({}, 'Admin.Catalog.Feature') }}</label>
                   {{ form_widget(formPriceShortcut) }}
                   {{ form_errors(formPriceShortcut) }}
