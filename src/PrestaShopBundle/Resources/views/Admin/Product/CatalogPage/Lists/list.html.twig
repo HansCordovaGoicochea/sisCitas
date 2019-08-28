@@ -104,7 +104,7 @@
                     {% endif %}
 
                 </a>
-                {% if product.sav_quantity <= product.low_stock_threshold AND product.is_virtual == 0%}
+                {% if product.sav_quantity <= product.low_stock_threshold and product.is_virtual == 0 %}
                 <span data-toggle="pstooltip" data-placement="top" data-html="true" title="" class="stock-warning ico ml-2" data-original-title="<div class=&quot;text-sm-left&quot;>
                 <p>Este producto se encuentra por debajo del nivel de stock más bajo que has definido.</p>
                 <p><strong>Nivel de stock bajo: {{ product.low_stock_threshold }}</strong></p>

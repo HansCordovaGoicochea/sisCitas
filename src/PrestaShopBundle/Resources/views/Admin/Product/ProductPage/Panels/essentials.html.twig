@@ -123,6 +123,20 @@
                   </div>
                 </fieldset>
 
+                <div class="form-group" id="div_puntos" >
+                  <h2>
+                    {{ "Puntos"|trans({}, 'Admin.Catalog.Feature') }}
+                    <span class="help-box" data-toggle="popover"
+                          data-content="{{ "Indique cuantos puntos vale este servicio"|trans({}, 'Admin.Catalog.Help') }}" ></span>
+                  </h2>
+                  {{ form_errors(form.step1.cantidad_puntos) }}
+                  <div class="row">
+                    <div class="col-xl-6 col-lg-12" id="product_cantidad_puntos">
+                      {{ form_widget(form.step1.cantidad_puntos) }}
+                    </div>
+                  </div>
+                </div>
+
 {#                <div id="manufacturer">#}
 {#                  {{ include('@Product/ProductPage/Forms/form_manufacturer.html.twig', { 'form': formManufacturer }) }}#}
 {#                </div>#}

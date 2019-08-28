@@ -308,6 +308,8 @@ class ProductCore extends ObjectModel
     const STATE_TEMP = 0;
     const STATE_SAVED = 1;
 
+    public $cantidad_puntos;
+
     public static $definition = array(
         'table' => 'product',
         'primary' => 'id_product',
@@ -315,6 +317,8 @@ class ProductCore extends ObjectModel
         'multilang_shop' => true,
         'fields' => array(
             /* Classic fields */
+            'cantidad_puntos' =>            array('type' => self::TYPE_INT),
+
             'id_shop_default' =>            array('type' => self::TYPE_INT, 'validate' => 'isUnsignedId'),
             'id_manufacturer' =>            array('type' => self::TYPE_INT, 'validate' => 'isUnsignedId'),
             'id_supplier' =>                array('type' => self::TYPE_INT, 'validate' => 'isUnsignedId'),

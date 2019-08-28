@@ -29,7 +29,7 @@
     <div class="component" id="quick-access-container">
       {include file="components/layout/quick_access.tpl"}
     </div>
-    <div class="component" id="header-search-container">
+    <div class="component" id="header-search-container" style="display:block!important;">
       {include file="components/layout/search_form.tpl"}
     </div>
 

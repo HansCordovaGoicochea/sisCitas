@@ -317,7 +317,20 @@ class ProductInformation extends CommonAbstractType
             'template_collection' => '<span class="label">%s</span><i class="material-icons delete">clear</i>',
             'required' => false,
             'label' =>  $this->translator->trans('Accessories', [], 'Admin.Catalog.Feature')
-        ));
+        ))
+            ->add(
+                'cantidad_puntos',
+                FormType\NumberType::class,
+                array(
+                    'label' => $this->translator->trans('Puntos', [], 'Admin.Catalog.Feature'),
+                    'attr' => array(
+                        'placeholder' => $this->translator->trans('Leave empty to disable', [], 'Admin.Catalog.Help'),
+                    ),
+                    'constraints' => array(
+                        new Assert\Type(array('type' => 'numeric')),
+                    ),
+                )
+            );
 
         $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) {
             $data = $event->getData();

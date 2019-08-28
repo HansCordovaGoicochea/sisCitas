@@ -168,10 +168,12 @@ var displayFieldsManager = (function() {
           $('#form-nav a[href="#step3"]').text(translate_javascripts['Virtual product']);
 
           $('#product_qty_0_shortcut_div, #quantities, #div_alerta_stock').hide();
+          $('#div_puntos').show();
         } else {
           showVariationsSelector.show();
           $('#form-nav a[href="#step3"]').text(translate_javascripts['Quantities']);
           $('#product_qty_0_shortcut_div, #quantities, #div_alerta_stock').show();
+          $('#div_puntos').hide();
         }
       }
 
@@ -687,18 +689,18 @@ var specificPrices = (function() {
     var elem = $('#form_step2_specific_price_sp_id_product_attribute');
     var url = elem.attr('data-action').replace(/product-combinations\/\d+/, 'product-combinations/' + id_product);
 
-    $.ajax({
-      type: 'GET',
-      url: url,
-      success: function(combinations) {
-        /** remove all options except first one */
-        elem.find('option:gt(0)').remove();
-
-        $.each(combinations, function(key, combination) {
-          elem.append('<option value="' + combination.id + '">' + combination.name + '</option>');
-        });
-      }
-    });
+    // $.ajax({
+    //   type: 'GET',
+    //   url: url,
+    //   success: function(combinations) {
+    //     /** remove all options except first one */
+    //     elem.find('option:gt(0)').remove();
+    //
+    //     $.each(combinations, function(key, combination) {
+    //       elem.append('<option value="' + combination.id + '">' + combination.name + '</option>');
+    //     });
+    //   }
+    // });
   }
 
   /**

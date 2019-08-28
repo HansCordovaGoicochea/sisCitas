@@ -455,6 +455,8 @@ class AdminModelAdapter extends \PrestaShopBundle\Model\AdminModelAdapter
                 'low_stock_threshold' => $this->product->low_stock_threshold,
                 'low_stock_alert' => (bool) $this->product->low_stock_alert,
                 'pack_stock_type' => $this->product->pack_stock_type,
+
+                'cantidad_puntos' => $this->product->cantidad_puntos,
             ],
             'step2' => [
                 'price' => $this->product->price,

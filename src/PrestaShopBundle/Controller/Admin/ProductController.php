@@ -386,6 +386,7 @@ class ProductController extends FrameworkBundleAdminController
      */
     public function newAction()
     {
+
         if (!$this->isGranted(PageVoter::CREATE, 'ADMINPRODUCTS_')) {
             $translator = $this->get('translator');
             $errorMessage = $translator->trans(
@@ -436,6 +437,7 @@ class ProductController extends FrameworkBundleAdminController
      */
     public function formAction($id, Request $request)
     {
+
         gc_disable();
         if (!$this->isGranted(PageVoter::READ, 'ADMINPRODUCTS_')
             && !$this->isGranted(PageVoter::UPDATE, 'ADMINPRODUCTS_')

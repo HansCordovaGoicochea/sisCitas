@@ -157,6 +157,8 @@ class CustomerCore extends ObjectModel
     /** estado si es credito es para ver si al cliente se puede dar credito**/
     public $es_credito = 0; //0 sin credito - 1 credito aceptado
 
+    public $puntos_acumulados;
+
     protected $webserviceParameters = array(
         'fields' => array(
             'id_default_group' => array('xlink_resource' => 'groups'),
@@ -221,6 +223,7 @@ class CustomerCore extends ObjectModel
             'telefono' => array('type' => self::TYPE_STRING),
             'telefono_celular' => array('type' => self::TYPE_STRING),
             'es_credito' => array('type' => self::TYPE_INT),
+            'puntos_acumulados' => array('type' => self::TYPE_INT),
         ),
     );
 

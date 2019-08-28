@@ -224,6 +224,7 @@ class AdminProductDataProvider extends AbstractAdminQueryBuilder implements Prod
             'badge_danger' => array('select' => 'IF(sav.`quantity`<=0, 1, 0)', 'filtering' => 'IF(sav.`quantity`<=0, 1, 0) = %s'),
             'name_manufacturer' => array('table' => 'm', 'field' => 'name', 'filtering' => self::FILTERING_LIKE_BOTH),
             'low_stock_threshold' => array('table' => 'p', 'field' => 'low_stock_threshold'),
+            'cantidad_puntos' => array('table' => 'p', 'field' => 'cantidad_puntos'),
         );
         $sqlTable = array(
             'p' => 'product',
