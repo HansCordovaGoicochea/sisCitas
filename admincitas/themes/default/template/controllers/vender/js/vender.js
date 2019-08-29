@@ -29,8 +29,6 @@ $(function () {
 
     });
 
-    resetBind();
-
     $('.alertmessage img').click(function () {
         $('.alertmessage').css('display', 'none')
     });
@@ -83,31 +81,9 @@ $(function () {
         }
     });
 
-
-    highlight(0);
-
 });
 
-//https://stackoverflow.com/questions/23816086/using-the-up-and-down-arrows-keys-to-scroll-highlight-row-in-an-html-table
-function highlight(tableIndex) {
-    if (tableIndex === -1){
-        $('#table_list_products tbody tr').removeClass('highlight');
-        return false;
-    }
-    // Just a simple check. If .highlight has reached the last, start again
-    if( (tableIndex+1) > $('#table_list_products tbody tr').length )
-        tableIndex = 0;
 
-    // Element exists?
-    if($('#table_list_products tbody tr:eq('+tableIndex+')').length > 0)
-    {
-        // Remove other highlights
-        $('#table_list_products tbody tr').removeClass('highlight');
-
-        // Highlight your target
-        $('#table_list_products tbody tr:eq('+tableIndex+')').addClass('highlight');
-    }
-}
 
 // despues del vue para fncione bien
 $('#tabProductosCliente a').click(function (e) {
@@ -160,29 +136,6 @@ function elegirCajaVender($id_caja) {
     });
 }
 
-function resetBind()
-{
-    $('.fancybox_customer').fancybox({
-        'type': 'iframe',
-        'width': '90%',
-        'height': '90%',
-        'afterShow': function() {
-            // $('.fancybox-skin .fancybox-inner .fancybox-iframe').contents().find('#customer_form_submit_btn').click(function () {
-                $('.fancybox-skin .fancybox-inner .fancybox-iframe').contents().find('.mobile #content.bootstrap').css('padding', '0px 5px 0');
-                $('.fancybox-skin .fancybox-inner .fancybox-iframe').contents().find('select[name="days"]').parent().parent().parent().parent().hide();
-                $('.fancybox-skin .fancybox-inner .fancybox-iframe').contents().find('input[type=radio][name="active"]').parent().parent().parent().hide();
-                $('.fancybox-skin .fancybox-inner .fancybox-iframe').contents().find('div.group_ache').parent().parent().hide();
-                $('.fancybox-skin .fancybox-inner .fancybox-iframe').contents().find('#id_default_group').parent().parent().hide();
-                $('.fancybox-skin .fancybox-inner .fancybox-iframe').contents().find('.bootstrap .form-group').css('margin-bottom', 0);
-            // })
-
-        },
-        'afterClose' : function () {
-            // resetBind();
-            // alert("sdfsd");
-        }
-    });
-}
 
 function isNumberKey(evt){
     var charCode = (evt.which) ? evt.which : event.keyCode

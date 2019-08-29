@@ -50,4 +50,55 @@ class PosArqueoscajaCore extends ObjectModel
             'id_pos_caja' => array('type' => self::TYPE_INT),
         ),
     );
+    public static function getCajaLast($id_shop)
+    {
+
+        return Db::getInstance()->getRow('
+			SELECT *
+			FROM `'._DB_PREFIX_.'pos_arqueoscaja`
+			WHERE estado = 1 AND `id_shop` = '.$id_shop.' AND id_employee_apertura = '.Context::getContext()->employee->id.'
+			ORDER BY fecha_apertura DESC
+		');
+
+    }
+
+    public static function existenCajasAbiertas($id_shop = null)
+    {
+        if (!$id_shop)
+            $id_shop = Context::getContext()->shop->id;
+
+        return (bool)Db::getInstance()->getValue('
+			SELECT id_pos_arqueoscaja
+			FROM `'._DB_PREFIX_.'pos_arqueoscaja`
+			WHERE `id_shop` = '.$id_shop.' AND estado = 1
+			ORDER BY fecha_apertura DESC
+		');
+
+    }
+
+    public static function existeCaja($id)
+    {
+        $id_shop = Context::getContext()->shop->id;
+        return (bool)Db::getInstance()->getValue('
+			SELECT id_pos_arqueoscaja
+			FROM `'._DB_PREFIX_.'pos_arqueoscaja`
+			WHERE `id_shop` = '.$id_shop.' AND estado = 1 AND id_pos_arqueoscaja = '.$id.'
+			ORDER BY fecha_apertura DESC
+		');
+
+    }
+
+    public static function cajasAbiertas($id_shop = null)
+    {
+        if (!$id_shop)
+            $id_shop = Context::getContext()->shop->id;
+
+        return Db::getInstance()->executeS('
+			SELECT *
+			FROM `'._DB_PREFIX_.'pos_arqueoscaja`
+			WHERE `id_shop` = '.$id_shop.' AND estado = 1
+			ORDER BY fecha_apertura DESC
+		');
+    }
+
 }

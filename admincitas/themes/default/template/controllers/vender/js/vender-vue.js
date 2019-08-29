@@ -155,71 +155,7 @@ var app_vender = new Vue({
     },
     created: function(){
         let self = this;
-        $.ajax({
-            type:"POST",
-            url: url_ajax_vender,
-            async: true,
-            dataType: "json",
-            data:{
-                ajax: "1",
-                token: token_vender,
-                tab: "AdminVender",
-                action : "GetContentAche",
-            },
-            beforeSend: function(){
-                // $('.preloader-background').fadeOut('slow');
-            },
-            success: function (data) {
-                let res = data;
-                self.products = res.products;
-                self.categorias = res.categorias;
-                self.pagination = res.pagination;
-                self.total_prod = res.pagination.total_items;
-                // console.log(JSON.parse(data));
-                self.setFocus();
-            },
-            error: function (error) {
-                // console.log(error);
-            },
-            complete: function (data) {
-                $('#app_vender').addClass('loaded');
-            }
-        });
-
-        if (es_cotizacion){
-            self.cart = array_detail;
-            self.refreshTotal();
-        }
-
-
-        jwerty.key('ctrl+1', function(e) {
-            e.preventDefault();
-            location.reload()
-        });
-
-        jwerty.key('ctrl+6', function(e) {
-            e.preventDefault();
-            self.activeTabPago(true);
-        });
-
-        //GUARDAR SIN PAGO
-        jwerty.key('ctrl+v', function(e) {
-            e.preventDefault();
-            self.agregarVenta(1);
-        });
-
-        //GUARDAR SIN IMPRIMIR
-        jwerty.key('ctrl+Y', function(e) {
-            e.preventDefault();
-            self.agregarVenta(2);
-        });
-
-        //GUARDAR E IMPRIMIR
-        jwerty.key('ctrl+9', function(e) {
-            e.preventDefault();
-            self.agregarVenta(3);
-        });
-
+        $('#app_vender').addClass('loaded');
 
     },
     computed: {
@@ -1211,7 +1147,7 @@ var app_vender = new Vue({
         },
         borrarPago (item) {
 
-            for( let i = 0; i < this.cart.length; i++){
+            for( let i = 0; i < this.pagos.length; i++){
                 if(this.pagos[i].id_metodo_pago === item.id_metodo_pago){
                     this.pagos.splice(i, 1);
                     break;

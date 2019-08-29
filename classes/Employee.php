@@ -739,4 +739,14 @@ class EmployeeCore extends ObjectModel
 
         return ($access[$action] == '1');
     }
+
+    public static function getEmployeeById($id)
+    {
+        return Db::getInstance()->getRow('
+			SELECT `id_employee`, `firstname`, `lastname`, CONCAT_WS(" ", `firstname`, `lastname`) AS name_employee
+			FROM `'._DB_PREFIX_.'employee`
+			 WHERE `id_employee` = '.$id.'
+		');
+    }
+
 }

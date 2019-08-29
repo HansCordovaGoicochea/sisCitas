@@ -35,8 +35,8 @@ class AdminVenderControllerCore extends AdminController {
    public function display()
     {
 
-       if ($this->nombre_access['name'] == 'Vendedor' || $this->nombre_access['name'] == 'Administrador' || $this->nombre_access['name'] == 'SuperAdmin' || $this->nombre_access['name'] == 'Cajero'){
-           if ($this->nombre_access['name'] == 'Vendedor' || $this->nombre_access['name'] == 'Administrador' || $this->nombre_access['name'] == 'SuperAdmin'){
+       if ($this->nombre_access['name'] == 'Administrador' || $this->nombre_access['name'] == 'SuperAdmin' || $this->nombre_access['name'] == 'Cajero'){
+           if ($this->nombre_access['name'] == 'Administrador' || $this->nombre_access['name'] == 'SuperAdmin'){
                if (!$this->existeCajasAbiertas){
                    $this->display='error_caja_sincaja';
                }
@@ -75,8 +75,7 @@ class AdminVenderControllerCore extends AdminController {
 
        $this->tpl_folder='controllers'.DIRECTORY_SEPARATOR.Tools::toUnderscoreCase(substr($this->controller_name, 5)).'/';
 
-        $numeracion_doc_boleta = NumeracionDocumento::getlastBoletaFisica();
-        $numeracion_doc_factura = NumeracionDocumento::getlastFacturaFisica();
+
         $exist_cert = 0;
         $certificado = Certificadofe::getByAllShop();
         if (!empty($certificado) && (bool)$certificado['active']){
@@ -87,56 +86,12 @@ class AdminVenderControllerCore extends AdminController {
             }
         }
 //        d($numeracion_doc_boleta);
-       $cuentas = PosCuentasbanco::getAllCtasporTienda();
-
-        if (Tools::getValue('id_cart')){
-            $cart = new Cart((int)Tools::getValue('id_cart'));
-            $cart_details = $cart->getProducts();
-            $array_detail = [];
-//            d($cart_details);
-            foreach ($cart_details as $key=>$cart_detail) {
-                $is_pack = Pack::isPack($cart_detail['id_product']);
-                if ($is_pack) {
-                    $pack = Db::getInstance()->getRow('
-                                SELECT id_product_item, quantity
-                                FROM `' . _DB_PREFIX_ . 'pack` a
-                                WHERE a.`id_product_pack` = ' . (int)$cart_detail['id_product']);
-
-                    $id_prod = $pack['id_product_item'];
-                    $quantity_pack = StockAvailable::getQuantityAvailableByProduct($id_prod, null, (int)$this->context->shop->id);
-                } else {
-                    $quantity_pack = StockAvailable::getQuantityAvailableByProduct($cart_detail['id_product'], null, (int)$this->context->shop->id);
-                }
-
-//                d($quantity_pack);
-                $array_detail[$key]['id'] = $cart_detail['id_product'];
-                $array_detail[$key]['title'] = $cart_detail['name'];
-                $array_detail[$key]['price'] = round($cart_detail['price_wt'], 3);
-                $array_detail[$key]['price_temporal'] = round($cart_detail['price_wt'], 3);
-                $array_detail[$key]['quantity'] = round($cart_detail['quantity'], 2);
-                $array_detail[$key]['cantidad_fisica'] = $quantity_pack; ///asdadsssssss
-                $array_detail[$key]['importe_linea'] = round($cart_detail['total_wt'], 3);
-                $array_detail[$key]['importe_linea_temporal'] = round($cart_detail['total_wt'], 3);
-                $array_detail[$key]['descuento'] = round($cart_detail['monto_descuento'], 3);
-                $array_detail[$key]['aumento'] = round($cart_detail['monto_aumento'], 3);
-                $array_detail[$key]['precio_coste'] = round($cart_detail['wholesale_price'], 6);
-            }
-
-            $this->context->smarty->assign(array(
-                'array_detail' => $array_detail,
-                'es_cotizacion' => $cart->es_cotizacion
-            ));
-
-        }
 
        $this->context->smarty->assign(array(
             'tpl_folder' => __PS_BASE_URI__ . $this->admin_webpath .'/themes/default/template/'. $this->tpl_folder,
-            'cuentas' => $cuentas,
            'perfil_empleado' => $this->nombre_access['name'],
            'existeCajasAbiertas' => $this->existeCajasAbiertas,
            'existeCertificado' => $exist_cert,
-           'numeracion_doc_boleta' => $numeracion_doc_boleta,
-           'numeracion_doc_factura' => $numeracion_doc_factura,
         ));
 
        parent::display();
