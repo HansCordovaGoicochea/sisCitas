@@ -87,11 +87,18 @@ class AdminVenderControllerCore extends AdminController {
         }
 //        d($numeracion_doc_boleta);
 
+       $colaboradores = Employee::getColaboradores();
+
+       $detect = new Mobile_Detect;
+       $deviceType = ($detect->isMobile() ? ($detect->isTablet() ? 'tablet' : 'phone') : 'computer');
        $this->context->smarty->assign(array(
-            'tpl_folder' => __PS_BASE_URI__ . $this->admin_webpath .'/themes/default/template/'. $this->tpl_folder,
+           'deviceType' => $deviceType,
+           'tpl_folder' => __PS_BASE_URI__ . $this->admin_webpath .'/themes/default/template/'. $this->tpl_folder,
            'perfil_empleado' => $this->nombre_access['name'],
            'existeCajasAbiertas' => $this->existeCajasAbiertas,
            'existeCertificado' => $exist_cert,
+           'colaboradores' => $colaboradores,
+
         ));
 
        parent::display();
@@ -106,13 +113,16 @@ class AdminVenderControllerCore extends AdminController {
         $this->addJs(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/js/waitMe.min.js');
 
         $this->addJqueryPlugin(array('autocomplete'));
-        $this->addJs(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/js/jwerty.js');
+//        $this->addJs(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/js/jwerty.js');
 
         if (_PS_MODE_DEV_){
             $this->addJs(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/js/vue.js');
         }else{
             $this->addJs(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/js/vue.min.js');
         }
+
+        $this->addCSS(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/css/select2.min.css');
+        $this->addJs(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/js/select2.min.js');
     }
 
     //metodo para abrir caja

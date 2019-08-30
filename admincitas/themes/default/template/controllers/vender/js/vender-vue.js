@@ -6,6 +6,63 @@ Vue.directive('tooltip', function(el, binding){
     })
 });
 
+Vue.directive('chosen', {
+    bind: function (el, binding, vnode, oldVnode) {
+        Vue.nextTick(function() {
+            $(el).chosen({
+                disable_search_threshold: 1,
+                search_contains: true,
+                width: '40%',
+            }).change(function(e){
+                vnode.data.on.change(e, $(el).val())
+            });
+        });
+    },
+    componentUpdated: function (el, binding, newVnode, oldVnode) {
+        $(el).trigger("chosen:updated");
+    }
+});
+
+Vue.component('select2-basic', {
+    props: ['options', 'value'],
+    template: ' <select><slot></slot></select>',
+    mounted: function () {
+        var vm = this
+        $(this.$el)
+        // init select2
+            .select2({ data: this.options })
+            .val(this.value)
+            .trigger('change')
+            // emit event on change.
+            .on('change', function () {
+                vm.$emit('input', this.value)
+            })
+
+        $(this.$el).on('select2:opening', function (e) {
+            $('body').addClass("overlay");
+        });
+        $(this.$el).on('select2:closing', function (e) {
+            $('body').removeClass("overlay");
+        });
+    },
+    watch: {
+        value: function (value) {
+            // update value
+            $(this.$el)
+                .val(value)
+                .trigger('change')
+        },
+        options: function (options) {
+            // update options
+            $(this.$el).empty().select2({ data: options })
+        }
+    },
+    destroyed: function () {
+        $(this.$el).off().select2('destroy')
+    }
+});
+
+
 Vue.component('datepicker', {
     template: '<input name="date" type="text" autocomplete="off" placeholder="Seleccionar fecha" class="form-control">',
     mounted: function() {
@@ -23,6 +80,7 @@ Vue.component('datepicker', {
         $(this.$el).datepicker('destroy');
     },
 });
+
 Vue.component('my-currency-input', {
     props: ["value"],
     template: `<input type="text" class="form-control" v-model="displayValue" @blur="isInputActive = false" @focus="isInputActive = true"  @keyup="keyupInput"/>`,
@@ -73,24 +131,24 @@ Vue.directive('focus', {
             el.select();
             // highlight(-1);
             // vnode.context.indx_selected = -1;
-
         })
     }
 });
+
 
 var app_vender = new Vue({
     el: '#app_vender',
     data() {
         return {
+            colaboradores: colaboradores,
             perfil_empleado_vue: perfil_empleado,
-            fecha_proximo_pago: "",
-            nro_guia_remision: "",
-            es_credito: "0",
             show_forma_pago: false,
             guardandoEnviar: false,
             search: "",
-            products: [],
-            categorias: [],
+            id_product: 0,
+            product_name: "",
+            id_colaborador: 0,
+            colaborador_name: "",
             cart: [],
             pagos: [{
                 id_metodo_pago: 0,
@@ -101,7 +159,6 @@ var app_vender = new Vue({
             }],
             total: 0,
             active_codigo_barras: 0,
-            active: "0", //categoria
 
             //pagination
             pagination: [],
@@ -142,16 +199,10 @@ var app_vender = new Vue({
             msg_errores: [],
 
             monto_deuda: 0,
-
-            indx_selected: -1,
-
-            //extras var
-            exist_product_sinstock: false,
         };
     },
     ready: function() {
         $('[data-toggle="tooltip"]').tooltip();
-
     },
     created: function(){
         let self = this;
@@ -241,10 +292,13 @@ var app_vender = new Vue({
             if(e.target.options.selectedIndex > -1) {
                 // console.log(e.target.options[e.target.options.selectedIndex].dataset.tipo)
                 pago.tipo = e.target.options[e.target.options.selectedIndex].dataset.tipo;
-                if (e.target.options[e.target.options.selectedIndex].dataset.tipo === "cuenta") {
-                    pago.name_pay = "Pago a Cuenta";
-                }else{
+                if (e.target.options[e.target.options.selectedIndex].dataset.tipo === "efectivo") {
                     pago.name_pay = "Pago en Efectivo";
+                }
+                else if (e.target.options[e.target.options.selectedIndex].dataset.tipo === "visa") {
+                    pago.name_pay = "Pago con Visa";
+                }else{
+                    pago.name_pay = "Pago con Izipay";
                 }
             }
 
@@ -289,113 +343,9 @@ var app_vender = new Vue({
             }
 
         },
-        activeTabPago: function(state){
-            this.is_active_tab_pago = state;
-            if (this.cart.length){
-                if (state){
-                    $('#tabProductosCliente a[href="#pagos"]').tab('show');
-                    this.$refs.cliente.focus();
-                    highlight(-1);
-                    self.indx_selected = -1;
-                }
-            }
-
-
-        },
-        keyUpSearch: function() {
-            let key_array_valid = [8, 16, 32, 13];
-            let that = this;
-            // console.log('keycode ' + event.which + ' triggered this event');
-            if (event.which <= 90 && event.which >= 48 ||
-                event.which >= 96 && event.which <= 111 ||
-                event.which >= 186 && event.which <= 222 ||
-                in_array(event.which, key_array_valid) ||
-                !event.which
-            ) {
-
-                //do whatever
-                $.ajax({
-                    type:"POST",
-                    url: url_ajax_vender,
-                    async: true,
-                    dataType: "json",
-                    data:{
-                        ajax: "1",
-                        token: token_vender,
-                        tab: "AdminVender",
-                        action : "GetContentAche",
-                        search: $.trim(that.search),
-                        category: that.active,
-                    },
-                    beforeSend: function(){
-                        $('.table_list_products').waitMe({
-                            effect: 'bounce',
-                            text: 'Cargando...',
-                            color: '#000',
-                            maxSize: '',
-                            textPos: 'vertical',
-                            fontSize: '',
-                            source: ''
-                        });
-                    },
-                    success: function (data) {
-                        let res = data;
-                        that.products = [];
-                        that.products = res.products;
-                        that.pagination = res.pagination;
-                        that.total_prod = res.pagination.total_items;
-                        that.page = 1;
-
-                        if (parseInt(that.active_codigo_barras) === 1){
-                            that.$nextTick(() => {
-                                let text = $.trim(that.search);
-                                if ($.trim(text) !== '') {
-                                    if (that.products.length === 1) {
-                                        that.addItem(that.products[0]);
-                                        that.search = "";
-                                        that.keyUpSearch();
-                                        that.setFocus();
-
-                                    }
-                                }
-                            });
-                        }
-                    },
-                    error: function (error) {
-                        // console.log(error);
-                    },
-                    complete: function (data) {
-                        $('.table_list_products').waitMe('hide');
-
-                    }
-                });
-            }
-        },
         setFocus: function() {
             // Note, you need to add a ref="search" attribute to your input.
             this.$refs.search.select();
-            highlight(-1);
-            this.indx_selected = -1;
-        },
-        infiniteScroll (event) {
-            let self = this;
-            // let debug = [
-            //      `scrollTop: ${event.target.scrollTop}`,
-            //      `offsetHeight: ${event.target.offsetHeight}`,
-            //      `scrollHeight: ${event.target.scrollHeight}`,
-            //      `content: ${this.products.length}`
-            //  ].join(' | ');
-            //  console.log(debug);
-
-            // Posición actual de scroll + height of parent (.products) >= altura del contenido en scroll
-            if ((event.target.scrollTop + event.target.offsetHeight) >= event.target.scrollHeight) {
-                if (self.pagina_fin === self.page){
-                    if (self.total_prod !== self.pagination.items_shown_to && $.trim(self.search) === ""){
-                        self.page++;
-                        self.getProductos(self.page);
-                    }
-                }
-            }
         },
         getProductos($page){
             let self = this;
@@ -464,15 +414,6 @@ var app_vender = new Vue({
             this.total = ps_round(total_temporal, 4);
             this.pagos[0].monto = ps_round(this.total, 4);
 
-            let error_stock = 0;
-            for (let i = 0; i < this.cart.length; i++) {
-                if (this.cart[i].cantidad_fisica <= 0 || this.cart[i].cantidad_fisica < this.cart[i].quantity) {
-                    error_stock += 1;
-                    break;
-                }
-            }
-
-            self.exist_product_sinstock = error_stock > 0;
 
         },
         // // descuento por precio unitario
@@ -542,10 +483,6 @@ var app_vender = new Vue({
                     //actualizar monto de pago
                     this.pagos[0].monto = ps_round(this.total, 4);
 
-                if (prod.quantity <= 0){
-                    this.exist_product_sinstock = true;
-                }
-
                 // }else{
                 //     $.growl.error({ title: 'Alerta!', message: 'No hay stock', location: 'br' });
                 // }
@@ -556,8 +493,6 @@ var app_vender = new Vue({
 
             // this.search = "";
             // this.setFocus();
-            highlight(index);
-            self.indx_selected = index;
         },
         changeCantidad(item){
             this.total = 0;
@@ -581,15 +516,6 @@ var app_vender = new Vue({
                 }
             }
 
-            let error_stock = 0;
-            for( let i = 0; i < this.cart.length; i++){
-                if (this.cart[i].cantidad_fisica <= 0){
-                    error_stock += 1;
-                    break;
-                }
-            }
-
-            this.exist_product_sinstock = !!error_stock;
 
             this.refreshTotal();
 
@@ -625,262 +551,6 @@ var app_vender = new Vue({
             // console.log(self.cart)
             // if (self.cart.length && self.nombre_legal && self.numero_doc){
             if (self.cart.length){
-                if (!self.exist_product_sinstock){
-                    if (self.monto_deuda > 0 && !self.fecha_proximo_pago){
-                        $.growl.error({ title: 'Tiene que colocar una fecha próxima de pago!', message: '',});
-                    }else{
-                        $.ajax({
-                            type:"POST",
-                            url: url_ajax_vender,
-                            async: true,
-                            dataType: "json",
-                            data:{
-                                ajax: "1",
-                                token: token_vender,
-                                action : "realizarVenta",
-                                productos: self.cart,
-                                tipo_venta: tipo_venta,
-                                hasComprobante: self.hasComprobante,
-                                tipo_comprobante: self.tipo_comprobante,
-                                id_customer: self.id_customer,
-                                nombre_legal: self.nombre_legal,
-                                numero_doc: self.numero_doc,
-                                direccion_cliente: self.direccion_cliente,
-                                array_pagos: self.pagos,
-                                fecha_proximo_pago: self.fecha_proximo_pago,
-                                nro_guia_remision: self.nro_guia_remision,
-                                es_credito: self.es_credito,
-                            },
-                            beforeSend: function(){
-                                self.guardandoEnviar = true;
-                                $('body').waitMe({
-                                    effect: 'bounce',
-                                    text: 'Guardando...',
-                                    color: '#000',
-                                    maxSize: '',
-                                    textPos: 'vertical',
-                                    fontSize: '',
-                                    source: ''
-                                });
-                            },
-                            success: function (data) {
-                                if (data.result === 'error'){
-                                    $.each(data.msg, function (index, value) {
-                                        self.mostrar_adventencia = true;
-                                        self.msg_errores.push({
-                                            msg: value,
-                                        })
-                                    })
-                                }
-                                if (data.response === 'ok'){
-                                    // if (data.reload === 'ok'){
-                                    //     location.reload();
-                                    // }
-                                    self.order = data.order;
-                                    let html_buttons = '';
-
-                                    if(self.perfil_empleado_vue !== 'Vendedor'){
-                                        html_buttons += '<a class="btn btn-primary" style="margin: 5px;" target="_blank" href="'+data.link_venta+'">Venta</a>';
-                                    }
-
-                                    html_buttons += '<input type="button" class="btn btn-warning" value="Ticket Venta - '+data.order.nro_ticket+'" style="margin: 5px;" onclick="windowPrintAche(\'PDFtoTicket\')">';
-                                    let iframes = '<iframe id="PDFtoTicket" src="'+data.order.ruta_ticket_normal+'" style="display: none;"></iframe>';
-                                    if (data.comprobantes){
-                                        $.each(data.comprobantes, function (index, value) {
-                                            self.numero_comprobante = value.numero_comprobante;
-                                            if (this.ruta_ticket !== ""){
-                                                iframes += `<iframe id="PDFtoTicketComp`+this.id_pos_ordercomprobantes+`" src="`+this.ruta_ticket+`" style="display: none;"></iframe>`;
-                                                html_buttons += '<input type="button" class="btn btn-warning" value="Ticket '+self.tipo_comprobante+'" style="margin: 5px;" onclick="windowPrintAche(\'PDFtoTicketComp'+this.id_pos_ordercomprobantes+'\')">';
-                                            }
-
-                                            if (this.ruta_pdf_a4 !== "") {
-                                                iframes += `<iframe id="PDFtoA4Comp` + this.id_pos_ordercomprobantes + `" src="` + this.ruta_pdf_a4 + `" style="display: none;"></iframe>`;
-                                                html_buttons += '<input type="button" class="btn btn-warning" value="A4 '+self.tipo_comprobante+'" style="margin: 5px;" onclick="windowPrintAche(\'PDFtoA4Comp'+this.id_pos_ordercomprobantes+'\')">';
-                                            }
-
-                                        });
-
-                                    }
-
-                                    $('#alertmessage').after(iframes);
-                                    $('.alertmessage').append(html_buttons);
-                                    $('.alertmessage').css('display', 'grid');
-
-                                    $("#toolbar_caja_soles").fadeOut("slow", function() {
-                                        $(this).text(data.caja_actual.monto_operaciones).fadeIn("slow");
-                                    });
-
-                                    self.cart = [];
-                                    self.is_active_tab_pago = false;
-                                    $('#left-panel').css('pointer-events', 'none');
-                                    $('.sales-add-edit-payments').css('pointer-events', 'none');
-                                    $('.tabla_lista_venta').css('pointer-events', 'none');
-                                }
-
-                            },
-                            error: function (error) {
-                                console.log(error);
-                            },
-                            complete: function(data) {
-                                // location.reload();
-                                $('body').waitMe('hide');
-                                self.guardandoEnviar = false;
-                            },
-                        });
-                    }
-                }else{
-                    $.growl.error({ title: 'Solo puede hacer cotizaciones!', message: '',});
-                }
-            }else{
-                $.growl.error({ title: 'No existen productos para vender!', message: '',});
-            }
-        },
-        transferenciaInterna(tipo_venta){
-            let self = this;
-            self.borrarErrores();
-            if (self.id_customer === 1 && self.tipo_comprobante === 'Factura'){
-                self.mostrarErrores();
-                self.msg_errores.push({
-                    msg: "Una FACTURA debe tener un cliente",
-                });
-                self.msg_errores.push({
-                    msg: "Debe indicar un cliente con RUC"
-                });
-
-                return false;
-            }
-
-            if (self.id_customer !== 1 && parseInt(self.cod_sunat) === 1 && self.tipo_comprobante === 'Factura'){
-                self.mostrarErrores();
-                self.msg_errores.push({
-                    msg: "Debe indicar un cliente con RUC"
-                });
-                return false;
-            }
-
-            //tipo venta
-            // 1 SIN PAGO
-            // 2 PAGAR, ENVIAR A SUNAT E IMPRIMIR
-            // 3 PAGAR, ENVIAR A SUNAT Y NUEVO
-
-            // console.log(self.cart)
-            // if (self.cart.length && self.nombre_legal && self.numero_doc){
-            if (self.cart.length){
-                if (!self.exist_product_sinstock){
-                    if (self.monto_deuda > 0 && !self.fecha_proximo_pago){
-                        $.growl.error({ title: 'Tiene que colocar una fecha próxima de pago!', message: '',});
-                    }else{
-                        $.ajax({
-                            type:"POST",
-                            url: url_ajax_vender,
-                            async: true,
-                            dataType: "json",
-                            data:{
-                                ajax: "1",
-                                token: token_vender,
-                                action : "realizarVenta",
-                                productos: self.cart,
-                                tipo_venta: tipo_venta,
-                                hasComprobante: self.hasComprobante,
-                                tipo_comprobante: self.tipo_comprobante,
-                                id_customer: self.id_customer,
-                                nombre_legal: self.nombre_legal,
-                                numero_doc: self.numero_doc,
-                                direccion_cliente: self.direccion_cliente,
-                                array_pagos: self.pagos,
-                                fecha_proximo_pago: self.fecha_proximo_pago,
-                                nro_guia_remision: self.nro_guia_remision,
-                                es_credito: self.es_credito,
-                                es_transferencia_interna: 1,
-                            },
-                            beforeSend: function(){
-                                self.guardandoEnviar = true;
-                                $('body').waitMe({
-                                    effect: 'bounce',
-                                    text: 'Guardando...',
-                                    color: '#000',
-                                    maxSize: '',
-                                    textPos: 'vertical',
-                                    fontSize: '',
-                                    source: ''
-                                });
-                            },
-                            success: function (data) {
-                                if (data.result === 'error'){
-                                    $.each(data.msg, function (index, value) {
-                                        self.mostrar_adventencia = true;
-                                        self.msg_errores.push({
-                                            msg: value,
-                                        })
-                                    })
-                                }
-                                if (data.response === 'ok'){
-                                    // if (data.reload === 'ok'){
-                                    //     location.reload();
-                                    // }
-                                    self.order = data.order;
-                                    let html_buttons = '';
-
-                                    if(self.perfil_empleado_vue !== 'Vendedor'){
-                                        html_buttons += '<a class="btn btn-primary" style="margin: 5px;" target="_blank" href="'+data.link_venta+'">Venta</a>';
-                                    }
-
-                                    html_buttons += '<input type="button" class="btn btn-warning" value="Ticket Venta - '+data.order.nro_ticket+'" style="margin: 5px;" onclick="windowPrintAche(\'PDFtoTicket\')">';
-                                    let iframes = '<iframe id="PDFtoTicket" src="'+data.order.ruta_ticket_normal+'" style="display: none;"></iframe>';
-                                    if (data.comprobantes){
-                                        $.each(data.comprobantes, function (index, value) {
-                                            self.numero_comprobante = value.numero_comprobante;
-                                            if (this.ruta_ticket !== ""){
-                                                iframes += `<iframe id="PDFtoTicketComp`+this.id_pos_ordercomprobantes+`" src="`+this.ruta_ticket+`" style="display: none;"></iframe>`;
-                                                html_buttons += '<input type="button" class="btn btn-warning" value="Ticket '+self.tipo_comprobante+'" style="margin: 5px;" onclick="windowPrintAche(\'PDFtoTicketComp'+this.id_pos_ordercomprobantes+'\')">';
-                                            }
-
-                                            if (this.ruta_pdf_a4 !== "") {
-                                                iframes += `<iframe id="PDFtoA4Comp` + this.id_pos_ordercomprobantes + `" src="` + this.ruta_pdf_a4 + `" style="display: none;"></iframe>`;
-                                                html_buttons += '<input type="button" class="btn btn-warning" value="A4 '+self.tipo_comprobante+'" style="margin: 5px;" onclick="windowPrintAche(\'PDFtoA4Comp'+this.id_pos_ordercomprobantes+'\')">';
-                                            }
-
-                                        });
-
-                                    }
-
-                                    $('#alertmessage').after(iframes);
-                                    $('.alertmessage').append(html_buttons);
-                                    $('.alertmessage').css('display', 'grid');
-
-                                    $("#toolbar_caja_soles").fadeOut("slow", function() {
-                                        $(this).text(data.caja_actual.monto_operaciones).fadeIn("slow");
-                                    });
-
-                                    self.cart = [];
-                                    self.is_active_tab_pago = false;
-                                    $('#left-panel').css('pointer-events', 'none');
-                                    $('.sales-add-edit-payments').css('pointer-events', 'none');
-                                    $('.tabla_lista_venta').css('pointer-events', 'none');
-                                }
-
-                            },
-                            error: function (error) {
-                                console.log(error);
-                            },
-                            complete: function(data) {
-                                // location.reload();
-                                $('body').waitMe('hide');
-                                self.guardandoEnviar = false;
-                            },
-                        });
-                    }
-                }else{
-                    $.growl.error({ title: 'Solo puede hacer cotizaciones!', message: '',});
-                }
-            }else{
-                $.growl.error({ title: 'No existen productos para vender!', message: '',});
-            }
-        },
-        cotizarVenta(){
-            let self = this;
-
-            if (self.cart.length){
                 $.ajax({
                             type:"POST",
                             url: url_ajax_vender,
@@ -889,19 +559,25 @@ var app_vender = new Vue({
                             data:{
                                 ajax: "1",
                                 token: token_vender,
-                                action : "cotizarVenta",
-                                id_cart: id_cart,
+                                action : "realizarVenta",
                                 productos: self.cart,
+                                tipo_venta: tipo_venta,
+                                hasComprobante: self.hasComprobante,
+                                tipo_comprobante: self.tipo_comprobante,
                                 id_customer: self.id_customer,
                                 nombre_legal: self.nombre_legal,
                                 numero_doc: self.numero_doc,
                                 direccion_cliente: self.direccion_cliente,
+                                array_pagos: self.pagos,
+                                fecha_proximo_pago: self.fecha_proximo_pago,
+                                nro_guia_remision: self.nro_guia_remision,
+                                es_credito: self.es_credito,
                             },
                             beforeSend: function(){
                                 self.guardandoEnviar = true;
                                 $('body').waitMe({
                                     effect: 'bounce',
-                                    text: 'Guardando cotización...',
+                                    text: 'Guardando...',
                                     color: '#000',
                                     maxSize: '',
                                     textPos: 'vertical',
@@ -910,24 +586,59 @@ var app_vender = new Vue({
                                 });
                             },
                             success: function (data) {
+                                if (data.result === 'error'){
+                                    $.each(data.msg, function (index, value) {
+                                        self.mostrar_adventencia = true;
+                                        self.msg_errores.push({
+                                            msg: value,
+                                        })
+                                    })
+                                }
                                 if (data.response === 'ok'){
-
+                                    // if (data.reload === 'ok'){
+                                    //     location.reload();
+                                    // }
+                                    self.order = data.order;
                                     let html_buttons = '';
+
                                     if(self.perfil_empleado_vue !== 'Vendedor'){
-                                        html_buttons += '<a class="btn btn-primary" style="margin: 5px;" target="_blank" href="'+data.link_cotizacion+'">Cotización</a>';
+                                        html_buttons += '<a class="btn btn-primary" style="margin: 5px;" target="_blank" href="'+data.link_venta+'">Venta</a>';
                                     }
 
+                                    html_buttons += '<input type="button" class="btn btn-warning" value="Ticket Venta - '+data.order.nro_ticket+'" style="margin: 5px;" onclick="windowPrintAche(\'PDFtoTicket\')">';
+                                    let iframes = '<iframe id="PDFtoTicket" src="'+data.order.ruta_ticket_normal+'" style="display: none;"></iframe>';
+                                    if (data.comprobantes){
+                                        $.each(data.comprobantes, function (index, value) {
+                                            self.numero_comprobante = value.numero_comprobante;
+                                            if (this.ruta_ticket !== ""){
+                                                iframes += `<iframe id="PDFtoTicketComp`+this.id_pos_ordercomprobantes+`" src="`+this.ruta_ticket+`" style="display: none;"></iframe>`;
+                                                html_buttons += '<input type="button" class="btn btn-warning" value="Ticket '+self.tipo_comprobante+'" style="margin: 5px;" onclick="windowPrintAche(\'PDFtoTicketComp'+this.id_pos_ordercomprobantes+'\')">';
+                                            }
+
+                                            if (this.ruta_pdf_a4 !== "") {
+                                                iframes += `<iframe id="PDFtoA4Comp` + this.id_pos_ordercomprobantes + `" src="` + this.ruta_pdf_a4 + `" style="display: none;"></iframe>`;
+                                                html_buttons += '<input type="button" class="btn btn-warning" value="A4 '+self.tipo_comprobante+'" style="margin: 5px;" onclick="windowPrintAche(\'PDFtoA4Comp'+this.id_pos_ordercomprobantes+'\')">';
+                                            }
+
+                                        });
+
+                                    }
+
+                                    $('#alertmessage').after(iframes);
                                     $('.alertmessage').append(html_buttons);
                                     $('.alertmessage').css('display', 'grid');
+
+                                    $("#toolbar_caja_soles").fadeOut("slow", function() {
+                                        $(this).text(data.caja_actual.monto_operaciones).fadeIn("slow");
+                                    });
 
                                     self.cart = [];
                                     self.is_active_tab_pago = false;
                                     $('#left-panel').css('pointer-events', 'none');
                                     $('.sales-add-edit-payments').css('pointer-events', 'none');
                                     $('.tabla_lista_venta').css('pointer-events', 'none');
-                                }else{
-                                    jAlert("Algo fallo al guardar")
                                 }
+
                             },
                             error: function (error) {
                                 console.log(error);
@@ -939,7 +650,7 @@ var app_vender = new Vue({
                             },
                         });
             }else{
-                $.growl.error({ title: 'No existen productos para cotizar!', message: '',});v
+                $.growl.error({ title: 'No existen productos para vender!', message: '',});
             }
         },
         enviarComprobanteSunat(){
@@ -1158,36 +869,6 @@ var app_vender = new Vue({
     },
     mounted() {
         let self = this;
-
-            window.addEventListener('keyup', function(event) {
-                if (event.keyCode === 13 && self.indx_selected >= 0) {
-                    if (!self.is_active_tab_pago){
-                        $('#table_list_products tr').eq(self.indx_selected).trigger('click');
-                        highlight(-1);
-                        self.indx_selected = -1;
-                    }
-                }
-            });
-
-            window.addEventListener('keydown', function(e) {
-                switch(e.which)
-                {
-                    case 38:
-                        if (!self.is_active_tab_pago) {
-                            self.indx_selected = $('#table_list_products tbody tr.highlight').index() - 1;
-                            highlight($('#table_list_products tbody tr.highlight').index() - 1);
-                            self.$refs.search.blur();
-                        }
-                        break;
-                    case 40:
-                        if (!self.is_active_tab_pago) {
-                            self.indx_selected = $('#table_list_products tbody tr.highlight').index() + 1;
-                            highlight($('#table_list_products tbody tr.highlight').index() + 1);
-                            self.$refs.search.blur();
-                        }
-                        break;
-                }
-            });
     },
     updated(){
 

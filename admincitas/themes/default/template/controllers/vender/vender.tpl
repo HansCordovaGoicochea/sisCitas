@@ -2,15 +2,23 @@
 <link rel="stylesheet" href="{$tpl_folder}css/loader.css">
 <link rel="stylesheet" href="{$tpl_folder}css/content-visibility.css">
 <link rel="stylesheet" href="{$tpl_folder}css/miniarrow.css">
+<link rel="stylesheet" href="{$tpl_folder}css/select2-ache.css">
+{if $deviceType != "computer"}
+    <link rel="stylesheet" href="{$tpl_folder}css/select2-ache-mobile.css">
+{/if}
 
 <script>
+    var deviceType = "{$deviceType}";
     const url_ajax_vender = "{$link->getAdminLink('AdminVender')|addslashes}";
     const token_vender = "{getAdminToken tab='AdminVender'}";
     const perfil_empleado = '{$perfil_empleado}'
 
+    var colaboradores = new Array();
+    {foreach $colaboradores as $key => $employee}
+        colaboradores[{$key}] = { id: '{$employee.id_employee|intval}', text: '{$employee.firstname|@addcslashes:'\''} {$employee.lastname|@addcslashes:'\''}' };
+    {/foreach}
 </script>
 <br>
-
 <div id="app_vender">
     <!-- Preloader and it's background. -->
     <div id="loader-wrapper">
@@ -177,13 +185,13 @@
                     <div class="row">
                         <div class="my-3">
                             <div class="input-group" style="width: 100%;">
-                                <select class="form-control" style="    width: 50%;">
+                                <select class="form-control" style=" width: 50%;">
                                     <option value="0">dddsssssssssssssssssddd</option>
                                 </select>
-                                <select class="form-control" style="    width: 40%;">
-                                    <option value="0">ffffffsssfffff</option>
-                                </select>
-                                <div class="input-group-append"  style="    width: 10%;">
+                                <select2-basic :options="colaboradores" :name="'id_colaborador'" :id="'id_colaborador'" v-model="id_colaborador" class="form-control" style="width: 45%;">
+                                    <option disabled value="0">- Seleccionar Colaborador-</option>
+                                </select2-basic>
+                                <div class="input-group-append"  style="width: 5%; float: right">
                                     <button type="button" class="btn btn-sm btn-primary">
                                         <i class="fa fa-plus"></i>
                                     </button>
@@ -196,10 +204,11 @@
                         <table class="table table-clean mt-2 mb-3 tabla_lista_venta">
                             <thead>
                                 <tr>
-                                    <th scope="col" class="text-center" width="10%">Cantidad</th>
-                                    <th scope="col" class="head-title"  width="40%">Producto</th>
-                                    <th scope="col" class="text-center" width="20%">P.U.</th>
-                                    <th scope="col" class="text-center" width="25%">Total</th>
+                                    <th scope="col" class="text-center" width="5%">Cantidad</th>
+                                    <th scope="col" class="head-title"  width="30%">Producto</th>
+                                    <th scope="col" class="head-title"  width="30%">Colaborador</th>
+                                    <th scope="col" class="text-center" width="15%">P.U.</th>
+                                    <th scope="col" class="text-center" width="15%">Total</th>
                                     <th scope="col" class="text-center" width="5%">&nbsp;</th>
                                 </tr>
                             </thead>
@@ -210,8 +219,13 @@
                                         <input type="text" class="number_cantidad form-control" :id="'number_cantidad_'+id" ref="number_cantidad" v-model="item.quantity" @keyup="changeCantidad(item)" @input="filterInput" v-focus  @keyup.enter="setFocus()" onkeypress="return !(event.charCode != 46 && event.charCode > 31 && (event.charCode < 48 || event.charCode > 57));"/>
                                     </div>
                                 </td>
+                                <td style="width: 40%" v-text="item.title"">
+{*                                    <input v-bind:id="'id-' + id" type="text" v-model="item.title">*}
+                                </td>
                                 <td style="width: 40%">
-                                    <input v-bind:id="'id-' + id" type="text" v-model="item.title">
+                                    <select name="id_colaborador" id="id_colaborador" >
+                                        <option value="0">asdsadsad</option>
+                                    </select>
                                 </td>
                                 <td style="width: 20%" class="text-center">
                                     <input type="text" class="price form-control" v-model="item.price" @keyup="changePrecioUnitario(item)"/>
