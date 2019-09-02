@@ -49,7 +49,7 @@
 	</td>
 
 	<td style="display:none;">
-		<div class="row">
+		<div class="row hide">
 			<div class="input-group fixed-width-xl">
 				{if $currencySymbolBeforeAmount}<div class="input-group-addon">{$currency->sign} {l s='tax excl.' d='Admin.Global'}</div>{/if}
 				<input type="text" name="add_product[product_price_tax_excl]" id="add_product_product_price_tax_excl" value="" disabled="disabled" />
@@ -59,9 +59,8 @@
 		<br/>
 		<div class="row">
 			<div class="input-group fixed-width-xl">
-				{if $currencySymbolBeforeAmount}<div class="input-group-addon">{$currency->sign} {l s='tax incl.' d='Admin.Global'}</div>{/if}
+				<div class="input-group-addon">{$currency->sign} {l s='tax incl.' d='Admin.Global'}</div>
 				<input type="text" name="add_product[product_price_tax_incl]" id="add_product_product_price_tax_incl" value="" disabled="disabled" />
-				{if !$currencySymbolBeforeAmount}<div class="input-group-addon">{$currency->sign} {l s='tax incl.' d='Admin.Global'}</div>{/if}
 			</div>
 		</div>
 	</td>

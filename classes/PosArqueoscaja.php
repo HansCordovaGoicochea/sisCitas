@@ -56,10 +56,24 @@ class PosArqueoscajaCore extends ObjectModel
         return Db::getInstance()->getRow('
 			SELECT *
 			FROM `'._DB_PREFIX_.'pos_arqueoscaja`
-			WHERE estado = 1 AND `id_shop` = '.$id_shop.' AND id_employee_apertura = '.Context::getContext()->employee->id.'
+			WHERE estado = 1 AND `id_shop` = '.$id_shop.'
 			ORDER BY fecha_apertura DESC
 		');
 
+    }
+
+    public static function cajasAbiertasJoinEmpleado($id_shop = null)
+    {
+        if (!$id_shop)
+            $id_shop = Context::getContext()->shop->id;
+
+        return Db::getInstance()->executeS('
+			SELECT pa.*, CONCAT_WS(" ", emp.firstname, emp.lastname) as empleado
+			FROM `'._DB_PREFIX_.'pos_arqueoscaja` pa INNER JOIN `'._DB_PREFIX_.'employee` emp
+			on pa.id_employee_apertura = emp.id_employee
+			WHERE `id_shop` = '.$id_shop.' AND estado = 1
+			ORDER BY fecha_apertura DESC
+		');
     }
 
     public static function existenCajasAbiertas($id_shop = null)

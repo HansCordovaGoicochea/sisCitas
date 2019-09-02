@@ -718,6 +718,48 @@ function getStorageAvailable() {
 	}
 }
 
+function $_GET(param,surl) {
+	//alert(param);
+	url = surl;
+	url = String(url.match(/\?+.+/));
+	url = url.replace("?", "");
+	url = url.split("&");
+	x = 0;
+	while (x < url.length)
+	{
+		p = url[x].split("=");
+		if (p[0] === param)
+		{
+			return decodeURIComponent(p[1]);
+		}
+		//alert(p[0]);
+		x++;
+	}
+}
+
+function obtenerURLParametros(sParam){
+	var sPageURL = window.location.search.substring(1);
+	var sURLVariables = sPageURL.split('&');
+	for (var i = 0; i < sURLVariables.length; i++) {
+		var sParameterName = sURLVariables[i].split('=');
+		if (sParameterName[0] === sParam) {
+			return sParameterName[1];
+		}
+	}
+}
+
+function open_in_new_tab_and_reload(url)
+{
+	//Open in new tab
+	window.open(url, '_blank');
+	//focus to thet window
+	window.focus();
+	//reload current page
+	location.reload();
+}
+
+
+
 $(document).ready(function()
 {
 	// Hide all elements with .hideOnSubmit class when parent form is submit

@@ -37,6 +37,10 @@ class OrderPaymentCore extends ObjectModel
     public $card_expiration;
     public $card_holder;
     public $date_add;
+    public $vuelto;
+    public $tipo_pago; //'1 efectivo\n2 visa\n3 izipay';
+    public $ruta_ticket_pago;
+    public $id_employee_pago;
 
     /**
      * @see ObjectModel::$definition
@@ -56,6 +60,12 @@ class OrderPaymentCore extends ObjectModel
             'card_expiration' =>    array('type' => self::TYPE_STRING, 'validate' => 'isAnything', 'size' => 254),
             'card_holder' =>        array('type' => self::TYPE_STRING, 'validate' => 'isAnything', 'size' => 254),
             'date_add' =>            array('type' => self::TYPE_DATE, 'validate' => 'isDate'),
+
+            'vuelto' =>        array('type' => self::TYPE_FLOAT),
+            'tipo_pago' =>        array('type' => self::TYPE_INT),
+            'ruta_ticket_pago' =>        array('type' => self::TYPE_INT),
+            'id_employee_pago' =>        array('type' => self::TYPE_INT),
+
         ),
     );
 

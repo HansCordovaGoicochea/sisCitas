@@ -8,7 +8,7 @@ body{
 
 .bootstrap .form-control, .bootstrap input[type=password], .bootstrap input[type=search], .bootstrap input[type=text], .bootstrap select, .bootstrap textarea {
     color: #000;
-    border: 1px solid #0073e4;
+    /*border: 1px solid #0073e4;*/
 }
 
 .bootstrap .table tbody>tr>td {
@@ -71,8 +71,8 @@ body{
     word-wrap: break-word;
     /*background-color: #fff;*/
     background-clip: border-box;
-    border: 1px solid rgba(0,0,0,.125);
-    border-radius: .25rem;
+    border-right: 1px solid rgba(0,0,0,.125);
+    /*border-radius: .25rem;*/
 }
 .card-body {
     flex: 1 1 auto;

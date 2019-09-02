@@ -67,7 +67,7 @@
 		width: 49%;
 	}
 
-	.contBillete input.billeteomoneda, .contBillete input.billeteomoneda2 {
+	.contBillete input.billeteomoneda, .contBillete input.billeteomoneda_cerrar {
 		background-color: #fff;
 		color: #000;
 		padding: 7px;
@@ -187,21 +187,13 @@
 					</p>
 
 				</div>
-{*				<div id="modules_list_loader"><i class="icon-refresh icon-spin"></i></div>*}
 			</div>
 			<div class="modal-footer">
-{*				<a class="btn btn-primary btn-lg" role="button" id="btnabrirCaja">*}
-{*					<span class="ladda-label">*}
-{*						<i class="fa fa-inbox fa-lg"></i>*}
-{*						{l s='Abrir Caja' d='Admin.Login.Feature'}*}
-{*					</span>*}
-{*				</a>*}
 				<button id="btnabrirCaja" name="btnabrirCaja" type="submit" tabindex="4" class="btn btn-primary btn-lg btn-block ladda-button" data-style="slide-up" data-spinner-color="white" >
 					<span class="ladda-label">
 						{l s='Abrir Caja' d='Admin.Login.Feature'}
 					</span>
 				</button>
-{*				<button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancelar</button>*}
 			</div>
 		</div>
 	</div>

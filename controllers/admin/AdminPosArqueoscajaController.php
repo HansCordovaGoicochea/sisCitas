@@ -18,7 +18,7 @@ class AdminPosArqueoscajaControllerCore extends AdminController
         $this->context = Context::getContext();
 //        $this->addRowAction('edit');
 //        $this->addRowAction('delete');
-        $this->addRowAction('view');
+        $this->addRowAction('cerrar_caja');
 
         parent::__construct();
 
@@ -36,7 +36,7 @@ class AdminPosArqueoscajaControllerCore extends AdminController
 
         $this->_join .= 'LEFT JOIN `'._DB_PREFIX_.'employee` ea ON (ea.`id_employee` = a.`id_employee_apertura` AND a.`id_shop` = '.$this->context->shop->id.')';
         $this->_join .= 'LEFT JOIN `'._DB_PREFIX_.'employee` ec ON (ec.`id_employee` = a.`id_employee_cierre` AND a.`id_shop` = '.$this->context->shop->id.')';
-        $this->_select .= 'CONCAT_WS(" ",ea.firstname, ea.lastname) as empleado_apertura, CONCAT_WS(" ",ea.firstname, ea.lastname) as empleado_cierre, IF(a.estado = 1, "Caja Abierta", "Caja Cerrada") estado_caja, estado, monto_operaciones - monto_apertura as ventas
+        $this->_select .= 'CONCAT_WS(" ",ea.firstname, ea.lastname) as empleado_apertura, CONCAT_WS(" ",ea.firstname, ea.lastname) as empleado_cierre, IF(a.estado = 1, "Arqueo Abierto", "Arqueo Cerrado") estado_caja, estado, monto_operaciones - monto_apertura as ventas, a.id_pos_arqueoscaja as id_button_cierre
         ';
 
         $this->_where = Shop::addSqlRestriction(false, 'a');
@@ -50,6 +50,7 @@ class AdminPosArqueoscajaControllerCore extends AdminController
             'monto_cierre' => array('title' => $this->l('Cierre real (S/)'),  'type' => 'price'),
             'fecha_cierre' => array('title' => $this->l('Fecha Cierre'),  'type' => 'datetime',),
 //            'estado_caja' => array('title' => $this->l('Estado'), 'align' => 'center', 'class' => 'fixed-width-sm', ),
+
         );
 
 //        $nombre_access = Profile::getProfile($this->context->employee->id_profile);
@@ -61,6 +62,27 @@ class AdminPosArqueoscajaControllerCore extends AdminController
         $this->_orderBy = 'fecha_apertura';
         $this->_orderWay = 'DESC';
         
+    }
+    public function displayCerrar_cajaLink($token = null, $id)
+    {
+        $arqueo = new PosArqueoscaja((int)$id);
+
+        if ($arqueo->estado == 0){
+//            if (($key = array_search($this->action, $this->actions)) !== false) {
+//                unset($this->actions[$key]);
+//            }
+            return false;
+        }else{
+            $html = '<span class="btn-group-action">
+                        <span class="btn-group">
+                            <a class="btn btn-danger cierre" data-id_pos_arqueoscaja="' . $arqueo->id . '">
+                                <i class="fa fa-level-up fa-lg"></i>&nbsp;' . $this->l('Cerrar Caja') . '
+                            </a>
+                        </span>
+                    </span>';
+            return $html;
+        }
+
     }
 
     public function initPageHeaderToolbar()
@@ -149,6 +171,45 @@ class AdminPosArqueoscajaControllerCore extends AdminController
                 die(json_encode(array(
                     'result' => $res,
                     'error' => $this->trans('A ocurrido un error al hacer la apertura.', array(), 'Admin.Orderscustomers.Notification')
+                )));
+            }
+
+            die(json_encode(array(
+                'result' => $res,
+                'obj' => $obj,
+            )));
+        }else{
+            die(json_encode(array(
+                'result' => false,
+                'error' => $this->trans('No hay ninguna caja creada.', array(), 'Admin.Orderscustomers.Notification')
+            )));
+        }
+    }
+
+    //metodo para cerrar caja
+    public function ajaxProcessCerrarCaja()
+    {
+
+//        d(Tools::getAllValues());
+        if (Tools::getValue('id_pos_arqueoscaja')){
+
+            $obj = new PosArqueoscaja((int)Tools::getValue('id_pos_arqueoscaja'));
+
+            $obj_caja = new PosCaja((int)$obj->id_pos_caja);
+            $obj_caja->estado_apertura = 0;
+            $obj_caja->update();
+
+            $obj->monto_cierre = (float)Tools::getValue('monto_cierre');
+            $obj->fecha_cierre = date('Y-m-d H:i:s');
+            $obj->nota_cierre = Tools::getValue('nota_cierre');
+            $obj->estado = 0; // 0 cerrada 1 abierta
+            $obj->id_employee_cierre = $this->context->employee->id;
+            $res = $obj->update();
+
+            if (!$res) {
+                die(json_encode(array(
+                    'result' => $res,
+                    'error' => $this->trans('A ocurrido un error al hacer el cierre.', array(), 'Admin.Orderscustomers.Notification')
                 )));
             }
 

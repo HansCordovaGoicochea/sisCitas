@@ -306,6 +306,7 @@ class PSCleaner extends Module
                 }
                 $db->execute('DELETE FROM `'._DB_PREFIX_.'address` WHERE id_customer > 0');
                 $db->execute('UPDATE `'._DB_PREFIX_.'employee` SET `id_last_order` = 0,`id_last_customer_message` = 0,`id_last_customer` = 0');
+                $db->execute('UPDATE `'._DB_PREFIX_.'numeracion_documentos` SET `correlativo` = 0');
 
                 //CREAR CLIENTE PUBLICO GENERAL
                 $customer = new Customer();
@@ -330,7 +331,7 @@ class PSCleaner extends Module
                 $customer->is_guest = 0;
                 $customer->deleted = 0;
                 $customer->id_document = 0;
-                $customer->num_document = '-';
+                $customer->num_document = 00000000;
                 $customer->direccion = '';
                 $customer->add();
                 $customer->updateGroup(array($customer->id_default_group));
@@ -834,6 +835,9 @@ class PSCleaner extends Module
             // yo
             'pos_ordercomprobantes',
             'pos_arqueoscaja',
+            'pos_caja',
+            'pos_arqueocaja',
+            'reservar_cita',
         );
     }
 }

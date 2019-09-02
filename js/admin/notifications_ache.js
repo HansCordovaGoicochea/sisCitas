@@ -22,7 +22,7 @@ function getNotificationAche() {
         success: function (json) {
 
             if (json) {
-                console.log(json);
+                // console.log(json);
                 // Set moment language
                 // moment.lang(full_language_code);
                 initHeaderNotification(json)

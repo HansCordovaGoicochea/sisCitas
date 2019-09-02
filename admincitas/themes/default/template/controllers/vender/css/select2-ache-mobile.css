@@ -1,14 +1,16 @@
 .overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0,0,0,0.5);
-    z-index: 9999999;
-    font-size: 18px;
-    -webkit-transition: all .4s;
-    transition: all .4s;
+    font-size: 18px!important;
+}
+.overlay_ache {
+    position: fixed!important;
+    top: 0!important;
+    left: 0!important;
+    right: 0!important;
+    bottom: 0!important;
+    background-color: rgba(0,0,0,0.5)!important;
+    z-index: 510!important;
+    -webkit-transition: all .4s!important;
+    transition: all .4s!important;
 
 }
 .select2-container .select2-dropdown {

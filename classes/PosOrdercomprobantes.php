@@ -36,6 +36,7 @@ class PosOrdercomprobantesCore extends ObjectModel
 
     public $date_add;
     public $date_upd;
+    public $estado_envio_sunat;
 
     /**
      * @see ObjectModel::$definition
@@ -76,6 +77,7 @@ class PosOrdercomprobantesCore extends ObjectModel
 
             'date_add' => array('type' => self::TYPE_DATE),
             'date_upd' => array('type' => self::TYPE_DATE),
+            'estado_envio_sunat' => array('type' => self::TYPE_BOOL), //1 enviado 0 NO enviado
         ),
     );
 

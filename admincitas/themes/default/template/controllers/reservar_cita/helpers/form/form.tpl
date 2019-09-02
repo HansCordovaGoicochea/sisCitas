@@ -94,8 +94,11 @@
     <div class="panel">
         <div class="panel-heading">
             <i class="icon-table"></i>&nbsp;Cita
+            <a class="btn badge pull-right" style="{if $cita->id_order} display: none; {/if} background-color: #72c279; color: #fff" id="pasarVenta">
+                <i class="icon-money"></i>  Pasar a Venta
+            </a>
         </div>
-        <div class="panel-body">
+        <div  {if $cita->id_order}style="pointer-events: none"{/if} class="panel-body">
             <div class="row">
                 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
                     <div class="form-group col-lg-6 ">
@@ -184,7 +187,7 @@
             </div>
         </div>
         <div class="panel-footer">
-            <button type="submit" value="1" id="cita_guardar_btn" class="btn btn-default pull-right">
+            <button {if $cita->id_order}style=" display: none; "{/if} type="submit" value="1" id="cita_guardar_btn" class="btn btn-default pull-right">
                 <i class="process-icon-save"></i> Guardar
             </button>
             <a class="btn btn-default" onclick="window.history.back();">
@@ -200,6 +203,53 @@
 <script>
     const url_ajax_cita = "{$link->getAdminLink('AdminReservarCita')|addslashes}";
 
+    $('#pasarVenta').click(function () {
+        var x = confirm("¿Seguro de crear la venta?");
+        if (x){
+            $.ajax({
+                type:"POST",
+                url: "{$link->getAdminLink('AdminReservarCita')|escape:'html':'UTF-8'}",
+                async: true,
+                dataType: "json",
+                data:{
+                    ajax: "1",
+                    token: "{getAdminToken tab='AdminReservarCita'}",
+                    action : "realizarVenta",
+                    id_reservar_cita: '{$cita->id|intval}',
+                },
+                beforeSend: function(){
+                    $('body').waitMe({
+                        effect: 'bounce',
+                        text: 'Guardando...',
+                        color: '#000',
+                        maxSize: '',
+                        textPos: 'vertical',
+                        fontSize: '',
+                        source: ''
+                    });
+                },
+                success: function (data) {
+                    if (data.response === 'ok'){
+                        window.location.href = "{$link->getAdminLink('AdminOrders')|escape:'UTF-8'}&id_order=" + data.order.id + "&vieworder";
+                        $('body').waitMe('hide');
+                    }
+                    if (data.response === 'failed'){
+                        $('#error').text(data.msg);
+                        $('#error').show();
+                    }
+                },
+                error: function (error) {
+                    console.log(error);
+                },
+                complete: function(data) {
+
+                },
+            });
+        }else{
+            return false;
+        }
+
+    })
     
     $('#cita_guardar_btn').click(function () {
         if (

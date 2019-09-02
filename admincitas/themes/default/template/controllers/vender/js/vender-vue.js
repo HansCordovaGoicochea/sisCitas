@@ -30,20 +30,53 @@ Vue.component('select2-basic', {
         var vm = this
         $(this.$el)
         // init select2
-            .select2({ data: this.options })
+            .select2({
+                allowClear: true,
+                placeholder :'Seleccione Colaborador',
+                data: this.options,
+            })
             .val(this.value)
             .trigger('change')
             // emit event on change.
             .on('change', function () {
-                vm.$emit('input', this.value)
+                vm.$emit('input', this.value);
+
+                var value = $(this).select2('data');
+                if (value.length){
+                    // nos devuelve un array
+                    // console.log(value);
+                    // ahora simplemente asignamos el valor a tu variable selected de VUE
+                    Vue.set(app_vender, 'colaborador_name', value[0].text);
+                }else{
+                    Vue.set(app_vender, 'colaborador_name', "");
+                }
             })
 
-        $(this.$el).on('select2:opening', function (e) {
-            $('body').addClass("overlay");
-        });
-        $(this.$el).on('select2:closing', function (e) {
-            $('body').removeClass("overlay");
-        });
+        // $(this.$el).on('select2:open', function (e) {
+        //     $('body #content').append("<div class='overlay_ache'></div>");
+        //     $('.select2-dropdown--below').addClass("overlay");
+        // });
+        // $(this.$el).on('select2:close', function (e) {
+        //     $('body #content .overlay_ache').remove();
+        // });
+
+        // https://github.com/ColorlibHQ/AdminLTE/issues/802
+        if (deviceType !== "computer"){
+            // gaurav jain: quick fix for select2 not closing on mobile devices
+            $(this.$el).on("select2:close", function () {
+                setTimeout(function () {
+                    $('.select2-container-active').removeClass('select2-container-active');
+                    $(':focus').blur();
+                }, 1);
+            });
+
+            // gaurav jain: quick fix for select2 not opening on mobile devices if with textbox
+            $(this.$el).on('select2:open', function () {
+                $('.select2-search__field').prop('focus', false);
+            });
+        }
+
+
     },
     watch: {
         value: function (value) {
@@ -60,6 +93,163 @@ Vue.component('select2-basic', {
     destroyed: function () {
         $(this.$el).off().select2('destroy')
     }
+});
+
+Vue.component('selectdos', {
+    template: ' <select :name="name" :id="identifier" class="form-control">\n' +
+        '        <option v-for="selecteditem in selecteditems" :key="selecteditem.id" :value="selecteditem.id" v-text="selecteditem.text" >\n' +
+        '        </option>\n' +
+        '    </select>',
+    props: ['selecteditems', 'identifier', 'text', 'name', 'url'],
+    data() {
+        return {
+            ajaxOption: {
+                url: this.url,
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    var query = {
+                        q: params.term
+                    }
+                    // Query parameters will be ?search=[term]&type=public
+                    return query;
+                },
+                processResults: function (data) {
+                    if (data.found){
+                        return {
+                            results: data.products
+                            // results: $.map(data, function (obj) {
+                            // 	return {
+                            // 		id: obj.id_product,
+                            // 		text: obj.name,
+                            // 	};
+                            // })
+                        };
+                    }else{
+                        return {
+                            results: $.map(data, function (obj) {
+                            	return {
+                            		id: "",
+                            		text: "No se encontraron resultados",
+                            	};
+                            })
+                        }
+                    }
+
+
+                },
+                cache: false,
+
+            },
+        }
+    },
+    created(){
+
+    },
+    mounted(){
+        let self = this;
+        // $('#' + self.identifier).select2({
+        $(this.$el).select2({
+            // delay: 250,
+            allowClear: true,
+            placeholder: 'Busque producto',
+            ajax: self.ajaxOption,
+            minimumInputLength: 3,
+            templateResult: self.templateResult,
+            templateSelection: self.formatSelection,
+
+            language: {
+                errorLoading: function () {
+                    return "La carga falló"
+                }, inputTooLong: function (e) {
+                    var t = e.input.length - e.maximum, n = "Por favor, elimine " + t + " car";
+                    return t == 1 ? n += "ácter" : n += "acteres", n
+                }, inputTooShort: function (e) {
+                    var t = e.minimum - e.input.length, n = "Por favor, introduzca " + t + " car";
+                    return t == 1 ? n += "ácter" : n += "acteres", n
+                }, loadingMore: function () {
+                    return "Cargando más resultados…"
+                }, maximumSelected: function (e) {
+                    var t = "Sólo puede seleccionar " + e.maximum + " elemento";
+                    return e.maximum != 1 && (t += "s"), t
+                }, noResults: function () {
+                    return "No se encontraron resultados"
+                }, searching: function () {
+                    return "Buscando…"
+                }
+            },
+            escapeMarkup: function (text) { return text; },
+        })
+            .val(this.value)
+            .trigger('change')
+            // emit event on change.
+            .on('change', function (e) {
+                self.$emit('input', this.value);
+                self.$emit('change', e);
+
+                var value = $(this).select2('data');
+                if (value.length){
+                    // nos devuelve un array
+                    // console.log(value);
+                    // ahora simplemente asignamos el valor a tu variable selected de VUE
+                    Vue.set(app_vender, 'product_name', value[0].name);
+                    Vue.set(app_vender, 'cantidad_real', value[0].quantity);
+                    Vue.set(app_vender, 'precio_unitario', value[0].price_tax_incl);
+                    Vue.set(app_vender, 'es_servicio', parseInt(value[0].is_virtual) === 1 );
+                }else{
+                    Vue.set(app_vender, 'product_name', "");
+                    Vue.set(app_vender, 'cantidad_real', 0);
+                    Vue.set(app_vender, 'precio_unitario', 0);
+                    Vue.set(app_vender, 'es_servicio', false );
+                }
+
+            });
+    },
+    methods : {
+        templateResult(repo) {
+            if (repo.loading) {
+                return repo.text;
+            }
+
+            var $container = $(
+                "<div class='select2-result-repository clearfix'>" +
+                // "<div class='select2-result-repository__avatar'><img src='' /></div>" +
+                "<div class='select2-result-repository__meta'>" +
+                "<div class='select2-result-repository__title'></div>" +
+                "<div class='select2-result-repository__description'></div>" +
+                    '<div class="select2-result-repository__statistics">' +
+                        '<div class="select2-result-repository__forks"><i class="fa fa-list-ol"></i> </div>' +
+                        '<div class="select2-result-repository__stargazers"><i class="fa fa-money"></i></div>' +
+                    '</div>' +
+                "</div>" +
+                "</div>"
+            );
+
+            $container.find(".select2-result-repository__title").text(repo.name);
+            // $container.find(".select2-result-repository__description").text(repo.reference);
+
+            if (parseInt(repo.is_virtual) === 1){
+                // $container.find(".select2-result-repository__forks").remove();
+                $container.find(".select2-result-repository__forks").html("SERVICIO");
+            }else{
+                $container.find(".select2-result-repository__forks").append("&nbsp;Stock "+ repo.quantity);
+
+            }
+
+            $container.find(".select2-result-repository__stargazers").append("&nbsp;Precio "+ repo.formatted_price);
+            // $container.find(".select2-result-repository__watchers").append(repo.watchers_count + " Watchers");
+
+            return $container;
+        },
+        formatSelection(repo) {
+            // console.log(repo);
+            return repo.name || repo.text;
+        },
+    },
+    destroyed: function () {
+        let self = this;
+        $('#' + self.identifier).select2('destroy');
+    },
 });
 
 
@@ -145,13 +335,18 @@ var app_vender = new Vue({
             show_forma_pago: false,
             guardandoEnviar: false,
             search: "",
+            //producto
             id_product: 0,
             product_name: "",
+            cantidad_real: 0,
+            precio_unitario: 0,
+            es_servicio: false,
+            //colaborador
             id_colaborador: 0,
             colaborador_name: "",
             cart: [],
             pagos: [{
-                id_metodo_pago: 0,
+                id_metodo_pago: 1,
                 tipo: 'efectivo',
                 name_pay: "Pago en Efectivo",
                 fecha: $.datepicker.formatDate('yy-mm-dd', new Date()),
@@ -185,8 +380,9 @@ var app_vender = new Vue({
 
             //datos del cliente
             mostrar_form_cliente: false,
+            puntos_cliente: 0,
             id_customer: 1,
-            cliente: "",
+            // cliente: "",
             nombre_legal: "",
             tipo_doc: "",
             cod_sunat: "",
@@ -197,16 +393,19 @@ var app_vender = new Vue({
             bloquear_error: false,
             mostrar_adventencia: false,
             msg_errores: [],
+            msg_success: [],
+            enviadoSunat: false,
+            email_cliente_envio: "",
 
             monto_deuda: 0,
         };
     },
     ready: function() {
-        $('[data-toggle="tooltip"]').tooltip();
+        // $('[data-toggle="tooltip"]').tooltip();
     },
     created: function(){
         let self = this;
-        $('#app_vender').addClass('loaded');
+
 
     },
     computed: {
@@ -241,12 +440,15 @@ var app_vender = new Vue({
         },
     },
     methods: {
+        enviarMailComprobanteCliente: function(){
+            alert("aun no funciona");
+        },
         changePrecioUnitario: function(item){
-            item.importe_linea = ps_round((item.price * item.quantity), 5);
+            item.importe_linea = ps_round((parseFloat(item.price) * parseFloat(item.quantity)), 2);
             this.refreshTotal();
         },
         changeImporte: function(item){
-            item.price = ps_round((item.importe_linea / item.quantity), 6);
+            item.price = ps_round((parseFloat(item.importe_linea) / parseFloat(item.quantity)), 3);
             this.refreshTotal();
         },
         filterKey(e){
@@ -271,7 +473,7 @@ var app_vender = new Vue({
         verificarCliente(){
             // console.log(this.nombre_legal.length);
           this.bloquear_error = this.nombre_legal.length < 4;
-          if (this.hasComprobante && this.tipo_comprobante === 'Factura' && this.cliente.length === 8){
+          if (this.hasComprobante && this.tipo_comprobante === 'Factura' && this.numero_doc.length === 8){
               this.msg_errores = [];
               this.mostrarErrores();
               this.msg_errores.push({
@@ -313,7 +515,7 @@ var app_vender = new Vue({
                 this.hasComprobante = true;
                 this.tipo_comprobante = tipo;
 
-                this.$refs.cliente.focus();
+                this.$refs.numero_doc.focus();
 
                 if (this.id_customer === 1 && tipo === 'Factura'){
                     this.mostrarErrores();
@@ -332,7 +534,7 @@ var app_vender = new Vue({
                     })
                 }
 
-                if (this.hasComprobante && this.tipo_comprobante === 'Factura' && this.cliente.length === 8){
+                if (this.hasComprobante && this.tipo_comprobante === 'Factura' && this.numero_doc.length === 8){
                     this.borrarErrores();
                     this.mostrarErrores();
                     this.msg_errores.push({
@@ -347,159 +549,94 @@ var app_vender = new Vue({
             // Note, you need to add a ref="search" attribute to your input.
             this.$refs.search.select();
         },
-        getProductos($page){
-            let self = this;
-            // this.$refs.search.focus();
-            $.ajax({
-                type:"POST",
-                url: url_ajax_vender,
-                async: true,
-                dataType: "json",
-                data:{
-                    ajax: "1",
-                    token: token_vender,
-                    tab: "AdminVender",
-                    action : "GetContentAche",
-                    page : $page,
-                },
-                beforeSend: function(){
-                    // $('.preloader-background').fadeOut('slow');
-                    $('.loader_search').css("display","");
-                    $('.table_list_products').waitMe({
-                        effect: 'bounce',
-                        text: 'Cargando...',
-                        color: '#000',
-                        maxSize: '',
-                        textPos: 'vertical',
-                        fontSize: '',
-                        source: ''
-                    });
-
-                },
-                success: function (data) {
-                    let res = data;
-                    if (res.products.length){
-                        for (let i = 0; i < res.products.length; i++) {
-                            self.products.push(res.products[i]);
-                        }
-                    }
-
-                    self.pagination = res.pagination;
-                    self.total_prod = res.pagination.total_items;
-                    // console.log(JSON.parse(data));
-                    self.pagina_fin = self.page;
-                },
-                error: function (error) {
-                    console.log(error);
-                },
-                complete: function (data) {
-                    $('.loader_search').css("display","none");
-                    $('.table_list_products').waitMe('hide');
-                }
-            });
-        },
         refreshTotal() {
             let self = this;
             let total_temporal = 0;
             for (let i = 0; i < this.cart.length; i++) {
-
-                // this.cart[i].importe_linea = ps_round((this.cart[i].price * this.cart[i].quantity), 6);
-                // this.cart[i].price =  ps_round((this.cart[i].importe_linea / this.cart[i].quantity), 6);
-
-                total_temporal += this.cart[i].importe_linea;
-                // alert(this.cart[i].price * this.cart[i].quantity);
-
+                total_temporal += parseFloat(this.cart[i].importe_linea);
             }
             // alert(this.total);
-            this.total = ps_round(total_temporal, 4);
-            this.pagos[0].monto = ps_round(this.total, 4);
+            this.total = ps_round(total_temporal, 2);
+            this.pagos[0].monto = ps_round(this.total, 2);
 
 
         },
-        // // descuento por precio unitario
-        // refreshTotal(){
-        //     let total_temporal = 0;
-        //     for(let i = 0; i < this.cart.length; i++) {
-        //
-        //         if (parseFloat(this.cart[i].descuento) > this.cart[i].price_temporal){
-        //             this.cart[i].descuento = 0;
-        //             $.growl.error({ title: 'El descuento no puede ser mayor al precio base!', message: '', duration: 500, location: 'tr' });
-        //         }
-        //
-        //         if ((parseFloat(this.cart[i].descuento) > 0 && parseFloat(this.cart[i].descuento) <= this.cart[i].price_temporal) || parseFloat(this.cart[i].aumento) > 0){
-        //             this.cart[i].price = (this.cart[i].price_temporal + parseFloat(this.cart[i].aumento)) - parseFloat(this.cart[i].descuento);
-        //         }else{
-        //             this.cart[i].price = this.cart[i].price_temporal;
-        //         }
-        //
-        //         this.cart[i].importe_linea = ps_round((this.cart[i].price * this.cart[i].quantity), 6);
-        //
-        //         total_temporal += this.cart[i].importe_linea;
-        //         // alert(this.cart[i].price * this.cart[i].quantity);
-        //     }
-        //     // alert(this.total);
-        //     this.total = ps_round(total_temporal, 4);
-        //     this.pagos[0].monto = ps_round(this.total, 4);
-        // },
-        addItem(prod, index = 0){
+        addItem(){
             let self = this;
-            // Increment total price
-            this.total += parseFloat(prod.price_tax_incl);
+            if ((self.es_servicio && self.id_colaborador) || (!self.es_servicio && self.id_product)){
+                // Increment total price
+                this.total += parseFloat(self.precio_unitario);
 
-            let inCart = false;
-            // Update quantity if the item is already in the cart
-            for(let i = 0; i < this.cart.length; i++){
-                if(this.cart[i].id === prod.id_product){
-                    inCart = true;
-                    this.cart[i].quantity++;
-                    $.growl.notice({ title: 'Prod. Agregado!', message: '', duration: 500, location: 'br' });
-                    this.refreshTotal();
-                    Vue.nextTick(function() {
-                        self.$refs.number_cantidad[i].focus();
+                let inCart = false;
+                // Update quantity if the item is already in the cart
+                for(let i = 0; i < this.cart.length; i++){
+                    if(this.cart[i].id === self.id_product){
+                        inCart = true;
+                        this.cart[i].quantity++;
+                        $.growl.notice({ title: 'Prod. Agregado!', message: '', duration: 500, location: 'br' });
+                        this.limpiarDatosAdd();
+                        break;
+                    }
+                }
+
+                // Add item if not already in the cart
+                if(! inCart){
+
+                    this.cart.push({
+                        id: self.id_product,
+                        title: self.product_name,
+                        price: parseFloat(self.precio_unitario),
+                        price_temporal: parseFloat(self.precio_unitario),
+                        quantity: 1,
+                        es_servicio: self.es_servicio ? 1 : 0,
+                        cantidad_fisica: self.cantidad_real,
+                        importe_linea: parseFloat(self.precio_unitario),
+                        importe_linea_temporal: parseFloat(self.precio_unitario),
+                        id_colaborador: self.id_colaborador,
+                        colaborador_name: self.colaborador_name,
                     });
-                    break;
+                    $.growl.notice({ title: 'Prod. Agregado!', message: '', duration: 1000, location: 'br' });
+                    this.limpiarDatosAdd();
+                    //actualizar monto de pago
+                    this.pagos[0].monto = ps_round(this.total, 2);
+
+                    // }else{
+                    //     $.growl.error({ title: 'Alerta!', message: 'No hay stock', location: 'br' });
+                    // }
+
+                    this.refreshTotal();
+
+
+                }
+
+                // this.search = "";
+                // this.setFocus();
+            }else{
+                if (self.es_servicio && !self.id_colaborador) {
+                    $.growl.error({title: 'Seleccione un colaborador!', message: '', duration: 1000, location: 'br'});
                 }
             }
 
+        },
+        limpiarDatosAdd(){
+            let self = this;
+            self.id_product = 0;
+            self.product_name = "";
 
+            $('#id_product').empty().trigger('change');
 
-            // Add item if not already in the cart
-            if(! inCart){
-
-                    this.cart.push({
-                        id: prod.id_product,
-                        title: prod.name,
-                        price: parseFloat(prod.price_tax_incl),
-                        price_temporal: parseFloat(prod.price_tax_incl),
-                        quantity: 1,
-                        cantidad_fisica: prod.quantity,
-                        importe_linea: parseFloat(prod.price_tax_incl),
-                        importe_linea_temporal: parseFloat(prod.price_tax_incl),
-                        descuento: 0,
-                        aumento: 0,
-                        precio_coste: parseFloat(prod.wholesale_price)
-                    });
-                    $.growl.notice({ title: 'Prod. Agregado!', message: '', duration: 1000, location: 'br' });
-                    //actualizar monto de pago
-                    this.pagos[0].monto = ps_round(this.total, 4);
-
-                // }else{
-                //     $.growl.error({ title: 'Alerta!', message: 'No hay stock', location: 'br' });
-                // }
-
-                this.refreshTotal();
-
-            }
-
-            // this.search = "";
-            // this.setFocus();
+            self.cantidad_real = 0;
+            self.precio_unitario = 0;
+            self.es_servicio = false;
+            self.id_colaborador = 0;
+            self.colaborador_name = "";
         },
         changeCantidad(item){
             this.total = 0;
             //truncar a 1 decimal
             item.quantity = item.quantity ? item.quantity.toString().match(/^-?\d+(?:\.\d{0,1})?/)[0] : item.quantity;
 
-            item.importe_linea = ps_round((item.price * item.quantity), 6);
+            item.importe_linea = ps_round((item.price * item.quantity), 2);
 
             this.refreshTotal();
 
@@ -569,9 +706,6 @@ var app_vender = new Vue({
                                 numero_doc: self.numero_doc,
                                 direccion_cliente: self.direccion_cliente,
                                 array_pagos: self.pagos,
-                                fecha_proximo_pago: self.fecha_proximo_pago,
-                                nro_guia_remision: self.nro_guia_remision,
-                                es_credito: self.es_credito,
                             },
                             beforeSend: function(){
                                 self.guardandoEnviar = true;
@@ -586,6 +720,7 @@ var app_vender = new Vue({
                                 });
                             },
                             success: function (data) {
+                                self.guardandoEnviar = false;
                                 if (data.result === 'error'){
                                     $.each(data.msg, function (index, value) {
                                         self.mostrar_adventencia = true;
@@ -601,28 +736,10 @@ var app_vender = new Vue({
                                     self.order = data.order;
                                     let html_buttons = '';
 
-                                    if(self.perfil_empleado_vue !== 'Vendedor'){
-                                        html_buttons += '<a class="btn btn-primary" style="margin: 5px;" target="_blank" href="'+data.link_venta+'">Venta</a>';
-                                    }
+                                    html_buttons += '<a class="btn btn-primary" style="margin: 5px;" target="_blank" href="'+data.link_venta+'">Venta</a>';
 
                                     html_buttons += '<input type="button" class="btn btn-warning" value="Ticket Venta - '+data.order.nro_ticket+'" style="margin: 5px;" onclick="windowPrintAche(\'PDFtoTicket\')">';
                                     let iframes = '<iframe id="PDFtoTicket" src="'+data.order.ruta_ticket_normal+'" style="display: none;"></iframe>';
-                                    if (data.comprobantes){
-                                        $.each(data.comprobantes, function (index, value) {
-                                            self.numero_comprobante = value.numero_comprobante;
-                                            if (this.ruta_ticket !== ""){
-                                                iframes += `<iframe id="PDFtoTicketComp`+this.id_pos_ordercomprobantes+`" src="`+this.ruta_ticket+`" style="display: none;"></iframe>`;
-                                                html_buttons += '<input type="button" class="btn btn-warning" value="Ticket '+self.tipo_comprobante+'" style="margin: 5px;" onclick="windowPrintAche(\'PDFtoTicketComp'+this.id_pos_ordercomprobantes+'\')">';
-                                            }
-
-                                            if (this.ruta_pdf_a4 !== "") {
-                                                iframes += `<iframe id="PDFtoA4Comp` + this.id_pos_ordercomprobantes + `" src="` + this.ruta_pdf_a4 + `" style="display: none;"></iframe>`;
-                                                html_buttons += '<input type="button" class="btn btn-warning" value="A4 '+self.tipo_comprobante+'" style="margin: 5px;" onclick="windowPrintAche(\'PDFtoA4Comp'+this.id_pos_ordercomprobantes+'\')">';
-                                            }
-
-                                        });
-
-                                    }
 
                                     $('#alertmessage').after(iframes);
                                     $('.alertmessage').append(html_buttons);
@@ -637,6 +754,18 @@ var app_vender = new Vue({
                                     $('#left-panel').css('pointer-events', 'none');
                                     $('.sales-add-edit-payments').css('pointer-events', 'none');
                                     $('.tabla_lista_venta').css('pointer-events', 'none');
+
+                                    if (self.hasComprobante){
+                                        $.growl.warning({
+                                            title: '',
+                                            message: 'Generando y Enviando XML del comprobante Por Favor espere Un Momento...!',
+                                            fixed: true,
+                                            size: "large",
+                                            duration: 5000,
+                                            location: 'tl'
+                                        });
+                                        self.enviarComprobanteSunat();
+                                    }
                                 }
 
                             },
@@ -646,7 +775,7 @@ var app_vender = new Vue({
                             complete: function(data) {
                                 // location.reload();
                                 $('body').waitMe('hide');
-                                self.guardandoEnviar = false;
+
                             },
                         });
             }else{
@@ -668,18 +797,20 @@ var app_vender = new Vue({
                         token: token_vender,
                         action : "enviarSunat",
                         id_order: self.order.id,
+                        tipo_comprobante: self.tipo_comprobante,
                     },
                     beforeSend: function(){
-                        // self.guardandoEnviar = true;
-                        // $('body').waitMe({
-                        //     effect: 'bounce',
-                        //     text: 'Enviando...',
-                        //     color: '#000',
-                        //     maxSize: '',
-                        //     textPos: 'vertical',
-                        //     fontSize: '',
-                        //     source: ''
-                        // });
+                        self.guardandoEnviar = true;
+                        $('body').waitMe({
+                            effect: 'bounce',
+                            text: 'Enviando...',
+                            color: '#000',
+                            maxSize: '',
+                            textPos: 'vertical',
+                            fontSize: '',
+                            source: ''
+                        });
+                        // alert("DFDF");
                     },
                     success: function (data) {
                         if (data.result === 'error'){
@@ -691,15 +822,58 @@ var app_vender = new Vue({
                                 });
                             })
                         }
-                        if (data.response === 'ok'){
+                        if (data.result === 'ok'){
+                            self.msg_success = [];
+                            $.each(data.msg, function (index, value) {
+                                self.msg_success.push({
+                                    msg: value,
+                                });
+                            })
+                        }
 
+                        if (data.comprobantes){
+                            let iframes = '';
+                            let html_buttons = '';
+                            $.each(data.comprobantes, function (index, value) {
+                                self.numero_comprobante = value.numero_comprobante;
+                                if (this.ruta_ticket !== ""){
+                                    iframes += `<iframe id="PDFtoTicketComp`+this.id_pos_ordercomprobantes+`" src="`+this.ruta_ticket+`" style="display: none;"></iframe>`;
+                                    html_buttons += '<input type="button" class="btn btn-warning" value="Ticket '+self.tipo_comprobante+'" style="margin: 5px;" onclick="windowPrintAche(\'PDFtoTicketComp'+this.id_pos_ordercomprobantes+'\')">';
+                                }
+
+                                if (this.ruta_pdf_a4 !== "") {
+                                    iframes += `<iframe id="PDFtoA4Comp` + this.id_pos_ordercomprobantes + `" src="` + this.ruta_pdf_a4 + `" style="display: none;"></iframe>`;
+                                    html_buttons += '<input type="button" class="btn btn-warning" value="A4 '+self.tipo_comprobante+'" style="margin: 5px;" onclick="windowPrintAche(\'PDFtoA4Comp'+this.id_pos_ordercomprobantes+'\')">';
+                                }
+
+                                if (this.ruta_xml !== "") {
+                                    html_buttons += '<a type="button" target="_blank" class="btn btn-warning" href="'+this.ruta_xml+'" style="margin: 5px;">Descargar XML</a>';
+                                }
+                                if (this.ruta_cdr !== "") {
+                                    html_buttons += '<a type="button" target="_blank" class="btn btn-warning" href="'+this.ruta_cdr+'" style="margin: 5px;">Descargar CDR</a>';
+                                }
+
+
+
+                            });
+                            $('#alertmessage').after(iframes);
+                            $('.alertmessage').append(html_buttons);
+                        }
+
+
+
+                        if(parseInt(data.estado_envio_sunat) === 1 && parseInt(data.cod_sunat) === 0){
+                            self.enviadoSunat = true;
+                        }else{
+                            self.enviadoSunat = false;
                         }
                     },
                     error: function (error) {
                         // console.log(error);
                     },
                     complete: function(data) {
-
+                        $('body').waitMe('hide');
+                        self.guardandoEnviar = false;
                     },
                 });
             }
@@ -718,7 +892,7 @@ var app_vender = new Vue({
                     token: token_vender,
                     tab: "AdminVender",
                     action : "SearchClientes",
-                    cliente_search: $.trim(that.cliente),
+                    cliente_search: $.trim(that.numero_doc),
                 },
                 beforeSend: function(){
                     $('body').waitMe({
@@ -762,7 +936,7 @@ var app_vender = new Vue({
                     token: token_vender,
                     tab: "AdminVender",
                     action : "getDataSunat",
-                    nruc: $.trim(that.cliente),
+                    nruc: $.trim(that.numero_doc),
                 },
                 success: function (data) {
                     // console.log(data)
@@ -773,7 +947,7 @@ var app_vender = new Vue({
                         that.mostrar_form_cliente = true;
                         that.id_customer = 0;
                         that.bloquear_error = true;
-                        that.numero_doc = that.cliente;
+                        // that.numero_doc = that.cliente;
                         that.show_forma_pago = false;
                     }else{
                         $('.v-autocomplete').after('<small style="color: red;" class="error_ache">Número de documento no válido</small>');
@@ -794,8 +968,9 @@ var app_vender = new Vue({
         fillCustomer(data){
             // console.log(data);
             let self = this;
+            self.puntos_cliente = data.puntos_acumulados;
             self.id_customer = data.id_customer;
-            self.cliente = data.num_document;
+            self.numero_doc = data.num_document;
             // self.cliente = data.firstname +' - '+ data.num_document;
             self.nombre_legal = data.firstname;
             self.numero_doc = data.num_document;
@@ -824,14 +999,14 @@ var app_vender = new Vue({
             $('.error_ache').remove();
             let self = this;
             self.id_customer = 1;
-            self.cliente = "";
+            // self.cliente = "";
             self.nombre_legal = "";
             self.numero_doc = "";
             self.tipo_doc = "";
             self.direccion_cliente = "No Definido";
             self.mostrar_form_cliente = false;
             self.show_forma_pago = false;
-            this.$refs.cliente.focus();
+            this.$refs.numero_doc.focus();
 
 
             self.borrarErrores();
@@ -869,6 +1044,7 @@ var app_vender = new Vue({
     },
     mounted() {
         let self = this;
+        $('#app_vender').addClass('loaded');
     },
     updated(){
 
@@ -876,7 +1052,7 @@ var app_vender = new Vue({
     filters: {
         moneda_ache: function (price) {
             // return 'S/ ' + parseFloat(price).toFixed(4);
-            return 'S/ ' + ps_round(parseFloat(price), 6);
+            return 'S/ ' + ps_round(parseFloat(price), 2);
         },
         num_entero: function (cant) {
             return parseInt(cant);

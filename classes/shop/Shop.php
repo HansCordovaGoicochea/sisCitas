@@ -62,6 +62,9 @@ class ShopCore extends ObjectModel
     /** @var ShopGroup Shop group object */
     protected $group;
 
+    public $ruc;
+    public $razon_social;
+
     /**
      * @see ObjectModel::$definition
      */
@@ -75,6 +78,8 @@ class ShopCore extends ObjectModel
             'id_category' =>    array('type' => self::TYPE_INT, 'required' => true),
             'theme_name' =>    array('type' => self::TYPE_STRING, 'validate' => 'isThemeName'),
             'id_shop_group' =>    array('type' => self::TYPE_INT, 'required' => true),
+            'ruc' =>    array('type' => self::TYPE_STRING),
+            'razon_social' =>    array('type' => self::TYPE_STRING),
         ),
     );
 

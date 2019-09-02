@@ -112,7 +112,7 @@ class AdminVenderControllerCore extends AdminController {
         $this->addCSS(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/css/waitMe.min.css');
         $this->addJs(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/js/waitMe.min.js');
 
-        $this->addJqueryPlugin(array('autocomplete'));
+//        $this->addJqueryPlugin(array('autocomplete'));
 //        $this->addJs(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/js/jwerty.js');
 
         if (_PS_MODE_DEV_){
@@ -124,257 +124,41 @@ class AdminVenderControllerCore extends AdminController {
         $this->addCSS(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/css/select2.min.css');
         $this->addJs(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/js/select2.min.js');
     }
-
-    //metodo para abrir caja
-    public function ajaxProcessAbrirCaja()
+    public function ajaxProcessSearchProducts()
     {
 
-//        d(Tools::getAllValues());
+        $currency = new Currency((int)$this->context->currency->id);
+        if ($products = Product::searchByName((int)$this->context->language->id, pSQL(Tools::getValue('q')))) {
+//            foreach ($products as &$product) {
+//                // Formatted price
+////                $product['formatted_price'] = Tools::displayPrice(Tools::convertPrice($product['price_tax_incl'], $currency), $currency);
+//                // Concret price
+//                $product['price_tax_incl'] = Tools::ps_round(Tools::convertPrice($product['price_tax_incl'], $currency), 2);
+//                $product['price_tax_excl'] = Tools::ps_round(Tools::convertPrice($product['price_tax_excl'], $currency), 2);
+//            }
 
-        $obj = new PosArqueoscaja();
-        $obj->nombre_caja = $this->context->shop->name;
-        $obj->monto_apertura = (float)Tools::getValue('monto_apertura');
-        $obj->monto_operaciones = (float)Tools::getValue('monto_apertura');
-        $obj->monto_apertura_dolares = (float)Tools::getValue('monto_apertura_dolares');
-        $obj->monto_operaciones_dolares = (float)Tools::getValue('monto_apertura_dolares');
-        $obj->fecha_apertura = date('Y-m-d H:i:s');
-        $obj->nota_apertura = Tools::getValue('nota_apertura');
-        $obj->estado = 1; // 0 cerrada 1 abierta
-        $obj->id_employee_apertura = $this->context->employee->id;
-        $obj->id_shop = $this->context->shop->id;
-        $res = $obj->add();
-
-        if (!$res) {
-            die(json_encode(array(
-                'result' => $res,
-                'error' => $this->trans('A ocurrido un error al hacer la apertura.', array(), 'Admin.Orderscustomers.Notification')
-            )));
-        }
-
-        die(json_encode(array(
-            'result' => $res,
-            'obj' => $obj,
-        )));
-    }
-
-    //metodo para cerrar caja
-    public function ajaxProcessCerrarCaja()
-    {
-
-//        d(Tools::getAllValues());
-        $last_caja = PosArqueoscaja::getCajaLast($this->context->shop->id);
-
-        if (empty($last_caja)){
-            $last_caja = PosArqueoscaja::cajaAbierta($this->context->cookie->admin_caja);
-        }
-
-        if (!empty($last_caja)){
-            $obj = new PosArqueoscaja((int)$last_caja['id_pos_arqueoscaja']);
-            $obj->nombre_caja = $this->context->shop->name;
-            $obj->monto_cierre = (float)Tools::getValue('monto_cierre');
-            $obj->monto_cierre_dolares = (float)Tools::getValue('monto_cierre_dolares');
-            $obj->fecha_cierre = date('Y-m-d H:i:s');
-            $obj->nota_cierre = Tools::getValue('nota_cierre');
-            $obj->estado = 0; // 0 cerrada 1 abierta
-            $obj->id_employee_cierre = $this->context->employee->id;
-            $res = $obj->update();
-
-            if (!$res) {
-                die(json_encode(array(
-                        'result' => $res,
-                        'error' => $this->trans('A ocurrido un error al hacer el cierre.', array(), 'Admin.Orderscustomers.Notification')
-                    )
-                )
-                );
-            }
-
-            die(json_encode(array(
-                'result' => $res,
-                'obj' => $obj,
-            )));
-        }else{
-            die(json_encode(array('error' => $this->trans('A ocurrido un error al hacer el cierre.', array(), 'Admin.Orderscustomers.Notification'))));
-        }
-
-    }
-
-    public function ajaxProcessGetContentAche()
-    {
-        $nro_prod = 12; // cantidad de productos por pagina
-        $lang = (int)Context::getContext()->language->id;
-        $cats = Category::getCategories($lang, true, false, " AND id_parent = 2");
-
-        $currency = new Currency((int)Context::getContext()->currency->id);
-
-        if ($products = Product::getProductsSearchAche(pSQL(Tools::getValue('search')), max((int) Tools::getValue('page'), 1), $nro_prod, false, false, Tools::getValue('category'))){
-//            d($products);
-            foreach ($products['result'] as &$item) {
-//                d($item);
-                $item['name_img'] = str_replace('|', '&#124;', $item['name']);
-//                $item['url'] = Context::getContext()->link->getAdminLink('AdminProducts', true, array('id_product' => $item['id_product']), array('id_product' => $item['id_product']));
-                $check_url_status = $this->check_url(self::getImagesByID($item['link_rewrite'], (int)($item['id_product'])));
-                if ($check_url_status == '200')
-                    $item['link_rewrite_img'] = self::getImagesByID($item['link_rewrite'], (int)($item['id_product']));
-                else
-                    $item['link_rewrite_img'] = _PS_IMG_."404.gif";
-
-
-                if (!empty($item['packItems']) && $item['estado_creacion'] == 1){
-
-                    $qty_produd = StockAvailable::getQuantityAvailableByProduct($item['packItems'][0]['id_product']); // cantidad_total
-//                    d($qty_produd);
-                    $qty_pack = $item['packItems'][0]['pack_quantity']; // cantidad de productos en el pack
-                    $item['quantity'] = floor($qty_produd / $qty_pack);
-                }else{
-                    //0 = Decrementar sólo packs. STOCK_TYPE_PACK_ONLY
-                    //1 = Decrementar sólo productos en el pack. STOCK_TYPE_PRODUCTS_ONLY
-                    //2 = Decrementar ambos. STOCK_TYPE_PACK_BOTH
-//                    if ($item['pack_stock_type'] == Pack::STOCK_TYPE_PRODUCTS_ONLY){
-//                        $item['quantity'] = StockAvailable::getQuantityAvailableByProduct($item['packItems'][0]['id_product']);
-//                    }
-                    $item['quantity'] = $item['quantity_real'];
-                }
-            }
-            unset($item);
-
-            $pagination = $this->pagination($products['total'], $nro_prod);
-
-            $this->ajaxDie(
-                json_encode(
-                    array(
-                        'products' => $products['result'],
-                        "categorias" => $cats,
-                        "pagination" => $pagination,
-                    )
-                )
+            $to_return = array(
+                'products' => $products,
+                'found' => true
             );
-        }else{
-            $this->ajaxDie(
-                json_encode(
-                    array(
-                        'products' => array(),
-                        "categorias" => $cats,
-                        "pagination" =>  array(),
-                    )
-                )
-            );
-        }
-
-    }
-
-    public static function getImagesByID($link_rewrite, $id_product)
-    {
-        $limit = 1;
-        $id_image = Db::getInstance()->ExecuteS('SELECT `id_image` FROM `' . _DB_PREFIX_ . 'image` WHERE cover=1 AND `id_product` = ' . (int)$id_product . ' ORDER BY position ASC LIMIT 0, ' . (int)$limit);
-        $toReturn = array();
-        if (!$id_image)
-        {
-            return;
-        }
-        else
-        {
-            foreach ($id_image as $image)
-            {
-                $toReturn = Context::getContext()->link->getImageLink($link_rewrite, $id_product . '-' . $image['id_image'], 'small_default');
-            }
-        }
-        return $toReturn;
-    }
-
-    protected function pagination($totalProducts, $nro_prod)
-    {
-
-        /* Determine total page number */
-        $pagination = $nro_prod;
-
-        $total_pages = max(1, ceil($totalProducts / $pagination));
-
-        $paginar = new Pagination();
-        $paginar
-            ->setPage(max((int) Tools::getValue('page'), 1))
-            ->setPagesCount($total_pages);
-
-        $pages = array_map(function ($link) {
-            $link['url'] = $this->updateQueryString2(array(
-                'page' => $link['page'],
-            ));
-
-            return $link;
-        }, $paginar->buildLinks());
-
-        $totalItems = $totalProducts;
-        $itemsShownFrom = ($pagination * (max((int) Tools::getValue('page'), 1) - 1)) + 1;
-        $itemsShownTo = $pagination * max((int) Tools::getValue('page'), 1);
-
-//        d(($itemsShownTo <= $totalItems) ? $itemsShownTo : $totalItems);
-        return array(
-            'total_prod' => $totalProducts,
-            'total_items' => $totalItems,
-            'items_shown_from' => $itemsShownFrom,
-            'items_shown_to' => ($itemsShownTo <= $totalItems) ? $itemsShownTo : $totalItems,
-            'pages' => $pages,
-            // Compare to 3 because there are the next and previous links
-            'should_be_displayed' => (count($paginar->buildLinks()) > 3),
-            /////////
-
-        );
-
-    }
-
-    protected function updateQueryString2(array $extraParams = null)
-    {
-        $uriWithoutParams = explode('?', $_SERVER['REQUEST_URI'])[0];
-        $url = Tools::getCurrentUrlProtocolPrefix().$_SERVER['HTTP_HOST'].$uriWithoutParams;
-        $params = array();
-        $paramsFromUri = '';
-        if (strpos($_SERVER['REQUEST_URI'], '?') !== false) {
-            $paramsFromUri = explode('?', $_SERVER['REQUEST_URI'])[1];
-        }
-        parse_str($paramsFromUri, $params);
-
-        if (null !== $extraParams) {
-            foreach ($extraParams as $key => $value) {
-                if (null === $value) {
-                    unset($params[$key]);
-                } else {
-                    $params[$key] = $value;
-                }
-            }
-        }
-
-        ksort($params);
-
-        if (null !== $extraParams) {
-            foreach ($params as $key => $param) {
-                if (null === $param || '' === $param) {
-                    unset($params[$key]);
-                }
-            }
         } else {
-            $params = array();
+            $to_return = array('found' => false);
         }
 
-        $queryString = str_replace('%2F', '/', http_build_query($params, '', '&'));
-
-        return $url.($queryString ? "?$queryString" : '');
+        $this->content = json_encode($to_return);
     }
 
     public function ajaxProcessRealizarVenta()
     {
 //        d($this->context->cookie->admin_caja);
         if ($this->existeCajasAbiertas){
-            if($this->nombre_access['name'] == 'Administrador' || $this->nombre_access['name'] == 'SuperAdmin'){
-                $last_caja = PosArqueoscaja::cajaAbierta($this->context->cookie->admin_caja);
-            }else{
-                $last_caja = PosArqueoscaja::getCajaLast($this->context->shop->id);
-            }
+            $last_caja = PosArqueoscaja::getCajaLast($this->context->shop->id);
         }
         else{
-            if (empty($last_caja) || $last_caja['estado'] == 0){
-                $this->errors[] = $this->trans('No existe ninguna caja abierta!!', array(), 'Admin.Orderscustomers.Notification');
-                return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
-            }
+            $this->errors[] = $this->trans('No existe ninguna caja abierta!!', array(), 'Admin.Orderscustomers.Notification');
+            return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
         }
+
 
         //crear ticket y pdf electronico y enviar a SUNAT
         if (Tools::getValue('tipo_comprobante') && Tools::getValue('tipo_comprobante') != ''){
@@ -390,12 +174,6 @@ class AdminVenderControllerCore extends AdminController {
                 }
 
             }else{
-                if ($tipo_comprobante == "Boleta"){
-                    $tipo_comprobante = "Boleta_fisica";
-                }
-                if ($tipo_comprobante == "Factura"){
-                    $tipo_comprobante = "Factura_fisica";
-                }
                 //creamos la numeracion
                 $numeracion_documento = NumeracionDocumento::getNumTipoDoc($tipo_comprobante);
                 if (empty($numeracion_documento)){
@@ -403,8 +181,8 @@ class AdminVenderControllerCore extends AdminController {
                     return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
                 }
             }
-        }
 
+        }
 
         $tienda_actual = new Shop((int)$this->context->shop->id);
         $nombre_virtual_uri = $tienda_actual->virtual_uri;
@@ -416,6 +194,7 @@ class AdminVenderControllerCore extends AdminController {
         if ($id_customer){
             $customer = new Customer((int)$id_customer);
             if ($direccion_cliente != 'No Definido') $customer->direccion = $direccion_cliente;
+            $customer->update();
         }
         else{
             $customer = new Customer();
@@ -440,7 +219,7 @@ class AdminVenderControllerCore extends AdminController {
             $customer->active = 1;
             $customer->is_guest = 0;
             $customer->deleted = 0;
-            $td = strlen(trim($numero_doc)) == 8 ? '1' : '6';
+            $td = strlen(trim($numero_doc)) == 11 ? '6' : '1';
             $tipo_doc = Tipodocumentolegal::getByCodSunat($td);
             $customer->id_document = $tipo_doc['id_tipodocumentolegal'];
             $customer->num_document = $numero_doc;
@@ -467,12 +246,9 @@ class AdminVenderControllerCore extends AdminController {
 
         if ($pedido['success'] == 'ok'){
             $order = new Order((int)$pedido['order']->id);
-            //crear ticket venta
-            $this->crearTicketVenta($order);
 
             if ($tipo_venta == 1){
                 //crear orden sin pago
-                //actualizar la pagina // por el momento noacutaliza
                 $rsp['reload'] = 'ok';
             }
             elseif ($tipo_venta == 2 || $tipo_venta == 3){
@@ -509,7 +285,7 @@ class AdminVenderControllerCore extends AdminController {
                     } elseif (!Validate::isDate($array_pago['fecha'])) {
                         $this->errors[] = $this->trans('The date is invalid', array(), 'Admin.Orderscustomers.Notification');
                     } else {
-                        if (!$order->addOrderPayment($amount, $array_pago['name_pay'], null, $currency, $array_pago['fecha'], $order_invoice, $vuelto_pago, $array_pago['tipo'] == 'efectivo' ? 1 : 2, $array_pago['tipo'] == 'efectivo' ? $last_caja['id_pos_arqueoscaja'] : $array_pago['id_metodo_pago'], $this->context->employee->id)) {
+                        if (!$order->addOrderPayment($amount, $array_pago['name_pay'], null, $currency, $array_pago['fecha'], $order_invoice, $vuelto_pago, $array_pago['id_metodo_pago'], null, $this->context->employee->id)) {
                             $this->errors[] = $this->trans('An error occurred during payment.', array(), 'Admin.Orderscustomers.Notification');
 
                         } else {
@@ -569,24 +345,21 @@ class AdminVenderControllerCore extends AdminController {
                     //actualizar la pagina
                     $rsp['reload'] = 'ok';
                 }
-
-
-
-                //crear ticket y pdf electronico y enviar a SUNAT
-                if (Tools::getValue('tipo_comprobante') && Tools::getValue('tipo_comprobante') != ''){
-                    $tipo_comprobante = Tools::getValue('tipo_comprobante');
-
-                    // verificamos el certificado
-                    $certificado = Certificadofe::getByAllShop();
-                    if (!empty($certificado) && (bool)$certificado['active']){
-                        $objCerti = new Certificadofe((int)$certificado['id_certificadofe']); // buscar el certificado
-                        $this->crearComprobanteElectronico($order, $objCerti);
-                    }else{
-                        $this->crearComprobanteFisico($order, $tipo_comprobante);
-                    }
-                }
-
             }
+
+            $productos = Tools::getValue('productos');
+            foreach ($productos as $product) {
+                if ((int)$product['es_servicio'] == 1 && $order->current_state == (int)ConfigurationCore::get("PS_OS_PAYMENT") && $order->id_customer != 1){
+                    $objProducto = new Product((int)$product['id']);
+                    $customer = new Customer((int)$order->id_customer);
+                    $puntos_tmp = (int)$customer->puntos_acumulados;
+                    $customer->puntos_acumulados = $puntos_tmp + (int)$objProducto->cantidad_puntos;
+                    $customer->update();
+                }
+            }
+
+            //crear ticket venta
+            $this->crearTicketVenta($order);
 
             $caja = new PosArqueoscaja((int)$last_caja['id_pos_arqueoscaja']);
             $rsp['response'] = 'ok';
@@ -617,6 +390,155 @@ class AdminVenderControllerCore extends AdminController {
             );
         }
     }
+    protected function crearCarroPedido(){
+
+//       d(Tools::getAllValues());
+        $productos = Tools::getValue('productos');
+
+        if(!empty($productos) && count($productos) > 0){
+            $cart = new Cart();
+            $cart->id_customer = Tools::getValue('id_customer') ? Tools::getValue('id_customer') : 1; // verificar esto del cliente
+            $cart->id_address_delivery = (int)  (Address::getFirstCustomerAddressId($cart->id_customer));
+            $cart->id_address_invoice = $cart->id_address_delivery;
+            $cart->id_lang = (int)($this->context->language->id);
+            $cart->id_currency = (int)($this->context->currency->id);
+            $cart->id_carrier = 1;
+            $cart->recyclable = 0;
+            $cart->gift = 0;
+            $cart->add();
+//            $this->context->cookie->id_cart = (int)($cart->id);
+//            $cart->update();
+
+            $id_cart = $cart->id;
+            Db::getInstance()->execute('DELETE FROM `'._DB_PREFIX_.'customization` WHERE `id_cart` = '.(int)$id_cart);
+            Db::getInstance()->execute('DELETE FROM `'._DB_PREFIX_.'cart_cart_rule` WHERE `id_cart` = '.(int)$id_cart);
+            Db::getInstance()->execute('DELETE FROM `'._DB_PREFIX_.'cart_product` WHERE `id_cart` = '.(int)$id_cart);
+
+            foreach($productos as $key=>$product){
+                $prod = new Product((int)($product['id']), true, (int)($this->context->language->id));
+                $prod_update = $cart->updateQty((float)($product['quantity']), (int)($product['id']),null, false, 'up', 0 , new Shop((int)$cart->id_shop));
+
+                //modificar el precio
+                SpecificPrice::deleteByIdCart((int)$id_cart, (int)$product['id'], 0);
+                $specific_price = new SpecificPrice();
+                $specific_price->id_cart = (int)$id_cart;
+                $specific_price->id_shop = 0;
+                $specific_price->id_shop_group = 0;
+                $specific_price->id_currency = 0;
+                $specific_price->id_country = 0;
+                $specific_price->id_group = 0;
+                $specific_price->id_customer = (int)$this->context->customer->id;
+                $specific_price->id_product = (int)$product['id'];
+                $specific_price->id_product_attribute = 0;
+                $specific_price->price = round((float)$product['price'] / 1.18, 6);
+                $specific_price->from_quantity = 1;
+                $specific_price->reduction = 0;
+                $specific_price->reduction_type = 'amount';
+                $specific_price->reduction_tax = PS_TAX_EXC;
+                $specific_price->from = '0000-00-00 00:00:00';
+                $specific_price->to = '0000-00-00 00:00:00';
+                $specific_price->add();
+
+            }
+
+            $summary = $cart->getSummaryDetails($this->context->language->id,true);
+            $total = (string) $summary['total_price'];
+            $cashondelivery = Module::getInstanceByName("ps_checkpayment");
+
+
+            if($cashondelivery->validateOrder(
+                (int)$cart->id,
+                Configuration::get('PS_OS_CHEQUE'),
+                $total,
+                "Venta Rapida",
+                null,
+                array(),
+                $cart->id_currency
+            )) {
+
+                $result['orderid'] = (string)$cashondelivery->currentOrder;
+
+                $last_caja = PosArqueoscaja::getCajaLast($this->context->shop->id);
+                $order = new Order((int)$result['orderid']);
+                $order->id_pos_caja = $last_caja['id_pos_caja'];
+                $order->id_employee = $this->context->employee->id;
+                $order->update();
+
+                $ordeD = OrderDetailCore::getList($order->id);
+                foreach ($ordeD as $k => $val) {
+                    foreach(Tools::getValue('productos') as $key=>$product) {
+                        $oderDetalle = new OrderDetail((int)$val['id_order_detail']);
+                        if ($oderDetalle->product_id === $product['id']){
+//                            $oderDetalle->product_name = $product['title'];
+                            $oderDetalle->id_colaborador = $product['id_colaborador'];
+                            $oderDetalle->colaborador_name = $product['colaborador_name'];
+                            $oderDetalle->es_servicio = (int)$product['es_servicio'];
+                            $oderDetalle->update();
+                        }
+                    }
+                }
+
+                return array('success' => 'ok', 'order' => $order, 'cart' => $this->context->cart);
+            }else{
+                return array('success' => 'failed', 'msg' => '¡Error al Ralizadar la venta!');
+            }
+
+        }else{
+            return array('success' => 'failed', 'msg' => '¡Error al Ralizadar la venta!');
+        }
+    }
+
+    protected function crearTicketVenta($order){
+        $nombre_virtual_uri = $this->context->shop->virtual_uri;
+//        $this->confirmations[] = "Entre al ticket venta";
+
+        $correlativo_comanda = NumeracionDocumento::getNumTipoDoc('Ticket');
+        if (empty($correlativo_comanda)){
+            $objNC = new NumeracionDocumento();
+            $objNC->serie = '';
+            $objNC->correlativo = 0;
+            $objNC->nombre = 'Ticket';
+            $objNC->id_shop = Context::getContext()->shop->id;
+            $objNC->add();
+            $correlativo_comanda = NumeracionDocumento::getNumTipoDoc('Ticket');
+        }
+        else{
+            $correlativo_comanda = NumeracionDocumento::getNumTipoDoc('Ticket');
+        }
+
+        if (!$order->nro_ticket){
+            $co = new NumeracionDocumento((int)$correlativo_comanda['id_numeracion_documentos']);
+            $co->correlativo = ($correlativo_comanda['correlativo']+1);
+            $co->update();
+            $numero_de_ticket = $correlativo_comanda['correlativo'];
+            $monbre_archivo='Ticket_numero_'.($numero_de_ticket+1).'.pdf';
+            $order->nro_ticket = ($numero_de_ticket+1);
+
+        }
+        else{
+            $numero_de_ticket = $order->nro_ticket;
+            $monbre_archivo='Ticket_numero_'.($numero_de_ticket).'.pdf';
+        }
+
+        $ruta = 'archivos_sunat/'.$nombre_virtual_uri;
+        $ruta_documentos = 'documentos_pdf/'.$nombre_virtual_uri;
+        if (!file_exists($ruta)) {
+            mkdir($ruta, 0777, true);
+        }
+        if (!file_exists($ruta_documentos)) {
+            mkdir($ruta_documentos, 0777, true);
+        }
+
+        $order->ruta_ticket_normal = $ruta_documentos.'/'.$monbre_archivo;
+        $order->update();
+
+        $pdf_ticket = new PDF($order, ucfirst('FacturaVentaRapida'), Context::getContext()->smarty,'P');
+        $pdf_ticket->Guardar($monbre_archivo, "", 'ticket', "");
+
+//        $this->confirmations[] = "Llegue al final";
+//        $this->confirmations[] = $order;
+
+    }
 
     protected function crearComprobanteElectronico($order, $objCerti){
 //        $this->confirmations[] = "Todo correcto";
@@ -635,9 +557,9 @@ class AdminVenderControllerCore extends AdminController {
 
         foreach ($prods as $prod) {
             if ((int)$prod['id_tax_rules_group'] == 0){
-                $respuesta["respuesta"] = "error";
                 $this->errors[] = "La ".Tools::getValue('tipo_comprobante')." no se pudo enviar: HAY PRODUCTOS SIN IGV";
                 $this->errors[] = "HAY PRODUCTOS SIN IGV";
+                return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
             }
         }
 
@@ -813,6 +735,7 @@ class AdminVenderControllerCore extends AdminController {
                 mkdir($ruta_a4, 0777, true);
             }
 
+
             $pdf_ticket = new PDF($objComprobantes, ucfirst('ComprobanteElectronico'), Context::getContext()->smarty,'P');
             $pdf_ticket->Guardar("Ticket-".$monbre_archivo, $valor_qr, 'ticket', $objComprobantes->hash_cpe);
 
@@ -825,6 +748,7 @@ class AdminVenderControllerCore extends AdminController {
 
             $objComprobantes->ruta_ticket =  $ruta."Ticket-".$monbre_archivo;
             $objComprobantes->ruta_pdf_a4 =  $ruta_a4."A4-".$monbre_archivo;
+
             $objComprobantes->update();
 
         }
@@ -835,12 +759,28 @@ class AdminVenderControllerCore extends AdminController {
 
     public function  ajaxProcessEnviarSunat(){
 
+
         $order = new Order((int)Tools::getValue('id_order'));
+        $doc = PosOrdercomprobantes::getComprobantesByOrderLimit($order->id);
+
+        // verificamos el certificado
+        $certificado = Certificadofe::getByAllShop();
+        if (!empty($certificado) && (bool)$certificado['active']) {
+            $objCerti = new Certificadofe((int)$certificado['id_certificadofe']); // buscar el certificado
+        } else {
+            $this->errors[] = $this->trans('No existe un certificado valido', array(), 'Admin.Orderscustomers.Notification');
+            return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+        }
+
+        if (empty($doc)) {
+            //crear ticket y pdf electronico y enviar a SUNAT
+            if (Tools::getValue('tipo_comprobante') && Tools::getValue('tipo_comprobante') != '') {
+                $this->crearComprobanteElectronico($order, $objCerti);
+            }
+        }
 
         if ($order->current_state == (int)ConfigurationCore::get("PS_OS_PAYMENT")){
-            $this->confirmations[] = "Todo correcto 2";
-
-            $doc = PosOrdercomprobantes::getComprobantesByOrderLimit($order->id);
+//            $this->confirmations[] = "Todo correcto 2";
 
             if (!empty($doc)) {
                 $objComprobantes = new PosOrdercomprobantes($doc['id_pos_ordercomprobantes']);
@@ -874,11 +814,8 @@ class AdminVenderControllerCore extends AdminController {
                 }
                 else{
                     $this->errors[] = $this->trans('Error: Tipo de comprobante no válido!!', array(), 'Admin.Orderscustomers.Notification');
+                    return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
                 }
-
-                // verificamos el certificado
-                $certificado = Certificadofe::getByAllShop();
-                $objCerti = new Certificadofe((int)$certificado['id_certificadofe']); // buscar el certificado
 
                 $receptor = array();
                 //d($razon_social_nombre_cliente);
@@ -967,7 +904,13 @@ class AdminVenderControllerCore extends AdminController {
                     $objComprobantes->ruta_cdr =  $rutas["ruta_cdr"].'R-'. $rutas['nombre_archivo'].".zip";
                     $objComprobantes->cod_sunat =  $resp["cod_sunat"];
                     $objComprobantes->msj_sunat =  $resp["msj_sunat"];
+                    $objComprobantes->estado_envio_sunat =  1;
                     $objComprobantes->update();
+
+                    $order_final_actualizado = new Order((int)$order->id);
+                    $comprobantes = PosOrdercomprobantes::getComprobantesByOrder((int)$order->id);
+                    $resp['order'] =  $order_final_actualizado;
+                    $resp['comprobantes'] =  $comprobantes;
 
                     return die(json_encode($resp));
 
@@ -980,7 +923,13 @@ class AdminVenderControllerCore extends AdminController {
                     $objComprobantes->ruta_cdr =  $rutas["ruta_cdr"].'R-'. $rutas['nombre_archivo'].".zip";
                     $objComprobantes->cod_sunat =  $resp["cod_sunat"];
                     $objComprobantes->msj_sunat =  $resp["msj_sunat"];
+                    $objComprobantes->estado_envio_sunat =  1;
                     $objComprobantes->update();
+
+                    $order_final_actualizado = new Order((int)$order->id);
+                    $comprobantes = PosOrdercomprobantes::getComprobantesByOrder((int)$order->id);
+                    $resp['order'] =  $order_final_actualizado;
+                    $resp['comprobantes'] =  $comprobantes;
 
                     return die(json_encode($resp));
 
@@ -997,306 +946,6 @@ class AdminVenderControllerCore extends AdminController {
             return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
         }
 
-    }
-
-    protected function crearComprobanteFisico($order, $tipo_comprobante){
-        if ($tipo_comprobante == "Boleta"){
-            $tipo_comprobante = "Boleta_fisica";
-        }
-        if ($tipo_comprobante == "Factura"){
-            $tipo_comprobante = "Factura_fisica";
-        }
-        $doc = PosOrdercomprobantes::getComprobantesByOrderLimit($order->id);
-        if (!empty($doc)){
-            $objComprobantes = new PosOrdercomprobantes($doc['id_pos_ordercomprobantes']);
-        }else{
-            $objComprobantes = new PosOrdercomprobantes();
-        }
-
-        if (!$objComprobantes->numero_comprobante && $objComprobantes->numero_comprobante == ""){
-            $objComprobantes->id_order = $order->id;
-            $objComprobantes->tipo_documento_electronico = $tipo_comprobante;
-            $objComprobantes->sub_total = $order->total_paid_tax_excl;
-            $objComprobantes->impuesto = (float)($order->total_paid_tax_incl - $order->total_paid_tax_excl);
-            $objComprobantes->total = $order->total_paid_tax_incl;
-
-            //creamos la numeracion
-            $numeracion_documento = NumeracionDocumento::getNumTipoDoc($tipo_comprobante);
-            if (empty($numeracion_documento)){
-                die('Porfavor cree las series y numeración para su tienda gracias. Nombre: '.$tipo_comprobante );
-            }
-            else{
-                $objNu2 = new NumeracionDocumento((int)$numeracion_documento["id_numeracion_documentos"]);
-                $objNu2->correlativo = ($numeracion_documento["correlativo"]+1);
-                $objNu2->update();
-            }
-
-            $serie = $objNu2->serie;
-            $numeracion = $objNu2->correlativo;
-            $numero_comprobante = $serie."-".$numeracion;
-
-            $objComprobantes->numero_comprobante = $numero_comprobante;
-        }
-        else{
-            // hacer que se consulta a la sunat el comprobante
-            $numero_comprobante = $objComprobantes->numero_comprobante;
-            $array_num = explode("-", $numero_comprobante);
-            $serie = $array_num[0];
-            $numeracion = $array_num[1];
-            $numero_comprobante = $serie."-".$numeracion;
-        }
-
-        if (empty($doc)){
-            $objComprobantes->add();
-        }
-
-        $monbre_archivo = $objComprobantes->tipo_documento_electronico.'_'.$this->context->shop->ruc.'-'.$objComprobantes->numero_comprobante.'.pdf';
-
-        $ruta_a4 = 'documentos_pdf_a4/fisico/'.$this->context->shop->virtual_uri;
-        if (!file_exists($ruta_a4)) {
-            mkdir($ruta_a4, 0777, true);
-        }
-
-        $pdf_fisico = new PDF($objComprobantes, ucfirst('ComprobanteFisico'), Context::getContext()->smarty,'P');
-        $pdf_fisico->Guardar($ruta_a4.$monbre_archivo);
-
-        $objComprobantes->ruta_pdf_a4 =  $ruta_a4.$monbre_archivo;
-        $objComprobantes->update();
-    }
-
-    protected function crearTicketVenta($order){
-        $nombre_virtual_uri = $this->context->shop->virtual_uri;
-        $this->confirmations[] = "Entre al ticket venta";
-
-        $correlativo_comanda = NumeracionDocumento::getNumTipoDoc('Ticket');
-        if (empty($correlativo_comanda)){
-            $objNC = new NumeracionDocumento();
-            $objNC->serie = '';
-            $objNC->correlativo = 0;
-            $objNC->nombre = 'Ticket';
-            $objNC->id_shop = Context::getContext()->shop->id;
-            $objNC->add();
-            $correlativo_comanda = NumeracionDocumento::getNumTipoDoc('Ticket');
-        }
-        else{
-            $correlativo_comanda = NumeracionDocumento::getNumTipoDoc('Ticket');
-        }
-
-        if (!$order->nro_ticket){
-            $co = new NumeracionDocumento((int)$correlativo_comanda['id_numeracion_documentos']);
-            $co->correlativo = ($correlativo_comanda['correlativo']+1);
-            $co->update();
-            $numero_de_ticket = $correlativo_comanda['correlativo'];
-            $monbre_archivo='Ticket_numero_'.($numero_de_ticket+1).'.pdf';
-            $order->nro_ticket = ($numero_de_ticket+1);
-
-        }
-        else{
-            $numero_de_ticket = $order->nro_ticket;
-            $monbre_archivo='Ticket_numero_'.($numero_de_ticket).'.pdf';
-        }
-
-        $ruta = 'archivos_sunat/'.$nombre_virtual_uri;
-        $ruta_documentos = 'documentos_pdf/'.$nombre_virtual_uri;
-        if (!file_exists($ruta)) {
-            mkdir($ruta, 0777, true);
-        }
-        if (!file_exists($ruta_documentos)) {
-            mkdir($ruta_documentos, 0777, true);
-        }
-
-        $order->ruta_ticket_normal = $ruta_documentos.'/'.$monbre_archivo;
-        $order->update();
-
-        $pdf_ticket = new PDF($order, ucfirst('FacturaVentaRapida'), Context::getContext()->smarty,'P');
-        $pdf_ticket->Guardar($monbre_archivo, "", 'ticket', "");
-
-        $this->confirmations[] = "Llegue al final";
-        $this->confirmations[] = $order;
-
-    }
-
-    protected function crearCarroPedido(){
-
-//       d(Tools::getAllValues());
-        $es_transferencia_interna = Tools::getValue('es_transferencia_interna');
-        $productos = Tools::getValue('productos');
-        $fecha_proximo_pago = Tools::getValue('fecha_proximo_pago');
-        $es_credito = Tools::getValue('es_credito');
-        $nro_guia_remision = Tools::getValue('nro_guia_remision');
-        if(!empty($productos) && count($productos) > 0){
-            $cart = new Cart();
-            $cart->id_customer = Tools::getValue('id_customer') ? Tools::getValue('id_customer') : 1; // verificar esto del cliente
-            $cart->id_address_delivery = (int)  (Address::getFirstCustomerAddressId($cart->id_customer));
-            $cart->id_address_invoice = $cart->id_address_delivery;
-            $cart->id_lang = (int)($this->context->language->id);
-            $cart->id_currency = (int)($this->context->currency->id);
-            $cart->id_carrier = 1;
-            $cart->recyclable = 0;
-            $cart->gift = 0;
-            $cart->add();
-//            $this->context->cookie->id_cart = (int)($cart->id);
-//            $cart->update();
-
-            $id_cart = $cart->id;
-            Db::getInstance()->execute('DELETE FROM `'._DB_PREFIX_.'customization` WHERE `id_cart` = '.(int)$id_cart);
-            Db::getInstance()->execute('DELETE FROM `'._DB_PREFIX_.'cart_cart_rule` WHERE `id_cart` = '.(int)$id_cart);
-            Db::getInstance()->execute('DELETE FROM `'._DB_PREFIX_.'cart_product` WHERE `id_cart` = '.(int)$id_cart);
-
-            foreach($productos as $key=>$product){
-                $prod = new Product((int)($product['id']), true, (int)($this->context->language->id));
-                $prod_update = $cart->updateQty((float)($product['quantity']), (int)($product['id']),null, false, 'up', 0 , new Shop((int)$cart->id_shop));
-
-                //modificar el precio
-                SpecificPrice::deleteByIdCart((int)$id_cart, (int)$product['id'], 0);
-                $specific_price = new SpecificPrice();
-                $specific_price->id_cart = (int)$id_cart;
-                $specific_price->id_shop = 0;
-                $specific_price->id_shop_group = 0;
-                $specific_price->id_currency = 0;
-                $specific_price->id_country = 0;
-                $specific_price->id_group = 0;
-                $specific_price->id_customer = (int)$this->context->customer->id;
-                $specific_price->id_product = (int)$product['id'];
-                $specific_price->id_product_attribute = 0;
-                $specific_price->price = round((float)$product['price'] / 1.18, 6);
-                $specific_price->from_quantity = 1;
-                $specific_price->reduction = 0;
-                $specific_price->reduction_type = 'amount';
-                $specific_price->reduction_tax = PS_TAX_EXC;
-                $specific_price->from = '0000-00-00 00:00:00';
-                $specific_price->to = '0000-00-00 00:00:00';
-                $specific_price->add();
-
-            }
-
-            $summary = $cart->getSummaryDetails($this->context->language->id,true);
-            $total = (string) $summary['total_price'];
-            $cashondelivery = Module::getInstanceByName("ps_checkpayment");
-
-            //d($cart);
-            if($cashondelivery->validateOrder(
-                (int)$cart->id,
-                Configuration::get('PS_OS_CHEQUE'),
-                $total,
-                "Venta Rapida",
-                null,
-                array(),
-                $cart->id_currency
-            )) {
-
-                $result['orderid'] = (string)$cashondelivery->currentOrder;
-
-                $order = new Order((int)$result['orderid']);
-                $order->fecha_proximo_pago = $fecha_proximo_pago;
-                $order->es_credito = $es_credito;
-                $order->nro_guia_remision = $nro_guia_remision;
-                $order->es_transferencia_interna = $es_transferencia_interna;
-
-                if($this->nombre_access['name'] == 'Cajero'){
-                    $order->id_empleado_caja = $this->context->employee->id;
-                }
-
-                if($this->nombre_access['name'] == 'Administrador' || $this->nombre_access['name'] == 'SuperAdmin'){
-                    $last_caja = PosArqueoscaja::cajaAbierta($this->context->cookie->admin_caja);
-                    $order->id_empleado_caja = $last_caja['id_employee_apertura'];
-                }
-
-                $order->update();
-
-                $ordeD = OrderDetailCore::getList($order->id);
-                foreach ($ordeD as $k => $val) {
-                    foreach(Tools::getValue('productos') as $key=>$product) {
-                        $oderDetalle = new OrderDetail((int)$val['id_order_detail']);
-                        if ($oderDetalle->product_id === $product['id']){
-                            $oderDetalle->product_name = $product['title'];
-                            $oderDetalle->monto_descuento = $product['descuento'];
-                            $oderDetalle->monto_aumento = $product['aumento'];
-                            $oderDetalle->update();
-                        }
-                    }
-                }
-
-                return array('success' => 'ok', 'order' => $order, 'cart' => $this->context->cart);
-            }else{
-                return array('success' => 'failed', 'msg' => '¡Error al Ralizadar la venta!');
-            }
-
-        }else{
-            return array('success' => 'failed', 'msg' => '¡Error al Ralizadar la venta!');
-        }
-    }
-
-    public function ajaxProcessCotizarVenta(){
-
-
-        $id_cart = (int)Tools::getValue('id_cart');
-        $productos = Tools::getValue('productos');
-
-        if(!empty($productos) && count($productos) > 0){
-            if ($id_cart){
-                $cart = new Cart($id_cart);
-            }else{
-                $cart = new Cart();
-            }
-            $cart->id_customer = Tools::getValue('id_customer') ? Tools::getValue('id_customer') : 1; // verificar esto del cliente
-            $cart->id_address_delivery = (int)  (Address::getFirstCustomerAddressId($cart->id_customer));
-            $cart->id_address_invoice = $cart->id_address_delivery;
-            $cart->id_lang = (int)($this->context->language->id);
-            $cart->id_currency = (int)($this->context->currency->id);
-            $cart->id_carrier = 1;
-            $cart->recyclable = 0;
-            $cart->gift = 0;
-            $cart->es_cotizacion = 1;
-            $cart->id_employee = (int)($this->context->employee->id);
-
-            if ($id_cart){
-                $cart->update();
-            }else{
-                $cart->add();
-            }
-
-            $id_cart = $cart->id;
-            Db::getInstance()->execute('DELETE FROM `'._DB_PREFIX_.'customization` WHERE `id_cart` = '.(int)$id_cart);
-            Db::getInstance()->execute('DELETE FROM `'._DB_PREFIX_.'cart_cart_rule` WHERE `id_cart` = '.(int)$id_cart);
-            Db::getInstance()->execute('DELETE FROM `'._DB_PREFIX_.'cart_product` WHERE `id_cart` = '.(int)$id_cart);
-
-            foreach($productos as $key=>$product){
-
-                $prod = new Product((int)($product['id']), true, (int)($this->context->language->id));
-                $prod_update = $cart->updateQty((float)($product['quantity']), (int)($product['id']),null, false, 'up', 0 , new Shop((int)$cart->id_shop), true, false, (float)$product['descuento'], (float)$product['aumento']);
-
-                //modificar el precio
-                SpecificPrice::deleteByIdCart((int)$id_cart, (int)$product['id'], 0);
-                $specific_price = new SpecificPrice();
-                $specific_price->id_cart = (int)$id_cart;
-                $specific_price->id_shop = 0;
-                $specific_price->id_shop_group = 0;
-                $specific_price->id_currency = 0;
-                $specific_price->id_country = 0;
-                $specific_price->id_group = 0;
-                $specific_price->id_customer = (int)$this->context->customer->id;
-                $specific_price->id_product = (int)$product['id'];
-                $specific_price->id_product_attribute = 0;
-                $specific_price->price = round((float)$product['price'] / 1.18, 6);
-                $specific_price->from_quantity = 1;
-                $specific_price->reduction = 0;
-                $specific_price->reduction_type = 'amount';
-                $specific_price->reduction_tax = PS_TAX_EXC;
-                $specific_price->from = '0000-00-00 00:00:00';
-                $specific_price->to = '0000-00-00 00:00:00';
-                $specific_price->add();
-
-            }
-
-            $link_cotizacion =  $this->context->link->getAdminLink('AdminCarts').'&viewcart&id_cart='.$id_cart;
-
-            $r =  array('response' => 'ok', 'cart' => $this->context->cart, 'link_cotizacion' => $link_cotizacion);
-            return die(json_encode($r));
-        }else{
-            $r = array('response' => 'failed', 'msg' => '¡Error al Ralizadar la venta!');
-            return die(json_encode($r));
-        }
     }
 
     protected function check_url($url) {

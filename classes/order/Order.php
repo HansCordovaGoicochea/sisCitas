@@ -174,6 +174,10 @@ class OrderCore extends ObjectModel
     public $round_type;
 
     public $id_employee;
+    public $id_pos_caja;
+    public $nro_ticket;
+    public $ruta_ticket_normal;
+    public $motivo_anulacion;
 
     /**
      * @see ObjectModel::$definition
@@ -229,6 +233,10 @@ class OrderCore extends ObjectModel
             'date_upd' =>                    array('type' => self::TYPE_DATE, 'validate' => 'isDate'),
 
             'id_employee' =>                    array('type' => self::TYPE_INT),
+            'id_pos_caja' =>                    array('type' => self::TYPE_INT),
+            'nro_ticket' =>                    array('type' => self::TYPE_INT),
+            'ruta_ticket_normal' =>                    array('type' => self::TYPE_STRING),
+            'motivo_anulacion' =>                    array('type' => self::TYPE_STRING),
         ),
     );
 
@@ -1761,7 +1769,7 @@ class OrderCore extends ObjectModel
      * @param OrderInvoice $order_invoice
      * @return bool
      */
-    public function addOrderPayment($amount_paid, $payment_method = null, $payment_transaction_id = null, $currency = null, $date = null, $order_invoice = null)
+    public function addOrderPayment($amount_paid, $payment_method = null, $payment_transaction_id = null, $currency = null, $date = null, $order_invoice = null, $vuelto = 0, $tipo_pago, $ruta_ticket_pago = null, $id_employee_pago)
     {
         $order_payment = new OrderPayment();
         $order_payment->order_reference = $this->reference;
@@ -1773,6 +1781,10 @@ class OrderCore extends ObjectModel
         $order_payment->transaction_id = $payment_transaction_id;
         $order_payment->amount = $amount_paid;
         $order_payment->date_add = ($date ? $date : null);
+        $order_payment->vuelto = $vuelto;
+        $order_payment->tipo_pago = $tipo_pago;
+        $order_payment->ruta_ticket_pago = $ruta_ticket_pago;
+        $order_payment->id_employee_pago = $id_employee_pago;
 
         // Add time to the date if needed
         if ($order_payment->date_add != null && preg_match('/^[0-9]+-[0-9]+-[0-9]+$/', $order_payment->date_add)) {
@@ -2569,10 +2581,10 @@ class OrderCore extends ObjectModel
         $this->update();
 
         // save order_carrier prices, we'll save order right after this in update() method
-        $order_carrier = new OrderCarrier((int) $this->getIdOrderCarrier());
-        $order_carrier->shipping_cost_tax_excl = $this->total_shipping_tax_excl;
-        $order_carrier->shipping_cost_tax_incl = $this->total_shipping_tax_incl;
-        $order_carrier->update();
+//        $order_carrier = new OrderCarrier((int) $this->getIdOrderCarrier());
+//        $order_carrier->shipping_cost_tax_excl = $this->total_shipping_tax_excl;
+//        $order_carrier->shipping_cost_tax_incl = $this->total_shipping_tax_incl;
+//        $order_carrier->update();
 
         // remove fake cart
         $new_cart->delete();

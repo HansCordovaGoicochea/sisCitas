@@ -60,17 +60,32 @@
 			</div>
 		</div>
 	</div>
-	<div class="row">
+	<div class="panel row">
 		<div class="col-md-12 col-lg-12" id="hookDashboardZoneTwo">
-
-				<strong>dsfsdfsdfsdfsdfds</strong>
-				<strong class="pull-right">25</strong>
+			{foreach $reporte_colaboradores as $key => $item}
+				<strong>{$item.colaborador}</strong>
+				<strong class="pull-right">{$item.cantidad}</strong>
 				<div class="progress">
-					<div class="progress-bar progress-bar-info" role="progressbar" aria-valuemin="0" aria-valuemax="999999999999999999" style="width: 100px;">
+					<div class="progress-bar progress-bar-info" role="progressbar" aria-valuemin="0" aria-valuemax="999999999999999999" style="width: {$item.cantidad}px;">
 						<span></span>
 					</div>
 				</div>
+				{foreachelse}
+				<table class="table">
+					<tbody >
+					<tr >
+						<td class="list-empty">
+							<div class="list-empty-msg">
+								<i class="icon-warning-sign list-empty-icon"></i>
+								No hay servicios atendidos en estas fechas
+							</div>
+						</td>
+					</tr>
+					</tbody>
+				</table>
+				</table>
 
+			{/foreach}
 		</div>
 	</div>
 </div>

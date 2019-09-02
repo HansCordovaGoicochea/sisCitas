@@ -32,15 +32,16 @@
 
 {if ($product['product_quantity'] > $product['customized_product_quantity'])}
 <tr class="product-line-row">
-	<td>{if isset($product.image) && $product.image->id}{$product.image_tag}{/if}</td>
+	{*<td>{if isset($product.image) && $product.image->id}{$product.image_tag}{/if}</td>*}
 	<td>
 		<a href="{$link->getAdminLink('AdminProducts', true, ['id_product' => $product['product_id']|intval, 'updateproduct' => '1'])|escape:'html':'UTF-8'}">
 			<span class="productName">{$product['product_name']}</span><br />
 			{if $product.product_reference}{l s='Reference number:' d='Admin.Orderscustomers.Feature'} {$product.product_reference}<br />{/if}
 			{if $product.product_supplier_reference}{l s='Supplier reference:' d='Admin.Orderscustomers.Feature'} {$product.product_supplier_reference}{/if}
 		</a>
-        {if isset($product.pack_items) && $product.pack_items|@count > 0}<br>
-            <button name="package" class="btn btn-default" type="button" onclick="TogglePackage('{$product['id_order_detail']}'); return false;" value="{$product['id_order_detail']}">{l s='Package content' d='Admin.Orderscustomers.Feature'}</button>
+        {if isset($product.pack_items) && $product.pack_items|@count > 0}
+			{*<br>*}
+            <button name="package" class="btn btn-default hide" type="button" onclick="TogglePackage('{$product['id_order_detail']}'); return false;" value="{$product['id_order_detail']}">{l s='Package content' d='Admin.Orderscustomers.Feature'}</button>
         {/if}
 		<div class="row-editing-warning" style="display:none;">
 			<div class="alert alert-warning">
@@ -53,8 +54,8 @@
 		{if $can_edit}
 		<div class="product_price_edit" style="display:none;">
 			<input type="hidden" name="product_id_order_detail" class="edit_product_id_order_detail" value="{$product['id_order_detail']}" />
-			<div class="form-group">
-				<div class="fixed-width-xl">
+			<div class="form-group ">
+				<div class="fixed-width-xl" style="display: none">
 					<div class="input-group">
 						{if $currencySymbolBeforeAmount}<div class="input-group-addon">{$currency->sign} {l s='tax excl.' d='Admin.Global'}</div>{/if}
 						<input type="text" name="product_price_tax_excl" class="edit_product_price_tax_excl edit_product_price" value="{Tools::ps_round($product['unit_price_tax_excl'], 2)}"/>
@@ -64,9 +65,8 @@
 				<br/>
 				<div class="fixed-width-xl">
 					<div class="input-group">
-						{if $currencySymbolBeforeAmount}<div class="input-group-addon">{$currency->sign} {l s='tax incl.' d='Admin.Global'}</div>{/if}
+						<div class="input-group-addon">{$currency->sign} {l s='tax incl.' d='Admin.Global'}</div>
 						<input type="text" name="product_price_tax_incl" class="edit_product_price_tax_incl edit_product_price" value="{Tools::ps_round($product['unit_price_tax_incl'], 2)}"/>
-						{if !$currencySymbolBeforeAmount}<div class="input-group-addon">{$currency->sign} {l s='tax incl.' d='Admin.Global'}</div>{/if}
 					</div>
 				</div>
 			</div>
@@ -89,43 +89,43 @@
 			{/if}
 		</td>
 	{/if}
-	{if ($order->hasBeenPaid())}
-		<td class="productQuantity text-center">
-			{if !empty($product['amount_refund'])}
-				{l s='%quantity_refunded% (%amount_refunded% refund)' sprintf=['%quantity_refunded%' => $product['product_quantity_refunded'], '%amount_refunded%' => $product['amount_refund']] d='Admin.Orderscustomers.Feature'}
-			{/if}
-			<input type="hidden" value="{$product['quantity_refundable']}" class="partialRefundProductQuantity" />
-			<input type="hidden" value="{(Tools::ps_round($product_price, 2) * ($product['product_quantity'] - $product['customizationQuantityTotal']))}" class="partialRefundProductAmount" />
-			{if count($product['refund_history'])}
-				<span class="tooltip">
-					<span class="tooltip_label tooltip_button">+</span>
-					<span class="tooltip_content">
-					<span class="title">{l s='Refund history' d='Admin.Orderscustomers.Feature'}</span>
-					{foreach $product['refund_history'] as $refund}
-						{l s='%refund_date% - %refund_amount%' sprintf=['%refund_date%' => {dateFormat date=$refund.date_add}, '%refund_amount%' => {displayPrice price=$refund.amount_tax_incl}] d='Admin.Orderscustomers.Feature'}<br />
-					{/foreach}
-					</span>
-				</span>
-			{/if}
-		</td>
-	{/if}
-	{if $order->hasBeenDelivered() || $order->hasProductReturned()}
-		<td class="productQuantity text-center">
-			{$product['product_quantity_return']}
-			{if count($product['return_history'])}
-				<span class="tooltip">
-					<span class="tooltip_label tooltip_button">+</span>
-					<span class="tooltip_content">
-					<span class="title">{l s='Return history' d='Admin.Orderscustomers.Feature'}</span>
-					{foreach $product['return_history'] as $return}
-						{l s='%return_date% - %return_quantity% - %return_state%' sprintf=['%return_date%' =>{dateFormat date=$return.date_add}, '%return_quantity%' => $return.product_quantity, '3return_state%' => $return.state] d='Admin.Orderscustomers.Feature'}<br />
-					{/foreach}
-					</span>
-				</span>
-			{/if}
-		</td>
-	{/if}
-	{if $stock_management}<td class="productQuantity product_stock text-center">{$product['current_stock']}</td>{/if}
+	{*{if ($order->hasBeenPaid())}*}
+		{*<td class="productQuantity text-center">*}
+			{*{if !empty($product['amount_refund'])}*}
+				{*{l s='%quantity_refunded% (%amount_refunded% refund)' sprintf=['%quantity_refunded%' => $product['product_quantity_refunded'], '%amount_refunded%' => $product['amount_refund']] d='Admin.Orderscustomers.Feature'}*}
+			{*{/if}*}
+			{*<input type="hidden" value="{$product['quantity_refundable']}" class="partialRefundProductQuantity" />*}
+			{*<input type="hidden" value="{(Tools::ps_round($product_price, 2) * ($product['product_quantity'] - $product['customizationQuantityTotal']))}" class="partialRefundProductAmount" />*}
+			{*{if count($product['refund_history'])}*}
+				{*<span class="tooltip">*}
+					{*<span class="tooltip_label tooltip_button">+</span>*}
+					{*<span class="tooltip_content">*}
+					{*<span class="title">{l s='Refund history' d='Admin.Orderscustomers.Feature'}</span>*}
+					{*{foreach $product['refund_history'] as $refund}*}
+						{*{l s='%refund_date% - %refund_amount%' sprintf=['%refund_date%' => {dateFormat date=$refund.date_add}, '%refund_amount%' => {displayPrice price=$refund.amount_tax_incl}] d='Admin.Orderscustomers.Feature'}<br />*}
+					{*{/foreach}*}
+					{*</span>*}
+				{*</span>*}
+			{*{/if}*}
+		{*</td>*}
+	{*{/if}*}
+	{*{if $order->hasBeenDelivered() || $order->hasProductReturned()}*}
+		{*<td class="productQuantity text-center">*}
+			{*{$product['product_quantity_return']}*}
+			{*{if count($product['return_history'])}*}
+				{*<span class="tooltip">*}
+					{*<span class="tooltip_label tooltip_button">+</span>*}
+					{*<span class="tooltip_content">*}
+					{*<span class="title">{l s='Return history' d='Admin.Orderscustomers.Feature'}</span>*}
+					{*{foreach $product['return_history'] as $return}*}
+						{*{l s='%return_date% - %return_quantity% - %return_state%' sprintf=['%return_date%' =>{dateFormat date=$return.date_add}, '%return_quantity%' => $return.product_quantity, '3return_state%' => $return.state] d='Admin.Orderscustomers.Feature'}<br />*}
+					{*{/foreach}*}
+					{*</span>*}
+				{*</span>*}
+			{*{/if}*}
+		{*</td>*}
+	{*{/if}*}
+	{*{if $stock_management}<td class="productQuantity product_stock text-center">{$product['current_stock']}</td>{/if}*}
 	<td class="total_product">
 		{displayPrice price=(Tools::ps_round($product_price, 2) * ($product['product_quantity'] - $product['customizationQuantityTotal'])) currency=$currency->id}
 	</td>
@@ -238,42 +238,42 @@
 	</td>
 	{/if}
 </tr>
-   {if isset($product.pack_items) && $product.pack_items|@count > 0}
-    <tr>
-        <td colspan="8" style="width:100%">
-            <table style="width: 100%; display:none;" class="table" id="pack_items_{$product['id_order_detail']}">
-            <thead>
-                <th style="width:15%;">&nbsp;</th>
-                <th style="width:15%;">&nbsp;</th>
-                <th style="width:50%;"><span class="title_box ">{l s='Product' d='Admin.Global'}</span></th>
-                <th style="width:10%;"><span class="title_box ">{l s='Qty' d='Admin.Orderscustomers.Feature'}</th>
-                {if $stock_management}<th><span class="title_box ">{l s='Available quantity' d='Admin.Orderscustomers.Feature'}</span></th>{/if}
-                <th>&nbsp;</th>
-            </thead>
-            <tbody>
-            {foreach from=$product.pack_items item=pack_item}
-                {if !empty($pack_item.active)}
-                    <tr class="product-line-row" {if isset($pack_item.image) && $pack_item.image->id && isset($pack_item.image_size)} height="{$pack_item['image_size'][1] + 7}"{/if}>
-                        <td>{l s='Package item' d='Admin.Orderscustomers.Feature'}</td>
-                        <td>{if isset($pack_item.image) && $pack_item.image->id}{$pack_item.image_tag}{/if}</td>
-                        <td>
-                            <a href="{$link->getAdminLink('AdminProducts', true, ['id_product' => $pack_item.id_product, 'updateproduct' => '1'])|escape:'html':'UTF-8'}">
-                                <span class="productName">{$pack_item.name}</span><br />
-                                {if $pack_item.reference}{l s='Ref:' d='Admin.Orderscustomers.Feature'} {$pack_item.reference}<br />{/if}
-                                {if $pack_item.supplier_reference}{l s='Ref Supplier:' d='Admin.Orderscustomers.Feature'} {$pack_item.supplier_reference}{/if}
-                            </a>
-                        </td>
-                        <td class="productQuantity">
-                            <span class="product_quantity_show{if (int)$pack_item.pack_quantity > 1} red bold{/if}">{$pack_item.pack_quantity}</span>
-                        </td>
-                        {if $stock_management}<td class="productQuantity product_stock">{$pack_item.current_stock}</td>{/if}
-                        <td>&nbsp;</td>
-                    </tr>
-                {/if}
-            {/foreach}
-            </tbody>
-            </table>
-        </td>
-    </tr>
-    {/if}
+{*   {if isset($product.pack_items) && $product.pack_items|@count > 0}*}
+{*    <tr>*}
+{*        <td colspan="8" style="width:100%">*}
+{*            <table style="width: 100%; display:none;" class="table" id="pack_items_{$product['id_order_detail']}">*}
+{*            <thead>*}
+{*                <th style="width:15%;">&nbsp;</th>*}
+{*                <th style="width:15%;">&nbsp;</th>*}
+{*                <th style="width:50%;"><span class="title_box ">{l s='Product' d='Admin.Global'}</span></th>*}
+{*                <th style="width:10%;"><span class="title_box ">{l s='Qty' d='Admin.Orderscustomers.Feature'}</th>*}
+{*                {if $stock_management}<th><span class="title_box ">{l s='Available quantity' d='Admin.Orderscustomers.Feature'}</span></th>{/if}*}
+{*                <th>&nbsp;</th>*}
+{*            </thead>*}
+{*            <tbody>*}
+{*            {foreach from=$product.pack_items item=pack_item}*}
+{*                {if !empty($pack_item.active)}*}
+{*                    <tr class="product-line-row" {if isset($pack_item.image) && $pack_item.image->id && isset($pack_item.image_size)} height="{$pack_item['image_size'][1] + 7}"{/if}>*}
+{*                        <td>{l s='Package item' d='Admin.Orderscustomers.Feature'}</td>*}
+{*                        <td>{if isset($pack_item.image) && $pack_item.image->id}{$pack_item.image_tag}{/if}</td>*}
+{*                        <td>*}
+{*                            <a href="{$link->getAdminLink('AdminProducts', true, ['id_product' => $pack_item.id_product, 'updateproduct' => '1'])|escape:'html':'UTF-8'}">*}
+{*                                <span class="productName">{$pack_item.name}</span><br />*}
+{*                                {if $pack_item.reference}{l s='Ref:' d='Admin.Orderscustomers.Feature'} {$pack_item.reference}<br />{/if}*}
+{*                                {if $pack_item.supplier_reference}{l s='Ref Supplier:' d='Admin.Orderscustomers.Feature'} {$pack_item.supplier_reference}{/if}*}
+{*                            </a>*}
+{*                        </td>*}
+{*                        <td class="productQuantity">*}
+{*                            <span class="product_quantity_show{if (int)$pack_item.pack_quantity > 1} red bold{/if}">{$pack_item.pack_quantity}</span>*}
+{*                        </td>*}
+{*                        {if $stock_management}<td class="productQuantity product_stock">{$pack_item.current_stock}</td>{/if}*}
+{*                        <td>&nbsp;</td>*}
+{*                    </tr>*}
+{*                {/if}*}
+{*            {/foreach}*}
+{*            </tbody>*}
+{*            </table>*}
+{*        </td>*}
+{*    </tr>*}
+{*    {/if}*}
 {/if}

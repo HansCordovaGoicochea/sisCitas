@@ -301,6 +301,7 @@ class AdminDashboardControllerCore extends AdminController
         $moduleManagerBuilder = ModuleManagerBuilder::getInstance();
         $moduleManager = $moduleManagerBuilder->build();
 
+        $rc = $this->getServiciosByColaboradores($this->context->employee->stats_date_from, $this->context->employee->stats_date_to);
 
         $this->tpl_view_vars = array(
             'date_from' => $this->context->employee->stats_date_from,
@@ -316,9 +317,21 @@ class AdminDashboardControllerCore extends AdminController
             'PS_DASHBOARD_SIMULATION' => Configuration::get('PS_DASHBOARD_SIMULATION'),
             'datepickerFrom' => Tools::getValue('datepickerFrom', $this->context->employee->stats_date_from),
             'datepickerTo' => Tools::getValue('datepickerTo', $this->context->employee->stats_date_to),
-            'preselect_date_range' => Tools::getValue('preselectDateRange', $this->context->employee->preselect_date_range)
+            'preselect_date_range' => Tools::getValue('preselectDateRange', $this->context->employee->preselect_date_range),
+            'reporte_colaboradores' => $rc,
         );
         return parent::renderView();
+    }
+
+    protected function getServiciosByColaboradores($fi, $ff){
+        $sql = 'select SUM(od.product_quantity) as cantidad, CONCAT_WS(" ", e.firstname, e.lastname) as colaborador, od.id_colaborador
+from tm_order_detail od
+        LEFT JOIN tm_orders o on (od.id_order = o.id_order)
+LEFT JOIN tm_employee e ON od.id_colaborador = e.id_employee
+where o.valid = 1 AND od.es_servicio = 1 AND o.date_add between \''.$fi.' 00:00:00\' and  \''.$ff.' 23:59:59\'
+group by colaborador, id_colaborador';
+
+        return Db::getInstance()->executeS($sql);
     }
 
     public function postProcess()

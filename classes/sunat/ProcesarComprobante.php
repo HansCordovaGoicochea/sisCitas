@@ -50,7 +50,8 @@ class ProcesarComprobante
         $resp["hash_cdr"] = $resp_envio['hash_cdr'];
         $resp["cod_sunat"] = $resp_envio['cod_sunat'];
         $resp["msj_sunat"] = $resp_envio['msj_sunat'];
-
+        $resp["msg"][] = $resp_envio["msj_sunat"];
+        $resp["estado_envio_sunat"][] = $resp_envio["estado_envio_sunat"];
 
         return $resp;
 
@@ -96,6 +97,8 @@ class ProcesarComprobante
         $resp["hash_cdr"] = $resp_envio['hash_cdr'];
         $resp["cod_sunat"] = $resp_envio['cod_sunat'];
         $resp["msj_sunat"] = $resp_envio['msj_sunat'];
+        $resp["msg"][] = $resp_envio["msj_sunat"];
+        $resp["estado_envio_sunat"][] = $resp_envio["estado_envio_sunat"];
 
         return $resp;
 
@@ -125,6 +128,8 @@ class ProcesarComprobante
         $resp['hash_cdr'] = $resp_envio['hash_cdr'];
         $resp['cod_sunat'] = $resp_envio['cod_sunat'];
         $resp['msj_sunat'] = $resp_envio['msj_sunat'];
+        $resp["msg"][] = $resp_envio["msj_sunat"];
+
         return $resp;
     }
 
@@ -194,6 +199,8 @@ class ProcesarComprobante
             $doc = new DOMDocument();
             $doc->loadXML($response);
 
+            file_put_contents("doc_response.txt",  $archivo ." ". date('Y-m-d H:i:s'). " -> ".$response.PHP_EOL , FILE_APPEND | LOCK_EX);
+
             //===================VERIFICAMOS SI HA ENVIADO CORRECTAMENTE EL COMPROBANTE=====================
             if (isset($doc->getElementsByTagName('applicationResponse')->item(0)->nodeValue)) {
                 $xmlCDR = $doc->getElementsByTagName('applicationResponse')->item(0)->nodeValue;
@@ -217,11 +224,12 @@ class ProcesarComprobante
                 $resp['cod_sunat'] = $doc_cdr->getElementsByTagName('ResponseCode')->item(0)->nodeValue;
                 $resp['msj_sunat'] = $doc_cdr->getElementsByTagName('Description')->item(0)->nodeValue;
                 $resp['hash_cdr'] = $doc_cdr->getElementsByTagName('DigestValue')->item(0)->nodeValue;
-
+                $resp["estado_envio_sunat"] = 1;
                 //eliminamos los archivos extraidos
                 unlink($ruta_archivo . '.xml');
                 unlink($ruta_archivo_cdr . 'R-' . $archivo . '.xml');
             } else {
+                $resp["estado_envio_sunat"] = 0;
                 $resp['result'] = 'error';
                 $resul_code_sunat = intval(preg_replace('/[^0-9]+/', '', $doc->getElementsByTagName('faultcode')->item(0)->nodeValue), 10);
                 $resp['cod_sunat'] = $resul_code_sunat;
@@ -230,6 +238,7 @@ class ProcesarComprobante
                 $resp['hash_cdr'] = "";
             }
         } else {
+            $resp["estado_envio_sunat"] = 0;
             //echo "no responde web";
             $resp['result'] = 'error';
             $resp['cod_sunat'] = "99999";

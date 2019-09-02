@@ -4106,14 +4106,20 @@ class ProductCore extends ObjectModel
     * @param string $query Search query
     * @return array Matching products
     */
-    public static function searchByName($id_lang, $query, Context $context = null)
+    public static function searchByName($id_lang, $query, Context $context = null, $excludeIds = false)
     {
         if (!$context) {
             $context = Context::getContext();
         }
 
+        if ($excludeIds && $excludeIds != 'NaN') {
+            $excludeIds = implode(',', array_map('intval', explode(',', $excludeIds)));
+        } else {
+            $excludeIds = '';
+        }
+
         $sql = new DbQuery();
-        $sql->select('p.`id_product`, pl.`name`, p.`ean13`, p.`isbn`, p.`upc`, p.`active`, p.`reference`, m.`name` AS manufacturer_name, stock.`quantity`, product_shop.advanced_stock_management, p.`customizable`');
+        $sql->select('p.id_product as id, pl.name as text, p.`id_product`, pl.`name`, p.`ean13`, p.`isbn`, p.`upc`, p.`active`, p.`reference`, m.`name` AS manufacturer_name, stock.`quantity`, product_shop.advanced_stock_management, p.`customizable`, p.is_virtual');
         $sql->from('product', 'p');
         $sql->join(Shop::addSqlAssociation('product', 'p'));
         $sql->leftJoin('product_lang', 'pl', '
@@ -4122,23 +4128,25 @@ class ProductCore extends ObjectModel
         );
         $sql->leftJoin('manufacturer', 'm', 'm.`id_manufacturer` = p.`id_manufacturer`');
 
-        $where = 'pl.`name` LIKE \'%'.pSQL($query).'%\'
-		OR p.`ean13` LIKE \'%'.pSQL($query).'%\'
-		OR p.`isbn` LIKE \'%'.pSQL($query).'%\'
-		OR p.`upc` LIKE \'%'.pSQL($query).'%\'
-		OR p.`reference` LIKE \'%'.pSQL($query).'%\'
-		OR p.`supplier_reference` LIKE \'%'.pSQL($query).'%\'
-		OR EXISTS(SELECT * FROM `'._DB_PREFIX_.'product_supplier` sp WHERE sp.`id_product` = p.`id_product` AND `product_supplier_reference` LIKE \'%'.pSQL($query).'%\')';
-
         $sql->orderBy('pl.`name` ASC');
 
-        if (Combination::isFeatureActive()) {
-            $where .= ' OR EXISTS(SELECT * FROM `'._DB_PREFIX_.'product_attribute` `pa` WHERE pa.`id_product` = p.`id_product` AND (pa.`reference` LIKE \'%'.pSQL($query).'%\'
-			OR pa.`supplier_reference` LIKE \'%'.pSQL($query).'%\'
-			OR pa.`ean13` LIKE \'%'.pSQL($query).'%\'
-			OR pa.`isbn` LIKE \'%'.pSQL($query).'%\'
-			OR pa.`upc` LIKE \'%'.pSQL($query).'%\'))';
+        $where = '1 ';
+
+        $search_items = explode(' ', $query);
+        $research_fields = array('pl.`name`', 'p.`reference`');
+
+        $items = array();
+        foreach ($research_fields as $field) {
+            foreach ($search_items as $item) {
+                $items[$item][] = $field.' LIKE \'%'.pSQL($item).'%\' ';
+            }
         }
+        $where .= ' AND product_shop.active = 1 ';
+        foreach ($items as $likes) {
+            $where .= ' AND ('.implode(' OR ', $likes).') ';
+        }
+        if (! empty($excludeIds))
+            $sql->where( ' p.id_product NOT IN (' . $excludeIds . ') ');
         $sql->where($where);
         $sql->join(Product::sqlStock('p', 0));
 
@@ -4150,8 +4158,10 @@ class ProductCore extends ObjectModel
 
         $results_array = array();
         foreach ($result as $row) {
+
             $row['price_tax_incl'] = Product::getPriceStatic($row['id_product'], true, null, 2);
             $row['price_tax_excl'] = Product::getPriceStatic($row['id_product'], false, null, 2);
+            $row['formatted_price'] = Tools::displayPrice(Tools::convertPrice($row['price_tax_incl'], Context::getContext()->currency), Context::getContext()->currency);
             $results_array[] = $row;
         }
         return $results_array;

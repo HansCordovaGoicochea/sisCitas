@@ -279,6 +279,7 @@ abstract class PaymentModuleCore extends Module
                     }
                 }
             }
+
             // Make sure CartRule caches are empty
             CartRule::cleanCache();
             $cart_rules = $this->context->cart->getCartRules();
@@ -491,61 +492,6 @@ abstract class PaymentModuleCore extends Module
                     $virtual_product = true;
 
                     $product_var_tpl_list = array();
-                    foreach ($order->product_list as $product) {
-                        $price = Product::getPriceStatic((int)$product['id_product'], false, ($product['id_product_attribute'] ? (int)$product['id_product_attribute'] : null), 6, null, false, true, $product['cart_quantity'], false, (int)$order->id_customer, (int)$order->id_cart, (int)$order->{Configuration::get('PS_TAX_ADDRESS_TYPE')}, $specific_price, true, true, null, true, $product['id_customization']);
-                        $price_wt = Product::getPriceStatic((int)$product['id_product'], true, ($product['id_product_attribute'] ? (int)$product['id_product_attribute'] : null), 2, null, false, true, $product['cart_quantity'], false, (int)$order->id_customer, (int)$order->id_cart, (int)$order->{Configuration::get('PS_TAX_ADDRESS_TYPE')}, $specific_price, true, true, null, true, $product['id_customization']);
-
-                        $product_price = Product::getTaxCalculationMethod() == PS_TAX_EXC ? Tools::ps_round($price, 2) : $price_wt;
-
-                        $product_var_tpl = array(
-                            'id_product' => $product['id_product'],
-                            'reference' => $product['reference'],
-                            'name' => $product['name'].(isset($product['attributes']) ? ' - '.$product['attributes'] : ''),
-                            'price' => Tools::displayPrice($product_price * $product['quantity'], $this->context->currency, false),
-                            'quantity' => $product['quantity'],
-                            'customization' => array()
-                        );
-
-                        if (isset($product['price']) && $product['price']) {
-                            $product_var_tpl['unit_price'] = Tools::displayPrice($product_price, $this->context->currency, false);
-                            $product_var_tpl['unit_price_full'] = Tools::displayPrice($product_price, $this->context->currency, false)
-                                .' '.$product['unity'];
-                        } else {
-                            $product_var_tpl['unit_price'] = $product_var_tpl['unit_price_full'] = '';
-                        }
-
-                        $customized_datas = Product::getAllCustomizedDatas((int)$order->id_cart, null, true, null, (int)$product['id_customization']);
-                        if (isset($customized_datas[$product['id_product']][$product['id_product_attribute']])) {
-                            $product_var_tpl['customization'] = array();
-                            foreach ($customized_datas[$product['id_product']][$product['id_product_attribute']][$order->id_address_delivery] as $customization) {
-                                $customization_text = '';
-                                if (isset($customization['datas'][Product::CUSTOMIZE_TEXTFIELD])) {
-                                    foreach ($customization['datas'][Product::CUSTOMIZE_TEXTFIELD] as $text) {
-                                        $customization_text .= '<strong>'.$text['name'].'</strong>: '.$text['value'].'<br />';
-                                    }
-                                }
-
-                                if (isset($customization['datas'][Product::CUSTOMIZE_FILE])) {
-                                    $customization_text .= $this->trans('%d image(s)', array(count($customization['datas'][Product::CUSTOMIZE_FILE])), 'Admin.Payment.Notification').'<br />';
-                                }
-
-                                $customization_quantity = (int)$customization['quantity'];
-
-                                $product_var_tpl['customization'][] = array(
-                                    'customization_text' => $customization_text,
-                                    'customization_quantity' => $customization_quantity,
-                                    'quantity' => Tools::displayPrice($customization_quantity * $product_price, $this->context->currency, false)
-                                );
-                            }
-                        }
-
-                        $product_var_tpl_list[] = $product_var_tpl;
-                        // Check if is not a virutal product for the displaying of shipping
-                        if (!$product['is_virtual']) {
-                            $virtual_product &= false;
-                        }
-                    } // end foreach ($products)
-
                     $product_list_txt = '';
                     $product_list_html = '';
                     if (count($product_var_tpl_list) > 0) {
@@ -642,10 +588,6 @@ abstract class PaymentModuleCore extends Module
                             $cart_rule_to_update->update();
                         }
 
-                        $cart_rules_list[] = array(
-                            'voucher_name' => $cart_rule['obj']->name,
-                            'voucher_reduction' => ($values['tax_incl'] != 0.00 ? '-' : '').Tools::displayPrice($values['tax_incl'], $this->context->currency, false)
-                        );
                     }
 
                     $cart_rules_list_txt = '';
@@ -768,7 +710,8 @@ abstract class PaymentModuleCore extends Module
             }
 
             return true;
-        } else {
+        }
+        else {
             $error = $this->trans('Cart cannot be loaded or an order has already been placed using this cart', array(), 'Admin.Payment.Notification');
             PrestaShopLogger::addLog($error, 4, '0000001', 'Cart', intval($this->context->cart->id));
             die($error);

@@ -1342,6 +1342,7 @@ class CartCore extends ObjectModel
             /* Check if the product is already in the cart */
             $cartProductQuantity = $this->getProductQuantity($id_product, $id_product_attribute, (int)$id_customization, (int)$id_address_delivery);
 
+
             /* Update quantity if product already exist */
             if (!empty($cartProductQuantity['quantity'])) {
                 $productQuantity = Product::getQuantity($id_product, $id_product_attribute, null, $this);
@@ -1374,7 +1375,8 @@ class CartCore extends ObjectModel
                     AND `id_cart` = '.(int)$this->id.(Configuration::get('PS_ALLOW_MULTISHIPPING') && $this->isMultiAddressDelivery() ? ' AND `id_address_delivery` = '.(int)$id_address_delivery : '').'
                     LIMIT 1'
                 );
-            } elseif ($operator == 'up') {
+            }
+            elseif ($operator == 'up') {
                 /* Add product to the cart */
 
                 $sql = 'SELECT stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity

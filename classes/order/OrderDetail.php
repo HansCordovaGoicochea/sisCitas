@@ -164,6 +164,11 @@ class OrderDetailCore extends ObjectModel
     /** @var float */
     public $original_wholesale_price;
 
+
+    public $id_colaborador;
+    public $colaborador_name;
+    public $es_servicio;
+
     /**
      * @see ObjectModel::$definition
      */
@@ -215,7 +220,11 @@ class OrderDetailCore extends ObjectModel
             'total_shipping_price_tax_incl' => array('type' => self::TYPE_FLOAT, 'validate' => 'isPrice'),
             'purchase_supplier_price' =>    array('type' => self::TYPE_FLOAT, 'validate' => 'isPrice'),
             'original_product_price' =>    array('type' => self::TYPE_FLOAT, 'validate' => 'isPrice'),
-            'original_wholesale_price' =>    array('type' => self::TYPE_FLOAT, 'validate' => 'isPrice')
+            'original_wholesale_price' =>    array('type' => self::TYPE_FLOAT, 'validate' => 'isPrice'),
+
+            'id_colaborador' =>                array('type' => self::TYPE_INT, 'validate' => 'isInt'),
+            'colaborador_name' =>                array('type' => self::TYPE_STRING),
+            'es_servicio' =>                array('type' => self::TYPE_BOOL),
         ),
     );
 

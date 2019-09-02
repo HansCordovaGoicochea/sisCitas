@@ -297,5 +297,132 @@ class AdminReservarCitaControllerCore extends AdminController
         die(json_encode($to_return));
 
     }
+
+    public function ajaxProcessRealizarVenta(){
+
+        if(Tools::getValue('id_reservar_cita')){
+            $objCita = new ReservarCita((int)Tools::getValue('id_reservar_cita'));
+            $cart = new Cart();
+            $cart->id_customer = $objCita->id_customer; // verificar esto del cliente
+            $cart->id_address_delivery = (int)  (Address::getFirstCustomerAddressId($cart->id_customer));
+            $cart->id_address_invoice = $cart->id_address_delivery;
+            $cart->id_lang = (int)($this->context->language->id);
+            $cart->id_currency = (int)($this->context->currency->id);
+            $cart->id_carrier = 1;
+            $cart->recyclable = 0;
+            $cart->gift = 0;
+            $cart->add();
+//            $this->context->cookie->id_cart = (int)($cart->id);
+//            $cart->update();
+
+            $id_cart = $cart->id;
+            Db::getInstance()->execute('DELETE FROM `'._DB_PREFIX_.'customization` WHERE `id_cart` = '.(int)$id_cart);
+            Db::getInstance()->execute('DELETE FROM `'._DB_PREFIX_.'cart_cart_rule` WHERE `id_cart` = '.(int)$id_cart);
+            Db::getInstance()->execute('DELETE FROM `'._DB_PREFIX_.'cart_product` WHERE `id_cart` = '.(int)$id_cart);
+
+            $prod = new Product((int)$objCita->product_id, true, (int)($this->context->language->id));
+            $prod_update = $cart->updateQty(1, (int)$objCita->product_id,null, false, 'up', 0 , new Shop((int)$cart->id_shop));
+
+            $summary = $cart->getSummaryDetails($this->context->language->id,true);
+            $total = (string) $summary['total_price'];
+            $cashondelivery = Module::getInstanceByName("ps_checkpayment");
+
+
+            if($cashondelivery->validateOrder(
+                (int)$cart->id,
+                Configuration::get('PS_OS_CHEQUE'),
+                $total,
+                "Venta desde Citas",
+                null,
+                array(),
+                $cart->id_currency
+            )) {
+                PrestaShopLogger::addLog($this->trans('Venta creada desde Reserva de cita: %ip%', array('%ip%' => Tools::getRemoteAddr()), 'Admin.Advparameters.Feature'), 1, null, '', 0, true, (int)$this->context->employee->id);
+                $result['orderid'] = (string)$cashondelivery->currentOrder;
+
+                $last_caja = PosArqueoscaja::getCajaLast($this->context->shop->id);
+                $order = new Order((int)$result['orderid']);
+                $order->id_pos_caja = $last_caja['id_pos_caja'];
+                $order->id_employee = $this->context->employee->id;
+                $order->update();
+
+                $ordeD = OrderDetailCore::getList($order->id);
+                foreach ($ordeD as $k => $val) {
+                    foreach(Tools::getValue('productos') as $key=>$product) {
+                        $oderDetalle = new OrderDetail((int)$val['id_order_detail']);
+                        if ($oderDetalle->product_id === $product['id']){
+//                            $oderDetalle->product_name = $product['title'];
+                            $oderDetalle->id_colaborador = $objCita->id_colaborador;
+                            $objCola = new Employee((int)$objCita->id_colaborador);
+                            $oderDetalle->colaborador_name = $objCola->firstname.' '.$objCola->lastname;
+                            $oderDetalle->es_servicio = 1;
+                            $oderDetalle->update();
+                        }
+                    }
+                }
+
+                $objCita->estado_actual = 3; //facturado
+                $objCita->id_order = $order->id;
+                $objCita->update();
+
+                $this->crearTicketVenta($order);
+                $this->ajaxDie(json_encode(array('response' => 'ok', 'order' => $order, 'cart' => $this->context->cart)));
+            }else{
+                $this->ajaxDie(json_encode(array('response' => 'failed', 'msg' => '¡Error al Ralizadar la venta!')));
+            }
+
+        }else{
+            $this->ajaxDie(json_encode(array('response' => 'failed', 'msg' => '¡Error al Ralizadar la venta!')));
+        }
+    }
+    protected function crearTicketVenta($order){
+        $nombre_virtual_uri = $this->context->shop->virtual_uri;
+
+        $correlativo_comanda = NumeracionDocumento::getNumTipoDoc('Ticket');
+        if (empty($correlativo_comanda)){
+            $objNC = new NumeracionDocumento();
+            $objNC->serie = '';
+            $objNC->correlativo = 0;
+            $objNC->nombre = 'Ticket';
+            $objNC->id_shop = Context::getContext()->shop->id;
+            $objNC->add();
+            $correlativo_comanda = NumeracionDocumento::getNumTipoDoc('Ticket');
+        }
+        else{
+            $correlativo_comanda = NumeracionDocumento::getNumTipoDoc('Ticket');
+        }
+
+        if (!$order->nro_ticket){
+            $co = new NumeracionDocumento((int)$correlativo_comanda['id_numeracion_documentos']);
+            $co->correlativo = ($correlativo_comanda['correlativo']+1);
+            $co->update();
+            $numero_de_ticket = $correlativo_comanda['correlativo'];
+            $monbre_archivo='Ticket_numero_'.($numero_de_ticket+1).'.pdf';
+            $order->nro_ticket = ($numero_de_ticket+1);
+
+        }
+        else{
+            $numero_de_ticket = $order->nro_ticket;
+            $monbre_archivo='Ticket_numero_'.($numero_de_ticket).'.pdf';
+        }
+
+        $ruta = 'archivos_sunat/'.$nombre_virtual_uri;
+        $ruta_documentos = 'documentos_pdf/'.$nombre_virtual_uri;
+        if (!file_exists($ruta)) {
+            mkdir($ruta, 0777, true);
+        }
+        if (!file_exists($ruta_documentos)) {
+            mkdir($ruta_documentos, 0777, true);
+        }
+
+        $order->ruta_ticket_normal = $ruta_documentos.'/'.$monbre_archivo;
+        $order->update();
+
+        $pdf_ticket = new PDF($order, ucfirst('FacturaVentaRapida'), Context::getContext()->smarty,'P');
+        $pdf_ticket->Guardar($monbre_archivo, "", 'ticket', "");
+
+        $this->confirmations[] = $order;
+
+    }
 }
 

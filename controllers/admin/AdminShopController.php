@@ -372,7 +372,19 @@ class AdminShopControllerCore extends AdminController
                         ), 'Admin.Shopparameters.Help')),
                     'name' => 'name',
                     'required' => true,
-                )
+                ),
+                array(
+                    'type' => 'text',
+                    'label' => $this->l('Razón Social'),
+                    'name' => 'razon_social',
+
+                ),
+                array(
+                    'type' => 'text',
+                    'label' => $this->l('RUC'),
+                    'name' => 'ruc',
+                    'size' => 15,
+                ),
             )
         );
 

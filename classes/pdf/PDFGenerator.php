@@ -98,7 +98,13 @@ class PDFGeneratorCore extends TCPDF
      */
     public function createHeader($header)
     {
-        $this->header = $header;
+        //        d(Tools::getValue('documento'));
+        if(Tools::getValue('documento') === 'ticket') {
+        }elseif(Tools::getValue('acumulativoreport') > 0) {
+        }elseif(Tools::getValue('ventascierrecaja') > 0) {
+        }else{
+            $this->header = $header;
+        }
     }
 
     /**
@@ -109,6 +115,7 @@ class PDFGeneratorCore extends TCPDF
      */
     public function createFooter($footer)
     {
+
         $this->footer = $footer;
     }
 
@@ -206,19 +213,64 @@ class PDFGeneratorCore extends TCPDF
 
     /**
      * Write a PDF page
+     * @param null $comp
      */
-    public function writePage()
+    public function writePage($comp = null)
     {
-        $this->SetHeaderMargin(5);
-        $this->SetFooterMargin(21);
-        $this->setMargins(10, 40, 10);
-        $this->AddPage();
+
+
+        if(Tools::getValue('documento') === 'ticket'){
+            $margen = 1;
+            $this->SetHeaderMargin(1);
+            $this->SetFooterMargin(0);
+            $this->setMargins(1, $margen, 1);
+            $this->SetAutoPageBreak(TRUE, 0);
+            $this->AddPage('P',array('80','800'));
+        }
+        elseif(Tools::getValue('ventascierrecaja') > 0){
+            $margen = 1;
+            $this->SetHeaderMargin(1);
+            $this->SetFooterMargin(0);
+            $this->setMargins(1, $margen, 1);
+            $this->SetAutoPageBreak(TRUE, 0);
+            $this->AddPage('P',array('80','800'));
+        }
+        elseif(Tools::getValue('acumulativoreport') > 0){
+            $margen = 1;
+            $this->SetHeaderMargin(1);
+            $this->SetFooterMargin(0);
+            $this->setMargins(1, $margen, 1);
+            $this->SetAutoPageBreak(TRUE, 0);
+            $this->AddPage('P',array('80','800'));
+        }
+        elseif($comp === 'comp'){
+            $margen = 1;
+            $this->SetHeaderMargin(1);
+            $this->SetFooterMargin(0);
+            $this->setMargins(1, $margen, 1);
+            $this->SetAutoPageBreak(TRUE, 0);
+            $this->AddPage('P',array('80','800'));
+        }
+
+        else{
+            $margen = 5;
+            $this->SetHeaderMargin(5);
+            $this->SetFooterMargin(21);
+            $this->setMargins(10, $margen, 10);
+            $this->AddPage();
+        }
+
         $this->writeHTML($this->content, true, false, true, false, '');
+//
+//        if(Tools::getValue('id_order_fisico')){
+//            $this->IncludeJS("print();");
+//        }
+
     }
 
     /**
      * Override of TCPDF::getRandomSeed() - getmypid() is blocked on several hosting
-    */
+     */
     protected function getRandomSeed($seed = '')
     {
         $seed .= microtime();

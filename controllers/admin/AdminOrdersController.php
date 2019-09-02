@@ -1,30 +1,17 @@
 <?php
-/**
- * 2007-2018 PrestaShop
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * https://opensource.org/licenses/OSL-3.0
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@prestashop.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
- * versions in the future. If you wish to customize PrestaShop for your
- * needs please refer to http://www.prestashop.com for more information.
- *
- * @author    PrestaShop SA <contact@prestashop.com>
- * @copyright 2007-2018 PrestaShop SA
- * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
- * International Registered Trademark & Property of PrestaShop SA
- */
 
+use PrestaShop\PrestaShop\Core\Stock\StockManager as StockManagerAche;
 use PrestaShop\PrestaShop\Adapter\StockManager;
+
+
+$vendorDir = dirname(dirname(__FILE__));
+$baseDir = dirname($vendorDir);
+//d($baseDir);
+require $baseDir.'/vendor/xmlseclibs/xmlseclibs.php';
+require $baseDir.'/vendor/xmlseclibs/CustomHeaders.php';
+use RobRichards\XMLSecLibs\XMLSecurityDSig;
+use RobRichards\XMLSecLibs\XMLSecurityKey;
+use RobRichards\XMLSecLibs\XMLSecEnc;
 
 /**
  * @property Order $object
@@ -34,6 +21,10 @@ class AdminOrdersControllerCore extends AdminController
     public $toolbar_title;
 
     protected $statuses_array = array();
+    protected $service_consulta_sunat = "https://www.sunat.gob.pe/ol-it-wsconscpegem/billConsultService?wsdl";
+    protected $existeCajasAbiertas;
+    protected $existeCaja;
+    protected $nombre_access;
 
     public function __construct()
     {
@@ -45,65 +36,118 @@ class AdminOrdersControllerCore extends AdminController
         $this->explicitSelect = true;
         $this->allow_export = true;
         $this->deleted = false;
-
+        $this->context = Context::getContext();
+        $this->addRowAction('pagar_order');
+//        $this->addRowAction('borrar_devolver_caja');
+        $this->addRowAction('anular_venta');
+//        $this->addRowAction('comunicacion_baja');
+//        $this->addRowAction('consultar_cdr');
         parent::__construct();
 
+        $this->existeCajasAbiertas = PosArqueoscaja::existenCajasAbiertas();
+//        if($this->context->cookie->admin_caja)
+//            $this->existeCaja = PosArqueoscaja::existeCaja($this->context->cookie->admin_caja);
+        $this->nombre_access = Profile::getProfile(Context::getContext()->employee->id_profile);
+
+
+
+        if (Context::getContext()->shop->getContext() != Shop::CONTEXT_SHOP && Shop::isFeatureActive()) {
+            return $this->errors[] = $this->trans('Tiene que seleccionar una tienda antes.', array(), 'Admin.Orderscustomers.Notification');
+        }
+
         $this->_select = '
+        (a.total_paid_tax_incl - a.total_paid_tax_excl) as igv_order2,
+        a.total_paid_tax_incl as total_paid_tax_incl,
+		a.total_paid_tax_excl as total_paid_tax_excl,
+		a.id_customer,
+
 		a.id_currency,
+		
 		a.id_order AS id_pdf,
-		c.`firstname` AS `customer`,
+		a.id_order as `id_xml`,
+        a.id_order as `id_pdf2`,
+        a.id_order as `id_pdf2Bol`,
+        a.id_order as `id_cdrxml`,
+        
+        c.`firstname` AS `customer`,
+		c.num_document AS `doc_cliente`,
 		osl.`name` AS `osname`,
 		os.`color`,
-		IF((SELECT so.id_order FROM `'._DB_PREFIX_.'orders` so WHERE so.id_customer = a.id_customer AND so.id_order < a.id_order LIMIT 1) > 0, 0, 1) as new,
 		country_lang.name as cname,
-		IF(a.valid, 1, 0) badge_success';
+		IF(a.valid, 1, 0) badge_success,
+		IF (poc.tipo_documento_electronico != "", poc.tipo_documento_electronico, "Ticket") comprobante,
+		IF (poc.numero_comprobante  != "", poc.numero_comprobante, a.nro_ticket) nro_comprobante,
+        (a.total_paid_tax_incl - a.total_paid_real) as deuda,
+        a.total_paid_real as `pagado`,
+        IF (a.`id_employee`, CONCAT_WS(" ",emp.firstname, emp.lastname), "Venta desde la Web") as empleado,
+        motivo_anulacion
+		';
 
         $this->_join = '
+
 		LEFT JOIN `'._DB_PREFIX_.'customer` c ON (c.`id_customer` = a.`id_customer`)
-		INNER JOIN `'._DB_PREFIX_.'address` address ON address.id_address = a.id_address_delivery
-		INNER JOIN `'._DB_PREFIX_.'country` country ON address.id_country = country.id_country
-		INNER JOIN `'._DB_PREFIX_.'country_lang` country_lang ON (country.`id_country` = country_lang.`id_country` AND country_lang.`id_lang` = '.(int)$this->context->language->id.')
+		LEFT JOIN `'._DB_PREFIX_.'address` address ON address.id_address = a.id_address_delivery
+		LEFT JOIN `'._DB_PREFIX_.'country` country ON address.id_country = country.id_country
+		LEFT JOIN `'._DB_PREFIX_.'country_lang` country_lang ON (country.`id_country` = country_lang.`id_country` AND country_lang.`id_lang` = '.(int)$this->context->language->id.')
 		LEFT JOIN `'._DB_PREFIX_.'order_state` os ON (os.`id_order_state` = a.`current_state`)
-		LEFT JOIN `'._DB_PREFIX_.'order_state_lang` osl ON (os.`id_order_state` = osl.`id_order_state` AND osl.`id_lang` = '.(int)$this->context->language->id.')';
+		LEFT JOIN `'._DB_PREFIX_.'order_state_lang` osl ON (os.`id_order_state` = osl.`id_order_state` AND osl.`id_lang` = '.(int)$this->context->language->id.')
+		LEFT JOIN `'._DB_PREFIX_.'pos_ordercomprobantes` poc ON (poc.`id_order` = a.`id_order`)
+        LEFT JOIN `'._DB_PREFIX_.'employee` emp ON (emp.`id_employee` = a.`id_employee`)';
         $this->_orderBy = 'id_order';
         $this->_orderWay = 'DESC';
         $this->_use_found_rows = true;
 
         $statuses = OrderState::getOrderStates((int)$this->context->language->id);
         foreach ($statuses as $status) {
-            $this->statuses_array[$status['id_order_state']] = $status['name'];
+            if ($status['id_order_state'] == 1 || $status['id_order_state'] == 2 || $status['id_order_state'] == 6)
+                $this->statuses_array[$status['id_order_state']] = $status['name'];
         }
 
         $this->fields_list = array(
             'id_order' => array(
-                'title' => $this->trans('ID', array(), 'Admin.Global'),
-                'align' => 'text-center',
-                'class' => 'fixed-width-xs'
+                'class' => 'hide',
+                'align' => 'hide',
             ),
-            'reference' => array(
-                'title' => $this->trans('Reference', array(), 'Admin.Global')
+            'date_add' => array(
+                'title' => $this->trans('Fecha de Creación', array(), 'Admin.Global'),
+                'align' => 'text-right',
+                'type' => 'datetime',
+                'filter_key' => 'a!date_add'
             ),
-            'new' => array(
-                'title' => $this->trans('New client', array(), 'Admin.Orderscustomers.Feature'),
-                'align' => 'text-center',
-                'type' => 'bool',
-                'tmpTableFilter' => true,
-                'orderby' => false,
+//            'comprobante' => array(
+//                'title' => $this->trans('Comprobante', array(), 'Admin.Global'),
+//                'havingFilter' => true
+//            ),
+            'nro_comprobante' => array(
+                'title' => $this->trans('N° Comp.', array(), 'Admin.Global'),
+                'havingFilter' => true
             ),
             'customer' => array(
                 'title' => $this->trans('Customer', array(), 'Admin.Global'),
                 'havingFilter' => true,
             ),
+//            'doc_cliente' => array(
+//                'title' => $this->trans('DNI/RUC', array(), 'Admin.Global'),
+//                'havingFilter' => true,
+//            ),
+//            'empleado' => array(
+//                'title' => $this->trans('Empleado', array(), 'Admin.Global'),
+//                'havingFilter' => true,
+//            ),
         );
 
-        if (Configuration::get('PS_B2B_ENABLE')) {
-            $this->fields_list = array_merge($this->fields_list, array(
-                'company' => array(
-                    'title' => $this->trans('Company', array(), 'Admin.Global'),
-                    'filter_key' => 'c!company'
-                ),
-            ));
-        }
+        $this->fields_list = array_merge($this->fields_list, array(
+            'osname' => array(
+                'title' => $this->trans('Status', array(), 'Admin.Global'),
+                'type' => 'select',
+                'color' => 'color',
+                'list' => $this->statuses_array,
+                'filter_key' => 'os!id_order_state',
+                'filter_type' => 'int',
+                'order_key' => 'osname',
+                'tooltip' => 'motivo_anulacion'
+            ),
+        ));
 
         $this->fields_list = array_merge($this->fields_list, array(
             'total_paid_tax_incl' => array(
@@ -112,66 +156,59 @@ class AdminOrdersControllerCore extends AdminController
                 'type' => 'price',
                 'currency' => true,
                 'callback' => 'setOrderCurrency',
-                'badge_success' => true
+                'badge_success' => true,
+                'filter_key' => 'a!total_paid_tax_incl'
             ),
-            'payment' => array(
-                'title' => $this->trans('Payment', array(), 'Admin.Global')
+            'deuda' => array(
+                'title' => $this->trans('Debe', array(), 'Admin.Global'),
+                'havingFilter' => true,
+                'type' => 'price',
+                'search' => false,
             ),
-            'osname' => array(
-                'title' => $this->trans('Status', array(), 'Admin.Global'),
-                'type' => 'select',
-                'color' => 'color',
-                'list' => $this->statuses_array,
-                'filter_key' => 'os!id_order_state',
-                'filter_type' => 'int',
-                'order_key' => 'osname'
+            'pagado' => array(
+                'title' => $this->trans('Pagó', array(), 'Admin.Global'),
+                'havingFilter' => true,
+                'search' => false,
+                'type' => 'price',
             ),
-            'date_add' => array(
-                'title' => $this->trans('Date', array(), 'Admin.Global'),
-                'align' => 'text-right',
-                'type' => 'datetime',
-                'filter_key' => 'a!date_add'
-            ),
-            'id_pdf' => array(
-                'title' => $this->trans('PDF', array(), 'Admin.Global'),
+
+//            'date_upd' => array(
+//                'title' => $this->trans('Fecha de Modificación', array(), 'Admin.Global'),
+//                'align' => 'text-right',
+//                'type' => 'datetime',
+//                'filter_key' => 'a!date_upd'
+//            ),
+
+        ));
+
+        $this->fields_list = array_merge($this->fields_list, array(
+            'id_pdf2' => array(
+                'title' => $this->trans('PDF Fac.', array(), 'Admin.Global'),
                 'align' => 'text-center',
-                'callback' => 'printPDFIcons',
+                'callback' => 'printPDF2Icons',
+                'orderby' => false,
+                'search' => false,
+                'remove_onclick' => true
+            ),
+            'id_xml' => array(
+                'title' => $this->trans('XML', array(), 'Admin.Global'),
+                'align' => 'text-center',
+                'callback' => 'printXMLIcons',
+                'orderby' => false,
+                'search' => false,
+                'remove_onclick' => true
+            ),
+            'id_cdrxml' => array(
+                'title' => $this->trans('CDR', array(), 'Admin.Global'),
+                'align' => 'text-center',
+                'callback' => 'printCDRIcons',
                 'orderby' => false,
                 'search' => false,
                 'remove_onclick' => true
             )
         ));
 
-        if (Country::isCurrentlyUsed('country', true)) {
-            $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->ExecuteS('
-			SELECT DISTINCT c.id_country, cl.`name`
-			FROM `'._DB_PREFIX_.'orders` o
-			'.Shop::addSqlAssociation('orders', 'o').'
-			INNER JOIN `'._DB_PREFIX_.'address` a ON a.id_address = o.id_address_delivery
-			INNER JOIN `'._DB_PREFIX_.'country` c ON a.id_country = c.id_country
-			INNER JOIN `'._DB_PREFIX_.'country_lang` cl ON (c.`id_country` = cl.`id_country` AND cl.`id_lang` = '.(int)$this->context->language->id.')
-			ORDER BY cl.name ASC');
-
-            $country_array = array();
-            foreach ($result as $row) {
-                $country_array[$row['id_country']] = $row['name'];
-            }
-
-            $part1 = array_slice($this->fields_list, 0, 3);
-            $part2 = array_slice($this->fields_list, 3);
-            $part1['cname'] = array(
-                'title' => $this->trans('Delivery', array(), 'Admin.Global'),
-                'type' => 'select',
-                'list' => $country_array,
-                'filter_key' => 'country!id_country',
-                'filter_type' => 'int',
-                'order_key' => 'cname'
-            );
-            $this->fields_list = array_merge($part1, $part2);
-        }
-
-        $this->shopLinkType = 'shop';
-        $this->shopShareDatas = Shop::SHARE_ORDER;
+        $this->_where = Shop::addSqlRestriction(false, 'a');
 
         if (Tools::isSubmit('id_order')) {
             // Save context (in order to apply cart rule)
@@ -183,6 +220,707 @@ class AdminOrdersControllerCore extends AdminController
         $this->bulk_actions = array(
             'updateOrderStatus' => array('text' => $this->trans('Change Order Status', array(), 'Admin.Orderscustomers.Feature'), 'icon' => 'icon-refresh')
         );
+    }
+
+    public function getList($id_lang, $orderBy = null, $orderWay = null, $start = 0, $limit = null, $id_lang_shop = null)
+    {
+        parent::getList($id_lang, $orderBy, $orderWay, $start, $limit, $id_lang_shop);
+
+        if ($this->_list) {
+            foreach ($this->_list as &$row) {
+                if ((int)$row['es_credito'] == 1){
+                    $row['color'] =  "#ff8d94"; // rojo
+                }
+                if ((int)$row['es_transferencia_interna'] == 1){
+                    $row['osname'] =  "Transferencia Interna"; // rojo
+                    $row['color'] =  "#24e1ffbd"; // rojo
+                }
+            }
+        }
+    }
+
+    public function displayAnular_ventaLink($token = null, $id)
+    {
+        $orden = new Order((int)$id);
+
+        $doc = PosOrdercomprobantes::getComprobantesByOrderLimit($orden->id);
+        $tipo_comprobante = "";
+        if (!empty($doc)) {
+            $objComprobantes = new PosOrdercomprobantes($doc['id_pos_ordercomprobantes']);
+            $tipo_comprobante = $objComprobantes->tipo_documento_electronico;
+        }
+        if ($orden->current_state == 6){
+            return false;
+        }
+        if (!$this->existeCajasAbiertas){
+            return false;
+        }
+        if (!$this->existeCajasAbiertas){
+             return false;
+        }
+        $this->context->smarty->assign(array(
+            "estado" => $orden->current_state,
+            "id_order" => $orden->id,
+            "tipo_comprobante" => $tipo_comprobante,
+        ));
+//
+        return $this->context->smarty->fetch('controllers/orders/list_action_anular.tpl');
+    }
+
+
+    public function processExport($text_delimiter = '"')
+    {
+
+
+        $this->fields_list = array(
+            'id_order' => array(
+                'title' => $this->trans('ID', array(), 'Admin.Global'),
+                'align' => 'text-center',
+                'class' => 'fixed-width-xs'
+            ),
+        );
+
+
+        $this->fields_list = array_merge($this->fields_list, array(
+            'numero_comprobante' => array(
+                'title' => $this->trans('Comprobante', array(), 'Admin.Global'),
+                'align' => 'text-center',
+            ),
+            'customer' => array(
+                'title' => $this->trans('Customer', array(), 'Admin.Global'),
+                'havingFilter' => true,
+            ),
+            'doc_cliente' => array(
+                'title' => $this->trans('N° Doc.', array(), 'Admin.Global'),
+                'havingFilter' => true,
+            ),
+        ));
+
+        $this->fields_list = array_merge($this->fields_list, array(
+
+            'total_paid_tax_excl' => array(
+                'title' => $this->trans(' SubTotal', array(), 'Admin.Global'),
+                'align' => 'text-right',
+                'type' => 'price',
+                'currency' => true,
+//                'callback' => 'setOrderCurrency',
+//                'badge_success' => true
+                'total_suma_excl'=>true,
+            ),
+            'igv_order2' => array(
+                'title' => $this->trans('IGV', array(), 'Admin.Global'),
+                'align' => 'text-right',
+                'type' => 'price',
+                'currency' => true,
+                'search' => false,
+//                'callback' => 'setOrderCurrency',
+//                'badge_success' => true
+                'total_paid_tax'=>true,
+            ),
+            'total_paid_tax_incl' => array(
+                'title' => $this->trans('Total', array(), 'Admin.Global'),
+                'align' => 'text-right',
+                'type' => 'price',
+                'currency' => true,
+//                'callback' => 'setOrderCurrency',
+                'badge_success' => true,
+                'total_suma_incl'=>true,
+            ),
+//            'payment' => array(
+//                'title' => $this->trans('Payment', array(), 'Admin.Global')
+//            ),
+            'osname' => array(
+                'title' => $this->trans('Status', array(), 'Admin.Global'),
+                'type' => 'select',
+                'color' => 'color',
+                'list' => $this->statuses_array,
+                'filter_key' => 'os!id_order_state',
+                'filter_type' => 'int',
+                'order_key' => 'osname'
+            ),
+        ));
+
+        $this->fields_list = array_merge($this->fields_list, array(
+            'date_add' => array(
+                'title' => $this->trans('Fecha de Creación', array(), 'Admin.Global'),
+                'align' => 'text-right',
+                'type' => 'datetime',
+                'filter_key' => 'a!date_add'
+            ),
+            'date_upd' => array(
+                'title' => $this->trans('Fecha de Modificación', array(), 'Admin.Global'),
+                'align' => 'text-right',
+                'type' => 'datetime',
+                'filter_key' => 'a!date_upd'
+            ),
+
+        ));
+        // YOUR EXPORT FIELDS CODE HERE
+
+        parent::processExport($text_delimiter);
+    }
+
+    public function displayConsultar_cdrLink($token = null, $id, $name = null)
+    {
+        $order = new Order((int)$id);
+        if ($order->tipo_documento_electronico != "Factura"){
+            return false;
+        }
+
+        if (!array_key_exists('Consultar_cdr', self::$cache_lang))
+            self::$cache_lang['Consultar_cdr'] = $this->l('Consultar SUNAT', 'Helper');
+
+        $btn_icon = '<a onclick="consultarCDR('.$order->id.')" title="Consultar SUNAT" id="consultar_cdr" class="pointer">
+                            <i class="icon-eye"></i> Consultar SUNAT
+                        </a>
+                             
+                            <script>
+	
+                                   function consultarCDR(id){
+                                        $.ajax({
+                                            type:"POST",
+                                            url: "'.$this->context->link->getAdminLink('AdminOrders').'",
+                                            async: true,
+                                            dataType: "json",
+                                            data : {
+                                                ajax: "1",
+                                                token: "'.Tools::getAdminTokenLite('AdminOrders').'",
+                                                tab: "AdminOrders",
+                                                action: "consultarCDR",
+                                                id_order: id,
+                                            },
+                                            success : function(res)
+                                            {
+                                                 $.each(res.mensaje, function(k, v) {
+                                                        if (res.url != null){
+                                                              $.growl.notice({ title: "", message:v});
+                                                        }else{
+                                                             $.growl.error({ title: "", message:v});
+                                                        }
+                                                  });
+                                            },
+                                        });
+                                    }
+                                   
+                        </script>
+                            ';
+
+        return $btn_icon;
+
+    }
+
+    //funcion ajax solo dando click en el boton de la lista de ver pdf
+    public function ajaxProcessConsultarCDR()
+    {
+        $webservice_consulta = $this->service_consulta_sunat;
+        $shop = Context::getContext()->shop;
+        $arr = Certificadofe::getIdCertife(Context::getContext()->shop->id);
+        $objCerti = new Certificadofe((int)$arr); // buscar el certificado
+        $user= $objCerti->user_sunat;
+        $pass= $objCerti->pass_sunat;
+
+        $factura = new Order((int)Tools::getValue('id_order'));
+
+        $headers = new CustomHeaders($user, $pass); // enviar el header de seguridad
+        $client = new SoapClient($webservice_consulta, [ 'cache_wsdl' => WSDL_CACHE_NONE, 'trace' => TRUE , 'soap_version' => SOAP_1_1 ] );
+        $client->__setSoapHeaders([$headers]);
+//        $fcs = $client->__getFunctions(); // mostrar las funciones que tiene el web service
+//        $fcs = $client->__getTypes(); // mostrar las funciones que tiene el web service
+//d($fcs);
+        $RUC= $shop->ruc;
+        $tipo_comprobante = "01";
+        $numeracion_factura = explode("-", $factura->numero_comprobante);
+        $serie = $numeracion_factura[0];
+        $numeracion =$numeracion_factura[1];
+        if ($factura->nota_baja == "NotaCredito"){
+            $tipo_comprobante = "07";
+            $numeracion_nota = explode("-", $factura->numeracion_nota_baja);
+            $numeracion =$numeracion_nota[1];
+        }
+
+        $params = array( 'rucComprobante' => $RUC, 'tipoComprobante' => $tipo_comprobante, 'serieComprobante' => $serie, 'numeroComprobante' => $numeracion);
+        $msg = array();
+
+        if($factura->nota_baja == "Baja"){
+            $status = $client->getStatus($params);
+            $msg[] = $status->status->statusMessage;
+            die(Tools::jsonEncode(array('errors' => true, 'mensaje' => $msg)));
+        }else{
+            $status = $client->getStatusCdr($params);
+//        d($status->statusCdr->content);
+
+
+            if ($status->statusCdr->statusCode == "0004") {
+                $msg[] = $status->statusCdr->statusMessage;
+
+                $filename_zip = $RUC."-".$tipo_comprobante."-".$serie."-".$numeracion;
+                // recibir la respuesta que te da SUNAT
+                $ifp = fopen( 'archivos_sunat/test-R-'.$filename_zip.".zip", "wb" );
+                fwrite( $ifp, $status->statusCdr->content );
+                fclose( $ifp );
+                //leer el ZIP de respuesta aun no esta
+                $zip = zip_open('archivos_sunat/test-R-'.$filename_zip.".zip");
+
+                if($zip)
+                {
+
+                    //la función zip_read sirve para leer el contenido de nuestro archivo ZIP
+                    while ($zip_entry = zip_read($zip))
+                    {
+                        // la función zip_entry_name devuelve el nombre de cada uno de nuestros archivos.
+                        if(zip_entry_open($zip, $zip_entry) && 'test-R-'.$filename_zip.'.xml' == zip_entry_name($zip_entry))
+                        {
+                            //la función zip_entry_read lee el contenido del fichero
+                            $contenido = zip_entry_read($zip_entry,8086);
+//                        d($contenido);
+                            $response = str_replace(['cbc:', 'ext:', 'cac:', 'ds:', 'sac:', 'ar:'], ['', '', '', '', ''], $contenido);
+
+                            $res = simplexml_load_string($response);
+
+                            $factura->mensaje_cdr = $res->DocumentResponse->Response->Description;
+                            $this->confirmations[] = $this->trans($res->DocumentResponse->Response->Description, array(), 'Admin.Global');
+                            $msg[] = $this->trans($res->DocumentResponse->Response->Description, array(), 'Admin.Global');
+
+                        }
+                        zip_entry_close('test-R-'.$filename_zip.".zip");
+                    }
+                }
+                zip_close($zip);
+
+                $url = 'archivos_sunat/test-R-'.$filename_zip.".zip";
+            }else{
+                $msg[] = $status->statusCdr->statusMessage;
+            }
+//        d($msg);
+            die(Tools::jsonEncode(array('errors' => true, 'mensaje' => $msg, 'url' => $url)));
+        }
+    }
+
+    public function printPDF2Icons($id)
+    {
+//        d($id);
+        $factura = new Order((int)$id);
+        $btn_icon = '';
+        $doc = PosOrdercomprobantes::getComprobantesByOrderLimit($factura->id);
+
+        if (!empty($doc))
+            $btn_icon = '<span class="btn-group-action">
+                            <span class="btn-group">
+                                    <a class="btn btn-default" download href="'.$doc['ruta_pdf_a4'].'">
+                                    <i class="icon-file-text"></i>
+                                </a>
+                                </span>
+                        </span>
+<script>
+	
+	       function getRandValue22(id){
+                $.ajax({
+                    type:"POST",
+                    url: "'.$this->context->link->getAdminLink('AdminOrders').'",
+                    async: true,
+                    dataType: "json",
+                    data : {
+                        ajax: "1",
+                        token: "'.Tools::getAdminTokenLite('AdminOrders').'",
+                        tab: "AdminOrders",
+                        action: "PDF",
+                        id_order: id,
+                    },
+                    success : function(res)
+                    {
+				
+                    },
+                });
+	        }
+           
+</script>
+                            ';
+
+
+
+
+        return $btn_icon;
+    }
+
+    //fu cion ajax solo dando click en el boton de la lista de ver pdf
+    public function ajaxProcessPDF()
+    {
+
+        $factura = new Order((int)Tools::getValue('id_order'));
+//        d($factura);
+        $pdf = new PDF($factura, ucfirst('ComprobanteElectronicopdfa4'), Context::getContext()->smarty,'P');
+//                                            $pdf->render();
+
+        if ($factura->tipo_documento_electronico =='Factura'){
+            $code = '01';
+        }
+        if ($factura->tipo_documento_electronico =='Boleta'){
+            $code = '03';
+        }
+        $monbre_archivo = $factura->tipo_documento_electronico.'_'.$this->context->shop->ruc.'-'.$code.'-'.$factura->numero_comprobante.'.pdf';
+        $valor_qr = $factura->valor_qr;
+//        $pdf->Guardar($monbre_archivo,$valor_qr, 'a4');
+
+        $pdf = new PDF($factura, ucfirst('ComprobanteElectronico'), Context::getContext()->smarty,'P');
+//                                            $pdf->render();
+        $pdf->Guardar($monbre_archivo,$valor_qr,'ticket', $factura->hash_cpe);
+
+        die(Tools::jsonEncode(array('errors' => true, 'estado' => 'disponible')));
+
+    }
+
+    public function printPDF2Iconsboleta($id)
+    {
+//        d($id);
+        $factura = new Order((int)$id);
+        $btn_icon = '';
+        if($factura->tipo_documento_electronico == 'Boleta'){
+            if (!empty($factura->ruta_pdf_a4))
+                $btn_icon = '<span class="btn-group-action">
+                                <span class="btn-group">
+                                        <a class="btn btn-default" download href="'.$factura->ruta_pdf_a4.'">
+                                        <i class="icon-file-text"></i>
+                                    </a>
+                                    </span>
+                            </span>
+                            <script>
+	
+	        function getRandValue22(id){
+                $.ajax({
+                    type:"POST",
+                    url: "'.$this->context->link->getAdminLink('AdminOrders').'",
+                    async: true,
+                    dataType: "json",
+                    data : {
+                        ajax: "1",
+                        token: "'.Tools::getAdminTokenLite('AdminOrders').'",
+                        tab: "AdminOrders",
+                        action: "PDF",
+                        id_order: id,
+                    },
+                    success : function(res)
+                    {
+				
+                    },
+                });
+	        }
+
+           
+</script>
+                            
+                            ';
+        }
+        return $btn_icon;
+    }
+
+    public function printXMLIcons($id)
+    {
+//        d($id);
+        $factura = new Order((int)$id);
+        $btn_icon = '';
+        if (!empty($factura->ruta_xml))
+            $btn_icon = '<span class="btn-group-action">
+                                <span class="btn-group">
+                                        <a class="btn btn-default" download href="'.$factura->ruta_xml.'">
+                                        <i class="icon-file-text"></i>
+                                    </a>
+                                    
+                                    </span>
+                            </span>';
+        return $btn_icon;
+    }
+
+    public function printCDRIcons($id)
+    {
+//        d($id);
+        $factura = new Order((int)$id);
+        $btn_icon = '';
+        if (!empty($factura->ruta_cdr))
+            $btn_icon = '<span class="btn-group-action">
+                            <span class="btn-group">
+                                    <a class="btn btn-default" download href="'.$factura->ruta_cdr.'">
+                                    <i class="icon-file-text"></i>
+                                </a>
+                                
+                                </span>
+                        </span>';
+        return $btn_icon;
+    }
+
+    public function displayPagar_orderLink($token = null, $id, $name = null)
+    {
+
+        $order = new Order((int)$id);
+        if ($order->current_state != 1 && $order->current_state != 12){
+            return false;
+        }
+
+        if (!$this->existeCajasAbiertas){
+            return false;
+        }
+
+        return '<a  href="#cajas_pago" class="cajas_pago btn-default" title="Pagar" data-idorder="'.$id.'"><i class="icon-money"></i> Pagar</a>';
+
+    }
+
+    //fu cion ajax solo dando click se paga la orden
+    public function ajaxProcessPaymentOrderAche()
+    {
+
+//        d(Tools::getAllValues());
+        $order = new Order((int)Tools::getValue('id_order'));
+        $amount = $order->total_paid_tax_incl - $order->total_paid_real;
+        $currency = new Currency((int)$order->id_currency);
+
+        $order_has_invoice = $order->hasInvoice();
+        if ($order_has_invoice) {
+            $order_invoice = new OrderInvoice(Tools::getValue('payment_invoice'));
+        } else {
+            $order_invoice = null;
+        }
+
+        if($this->nombre_access['name'] == 'Administrador' || $this->nombre_access['name'] == 'SuperAdmin'){
+            $last_caja = PosArqueoscaja::cajaAbierta(Tools::getValue('id_caja'));
+        }else{
+            $last_caja = PosArqueoscaja::getCajaLast($this->context->shop->id);
+        }
+
+        if (!$order->addOrderPayment($amount, "Pago en Efectivo", "", $currency, date('Y-m-d H:i:s'), $order_invoice, 0, 1, $last_caja['id_pos_arqueoscaja'], $this->context->employee->id)) {
+            $this->errors[] = $this->trans('An error occurred during payment.', array(), 'Admin.Orderscustomers.Notification');
+        } else {
+            // actualizar la caja o la cuenta
+
+            $objcajanew = new PosArqueoscaja((int)$last_caja['id_pos_arqueoscaja']);
+            $montoinicial = $objcajanew->monto_operaciones;
+            $montofinal = $montoinicial + $amount;
+            $objcajanew->monto_operaciones = $montofinal;
+            $objcajanew->update();
+
+//            if (!$order->id_empleado_caja) {
+            if ($this->nombre_access['name'] == 'Cajero') {
+                $order->id_empleado_caja = $this->context->employee->id;
+            }
+            if ($this->nombre_access['name'] == 'Administrador' || $this->nombre_access['name'] == 'SuperAdmin') {
+//                    $last_caja = PosArqueoscaja::cajaAbierta($this->context->cookie->admin_caja);
+                $order->id_empleado_caja = $last_caja['id_employee_apertura'];
+            }
+//            }
+
+            $order_state = new OrderState((int)ConfigurationCore::get('PS_OS_PAYMENT'), (int)$this->context->language->id);
+            $current_order_state = $order->getCurrentOrderState();
+
+            if ($current_order_state->id != $order_state->id) {
+                // Create new OrderHistory
+                $history = new OrderHistory();
+                $history->id_order = $order->id;
+                $history->id_employee = (int)$this->context->employee->id;
+
+                $use_existings_payment = false;
+                if (!$order->hasInvoice()) {
+                    $use_existings_payment = true;
+                }
+                $history->changeIdOrderState((int)$order_state->id, $order, $use_existings_payment);
+
+                // Save all changes
+                if ($history->addWithemail(true)) {
+                    // synchronizes quantities if needed..
+                    if (Configuration::get('PS_ADVANCED_STOCK_MANAGEMENT')) {
+                        foreach ($order->getProducts() as $product) {
+                            if (StockAvailable::dependsOnStock($product['product_id'])) {
+                                StockAvailable::synchronize($product['product_id'], (int)$product['id_shop']);
+                            }
+                        }
+                    }
+                }
+            }
+
+            $order->update();
+        }
+
+        return die(Tools::jsonEncode(array('errors' => true, 'estado' => 'disponible', 'msg' => 'Pagado')));
+
+    }
+
+    //fu cion ajax solo dando click en el boton de la lista de ver pdf
+    public function ajaxProcessEliminarPedido()
+    {
+//        d(Tools::getAllValues());
+        $order = new Order((int)Tools::getValue('id_order'));
+        $doc = PosOrdercomprobantes::getComprobantesByOrderLimit($order->id);
+
+        //si solo si esta pagado
+        $new_os = new OrderState((int)Configuration::get('PS_OS_CANCELED'), $order->id_lang);
+        $old_os = $order->getCurrentOrderState();
+
+        if (Tools::getValue('id_caja') && (int)Tools::getValue('id_caja') > 0){
+            $objCaja = new PosArqueoscaja((int)Tools::getValue('id_caja'));
+            foreach ($order->getOrderPaymentCollection() as $payment){
+                if ((int)$payment->es_cuenta == 1) { // 1 es caja
+                    $monto_inicial = $objCaja->monto_operaciones;
+                    $objCaja->monto_operaciones = (float)$monto_inicial - (float)$payment->amount;
+                    $objCaja->update();
+                }
+            }
+
+            $order->id_empleado_caja = $objCaja->id_employee_apertura;
+            if ((bool)$order->estado_transferencia){
+                $order->estado_transferencia = 2;
+            }
+            $order->update();
+
+
+            if (!empty($doc)) {
+                $objComprobantes = new PosOrdercomprobantes($doc['id_pos_ordercomprobantes']);
+                $objComprobantes->devolver_monto_caja = 1;
+                $objComprobantes->update();
+            }
+        }
+        else{
+            $order->id_empleado_caja = 0;
+            if ((bool)$order->estado_transferencia){
+                $order->estado_transferencia = 2;
+            }
+            $order->update();
+
+        }
+
+        $order->setCurrentState(Configuration::get('PS_OS_CANCELED'), $this->context->employee->id);
+
+        PrestaShopLogger::addLog($this->trans('Venta anulada / IP: %ip%', array('%ip%' => Tools::getRemoteAddr()), 'Admin.Advparameters.Feature'), 1, null, 'Order', $order->id, true, (int)$this->context->employee->id);
+
+        if ($old_os->id == 2){
+            // @since 1.5.0 : gets the stock manager
+            $manager = null;
+            if (Configuration::get('PS_ADVANCED_STOCK_MANAGEMENT')) {
+                $manager = StockManagerFactory::getManager();
+            }
+//            d($manager);
+            $employee = $order->id_employee;
+
+            // foreach products of the order
+            foreach ($order->getProductsDetail() as $product) {
+
+                // @since.1.5.0 : if the order was shipped, and is not anymore, we need to restock products
+
+                // if the product is a pack, we restock every products in the pack using the last negative stock mvts
+                if (Pack::isPack($product['product_id'])) {
+                    $pack_products = Pack::getItems($product['product_id'], Configuration::get('PS_LANG_DEFAULT', null, null, $order->id_shop));
+                    foreach ($pack_products as $pack_product) {
+
+                        $mvts = StockMvt::getNegativeStockMvts($order->id, $pack_product->id, 0, $pack_product->pack_quantity * $product['product_quantity']);
+                        foreach ($mvts as $mvt) {
+                            $manager->addProduct(
+                                $pack_product->id,
+                                0,
+                                new Warehouse($mvt['id_warehouse']),
+                                $mvt['physical_quantity'],
+                                null,
+                                $mvt['price_te'],
+                                true,
+                                null,
+                                $employee
+                            );
+                        }
+                        if (!StockAvailable::dependsOnStock($product['id_product'])) {
+                            StockAvailable::updateQuantity($pack_product->id, 0, (float)$pack_product->pack_quantity * $product['product_quantity'], $order->id_shop);
+                        }
+
+                    }
+                } else {
+                    // else, it's not a pack, re-stock using the last negative stock mvts
+
+                    $mvts = StockMvt::getNegativeStockMvts(
+                        $order->id,
+                        $product['product_id'],
+                        $product['product_attribute_id'],
+                        ($product['product_quantity'] - $product['product_quantity_refunded'] - $product['product_quantity_return'])
+                    );
+
+                    foreach ($mvts as $mvt) {
+                        $manager->addProduct(
+                            $product['product_id'],
+                            $product['product_attribute_id'],
+                            new Warehouse($mvt['id_warehouse']),
+                            $mvt['physical_quantity'],
+                            null,
+                            $mvt['price_te'],
+                            true
+                        );
+                    }
+                }
+            }
+            // Save movement if :
+            // not Configuration::get('PS_ADVANCED_STOCK_MANAGEMENT')
+            // new_os->shipped != old_os->shipped
+            if (Validate::isLoadedObject($old_os) && Validate::isLoadedObject($new_os) && $new_os->shipped != $old_os->shipped && !Configuration::get('PS_ADVANCED_STOCK_MANAGEMENT')) {
+                $product_quantity = (float) ($product['product_quantity'] - $product['product_quantity_refunded'] - $product['product_quantity_return']);
+
+                if ($product_quantity > 0) {
+                    (new StockManagerAche)->saveMovement(
+                        (int)$product['product_id'],
+                        (int)$product['product_attribute_id'],
+                        (float)$product_quantity * ($new_os->shipped == 1 ? -1 : 1),
+                        array(
+                            'id_order' => $order->id,
+                            'id_stock_mvt_reason' => ($new_os->shipped == 1 ? Configuration::get('PS_STOCK_CUSTOMER_ORDER_REASON') : Configuration::get('PS_STOCK_CUSTOMER_ORDER_CANCEL_REASON'))
+                        )
+                    );
+                }
+            }
+
+        }
+
+        $order->motivo_anulacion = Tools::getValue('motivo_anulacion');
+        $order->update();
+
+        if (!empty($doc)){
+            $objComprobantes = new PosOrdercomprobantes($doc['id_pos_ordercomprobantes']);
+            if ($objComprobantes->tipo_documento_electronico == 'Factura_fisica'){
+
+                $correlativo = NumeracionDocumento::getNumTipoDoc('NotaCredito_fisica');
+                if (empty($correlativo)){
+                    $objNC = new NumeracionDocumento();
+                    $objNC->serie = '';
+                    $objNC->correlativo = 0;
+                    $objNC->nombre = 'NotaCredito_fisica';
+                    $objNC->id_shop = Context::getContext()->shop->id;
+                    $objNC->add();
+                    $correlativo = NumeracionDocumento::getNumTipoDoc('NotaCredito_fisica');
+                }else{
+                    $correlativo = NumeracionDocumento::getNumTipoDoc('NotaCredito_fisica');
+                }
+
+                $objNu2 = new NumeracionDocumento((int)$correlativo['id_numeracion_documentos']);
+                $objNu2->correlativo = ($correlativo['correlativo']+1);
+                $objNu2->update();
+                $correlativo_comanda = NumeracionDocumento::getNumTipoDoc('NotaCredito_fisica');
+                $serie_comprobante = $objComprobantes->numero_comprobante;
+                $serie = explode("-", $serie_comprobante);
+                $numeracion = Tools::zero_fill($correlativo_comanda['correlativo'],8);
+                $numero_comprobante = $serie[0].'-'.$numeracion;
+                $nombre_xml_comprobante = $this->context->shop->ruc.'-07-'.$numero_comprobante;
+
+                $ruta = 'documentos_pdf_a4/fisico/notas/'.$this->context->shop->virtual_uri;
+                $monbre_archivo= 'NOTACREDITO_fisica_'.$nombre_xml_comprobante.'.pdf';
+                if (!file_exists($ruta)) {
+                    mkdir($ruta, 0777, true);
+                }
+
+                $objComprobantes->nota_baja = 'NotaCredito_fisica';
+                $objComprobantes->numeracion_nota_baja = $numero_comprobante;
+                $objComprobantes->code_motivo_nota_credito = Tools::getValue('code_nota_credito');
+                $objComprobantes->ruta_pdf_a4nota = $ruta.$monbre_archivo;
+                $objComprobantes->update();
+
+                $pdf = new PDF($objComprobantes, ucfirst('ComprobanteFisicoNotaCredito'), Context::getContext()->smarty,'P');
+                $pdf->GuardarComprobanteFisico($objComprobantes, $monbre_archivo);
+            }
+        }
+
+
+
+        return die(Tools::jsonEncode(array('errors' => true, 'estado' => 'disponible')));
+
     }
 
     public static function setOrderCurrency($echo, $tr)
@@ -211,12 +949,26 @@ class AdminOrdersControllerCore extends AdminController
             && Shop::isFeatureActive()) {
             unset($this->page_header_toolbar_btn['new_order']);
         }
+
+        $id_order = (int)Tools::getValue('id_order');
+        $order = new Order((int)$id_order);
+        $this->context->smarty->assign(array(
+            'order' => $order,
+        ));
     }
 
     public function renderForm()
     {
         if (Context::getContext()->shop->getContext() != Shop::CONTEXT_SHOP && Shop::isFeatureActive()) {
             $this->errors[] = $this->trans('You have to select a shop before creating new orders.', array(), 'Admin.Orderscustomers.Notification');
+        }
+
+        if ($this->display == 'edit'){
+
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminOrders').'&id_order='.Tools::getValue('id_order').'&vieworder');
+        }
+        if ($this->display == 'add'){
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminVender'));
         }
 
         $id_cart = (int)Tools::getValue('id_cart');
@@ -236,9 +988,9 @@ class AdminOrdersControllerCore extends AdminController
         $this->addJqueryPlugin(array('autocomplete', 'fancybox', 'typewatch', 'highlight'));
 
         $defaults_order_state = array('cheque' => (int)Configuration::get('PS_OS_CHEQUE'),
-                                                'bankwire' => (int)Configuration::get('PS_OS_BANKWIRE'),
-                                                'cashondelivery' => Configuration::get('PS_OS_COD_VALIDATION') ? (int)Configuration::get('PS_OS_COD_VALIDATION') : (int)Configuration::get('PS_OS_PREPARATION'),
-                                                'other' => (int)Configuration::get('PS_OS_PAYMENT'));
+            'bankwire' => (int)Configuration::get('PS_OS_BANKWIRE'),
+            'cashondelivery' => Configuration::get('PS_OS_COD_VALIDATION') ? (int)Configuration::get('PS_OS_COD_VALIDATION') : (int)Configuration::get('PS_OS_PREPARATION'),
+            'other' => (int)Configuration::get('PS_OS_PAYMENT'));
         $payment_modules = array();
         foreach (PaymentModule::getInstalledPaymentModules() as $p_module) {
             $payment_modules[] = Module::getInstanceById((int)$p_module['id_module']);
@@ -265,6 +1017,7 @@ class AdminOrdersControllerCore extends AdminController
 
     public function initToolbar()
     {
+
         if ($this->display == 'view') {
             /** @var Order $order */
             $order = $this->loadObject();
@@ -274,15 +1027,27 @@ class AdminOrdersControllerCore extends AdminController
                 Tools::redirectAdmin($this->context->link->getAdminLink('AdminOrders'));
             }
 
-            $this->toolbar_title[] = $this->trans(
-                'Order %reference% from %firstname%',
-                array(
-                    '%reference%' => $order->reference,
-                    '%firstname%' => $customer->firstname,
-                    '%lastname%' => $customer->lastname,
-                ),
-                'Admin.Orderscustomers.Feature'
-            );
+            if ((int)$order->id_customer != 1){
+                $this->toolbar_title[] = $this->trans(
+                    'Venta',
+                    array(
+                        '%reference%' => $order->reference,
+                        '%firstname%' => $customer->firstname,
+                        '%lastname%' => $customer->lastname,
+                    ),
+                    'Admin.Orderscustomers.Feature'
+                );
+            }else{
+                $this->toolbar_title[] = $this->trans(
+                    'Venta',
+                    array(
+                        '%reference%' => $order->reference,
+                    ),
+                    'Admin.Orderscustomers.Feature'
+                );
+            }
+
+
             $this->addMetaTitle($this->toolbar_title[count($this->toolbar_title) - 1]);
 
             if ($order->hasBeenShipped()) {
@@ -320,10 +1085,17 @@ class AdminOrdersControllerCore extends AdminController
                 );
             }
         }
+        else{
+            if (Tools::getValue('filtro') && Tools::getValue('filtro') == 'Cobrar') {
+                $this->toolbar_title[] = 'Cuentas por cobrar';
+                $this->breadcrumbs[] = 'Cuentas por cobrar';
+            }
+        }
         $res = parent::initToolbar();
         if (Context::getContext()->shop->getContext() != Shop::CONTEXT_SHOP && isset($this->toolbar_btn['new']) && Shop::isFeatureActive()) {
             unset($this->toolbar_btn['new']);
         }
+
         return $res;
     }
 
@@ -333,7 +1105,10 @@ class AdminOrdersControllerCore extends AdminController
 
         $this->addJqueryUI('ui.datepicker');
         $this->addJS(_PS_JS_DIR_.'vendor/d3.v3.min.js');
-        $this->addJS('https://maps.googleapis.com/maps/api/js?v=3.exp');
+
+        $this->addCSS(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/css/waitMe.min.css');
+        $this->addJs(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/js/waitMe.min.js');
+        $this->addJs(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/js/jwerty.js');
 
         if ($this->access('edit') && $this->display == 'view') {
             $this->addJS(_PS_JS_DIR_.'admin/orders.js');
@@ -431,6 +1206,15 @@ class AdminOrdersControllerCore extends AdminController
 
     public function renderList()
     {
+//        $this->actions[] = 'view';
+
+
+        if (!$this->existeCajasAbiertas){
+            unset($this->page_header_toolbar_btn['new_order']);
+            unset($this->toolbar_btn['new']);
+        }
+
+
         if (Tools::isSubmit('submitBulkupdateOrderStatus'.$this->table)) {
             if (Tools::getIsset('cancel')) {
                 Tools::redirectAdmin(self::$currentIndex.'&token='.$this->token);
@@ -442,11 +1226,22 @@ class AdminOrdersControllerCore extends AdminController
             $this->tpl_list_vars['POST'] = $_POST;
         }
 
+        $this->context->cookie->__set("metodo_pago", false);
+
+        $this->context->smarty->assign(array(
+            'perfil_empleado' => $this->nombre_access['name'],
+            'existeCajasAbiertas' => $this->existeCajasAbiertas,
+            'alarmAudio' => 'controllers/orders/helpers/list/media/noise.mp3',
+        ));
+
         return parent::renderList();
     }
 
     public function postProcess()
     {
+
+
+
         // If id_order is sent, we instanciate a new Order object
         if (Tools::isSubmit('id_order') && Tools::getValue('id_order') > 0) {
             $order = new Order(Tools::getValue('id_order'));
@@ -516,6 +1311,7 @@ class AdminOrdersControllerCore extends AdminController
         } elseif (Tools::isSubmit('submitState') && isset($order)) {
             /* Change order status, add a new entry in order history and send an e-mail to the customer if needed */
             if ($this->access('edit')) {
+
                 $order_state = new OrderState(Tools::getValue('id_order_state'));
 
                 if (!Validate::isLoadedObject($order_state)) {
@@ -541,7 +1337,7 @@ class AdminOrdersControllerCore extends AdminController
                         }
 
                         // Save all changes
-                        if ($history->addWithemail(true, $templateVars)) {
+                        if ($history->addWithemail(true)) {
                             // synchronizes quantities if needed..
                             if (Configuration::get('PS_ADVANCED_STOCK_MANAGEMENT')) {
                                 foreach ($order->getProducts() as $product) {
@@ -553,6 +1349,7 @@ class AdminOrdersControllerCore extends AdminController
 
                             Tools::redirectAdmin(self::$currentIndex.'&id_order='.(int)$order->id.'&vieworder&token='.$this->token);
                         }
+
                         $this->errors[] = $this->trans('An error occurred while changing order status, or we were unable to send an email to the customer.', array(), 'Admin.Orderscustomers.Notification');
                     } else {
                         $this->errors[] = $this->trans('The order has already been assigned this status.', array(), 'Admin.Orderscustomers.Notification');
@@ -561,7 +1358,8 @@ class AdminOrdersControllerCore extends AdminController
             } else {
                 $this->errors[] = $this->trans('You do not have permission to edit this.', array(), 'Admin.Notifications.Error');
             }
-        } elseif (Tools::isSubmit('submitMessage') && isset($order)) {
+        }
+        elseif (Tools::isSubmit('submitMessage') && isset($order)) {
             // Add a new message for the current order and send an e-mail to the customer if needed
             if ($this->access('edit')) {
                 $customer = new Customer(Tools::getValue('id_customer'));
@@ -643,24 +1441,24 @@ class AdminOrdersControllerCore extends AdminController
                             );
 
                             if (
-                                @Mail::Send(
-                                    (int)$order->id_lang,
-                                    'order_merchant_comment',
-                                    $this->trans(
-                                        'New message regarding your order',
-                                        array(),
-                                        'Emails.Subject',
-                                        $orderLanguage->locale
-                                    ),
-                                    $varsTpl, $customer->email,
-                                    $customer->firstname.' '.$customer->lastname,
-                                    null,
-                                    null,
-                                    null,
-                                    null,
-                                    _PS_MAIL_DIR_,
-                                    true,
-                                    (int)$order->id_shop)
+                            @Mail::Send(
+                                (int)$order->id_lang,
+                                'order_merchant_comment',
+                                $this->trans(
+                                    'New message regarding your order',
+                                    array(),
+                                    'Emails.Subject',
+                                    $orderLanguage->locale
+                                ),
+                                $varsTpl, $customer->email,
+                                $customer->firstname.' '.$customer->lastname,
+                                null,
+                                null,
+                                null,
+                                null,
+                                _PS_MAIL_DIR_,
+                                true,
+                                (int)$order->id_shop)
                             ) {
                                 Tools::redirectAdmin(self::$currentIndex.'&id_order='.$order->id.'&vieworder&conf=11'.'&token='.$this->token);
                             }
@@ -671,7 +1469,8 @@ class AdminOrdersControllerCore extends AdminController
             } else {
                 $this->errors[] = $this->trans('You do not have permission to delete this.', array(), 'Admin.Notifications.Error');
             }
-        } elseif (Tools::isSubmit('partialRefund') && isset($order)) {
+        }
+        elseif (Tools::isSubmit('partialRefund') && isset($order)) {
             // Partial refund from order
             if ($this->access('edit')) {
                 if (Tools::isSubmit('partialRefundProduct') && ($refunds = Tools::getValue('partialRefundProduct')) && is_array($refunds)) {
@@ -684,10 +1483,10 @@ class AdminOrdersControllerCore extends AdminController
                             continue;
                         }
 
-                        $full_quantity_list[$id_order_detail] = (int)$quantity[$id_order_detail];
+                        $full_quantity_list[$id_order_detail] = (float)$quantity[$id_order_detail];
 
                         $order_detail_list[$id_order_detail] = array(
-                            'quantity' => (int)$quantity[$id_order_detail],
+                            'quantity' => (float)$quantity[$id_order_detail],
                             'id_order_detail' => (int)$id_order_detail
                         );
 
@@ -757,26 +1556,26 @@ class AdminOrdersControllerCore extends AdminController
                             $params['{id_order}'] = $order->id;
                             $params['{order_name}'] = $order->getUniqReference();
                             $orderLanguage = new Language((int) $order->id_lang);
-//                            @Mail::Send(
-//                                (int)$order->id_lang,
-//                                'credit_slip',
-//                                $this->trans(
-//                                    'New credit slip regarding your order',
-//                                    array(),
-//                                    'Emails.Subject',
-//                                    $orderLanguage->locale
-//                                ),
-//                                $params,
-//                                $customer->email,
-//                                $customer->firstname.' '.$customer->lastname,
-//                                null,
-//                                null,
-//                                null,
-//                                null,
-//                                _PS_MAIL_DIR_,
-//                                true,
-//                                (int)$order->id_shop
-//                            );
+                            @Mail::Send(
+                                (int)$order->id_lang,
+                                'credit_slip',
+                                $this->trans(
+                                    'New credit slip regarding your order',
+                                    array(),
+                                    'Emails.Subject',
+                                    $orderLanguage->locale
+                                ),
+                                $params,
+                                $customer->email,
+                                $customer->firstname.' '.$customer->lastname,
+                                null,
+                                null,
+                                null,
+                                null,
+                                _PS_MAIL_DIR_,
+                                true,
+                                (int)$order->id_shop
+                            );
                         }
 
                         foreach ($order_detail_list as &$product) {
@@ -835,26 +1634,26 @@ class AdminOrdersControllerCore extends AdminController
                                     $params['{voucher_amount}'] = Tools::displayPrice($cart_rule->reduction_amount, $currency, false);
                                     $params['{voucher_num}'] = $cart_rule->code;
                                     $orderLanguage = new Language((int) $order->id_lang);
-//                                    @Mail::Send(
-//                                        (int)$order->id_lang,
-//                                        'voucher',
-//                                        $this->trans(
-//                                            'New voucher for your order #%s',
-//                                            array($order->reference),
-//                                            'Emails.Subject',
-//                                            $orderLanguage->locale
-//                                        ),
-//                                        $params,
-//                                        $customer->email,
-//                                        $customer->firstname.' '.$customer->lastname,
-//                                        null,
-//                                        null,
-//                                        null,
-//                                        null,
-//                                        _PS_MAIL_DIR_,
-//                                        true,
-//                                        (int)$order->id_shop
-//                                    );
+                                    @Mail::Send(
+                                        (int)$order->id_lang,
+                                        'voucher',
+                                        $this->trans(
+                                            'New voucher for your order #%s',
+                                            array($order->reference),
+                                            'Emails.Subject',
+                                            $orderLanguage->locale
+                                        ),
+                                        $params,
+                                        $customer->email,
+                                        $customer->firstname.' '.$customer->lastname,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        _PS_MAIL_DIR_,
+                                        true,
+                                        (int)$order->id_shop
+                                    );
                                 }
                             }
                         }
@@ -876,7 +1675,8 @@ class AdminOrdersControllerCore extends AdminController
             } else {
                 $this->errors[] = $this->trans('You do not have permission to delete this.', array(), 'Admin.Notifications.Error');
             }
-        } elseif (Tools::isSubmit('cancelProduct') && isset($order)) {
+        }
+        elseif (Tools::isSubmit('cancelProduct') && isset($order)) {
             // Cancel product from order
             if ($this->access('delete')) {
                 if (!Tools::isSubmit('id_order_detail') && !Tools::isSubmit('id_customization')) {
@@ -930,7 +1730,7 @@ class AdminOrdersControllerCore extends AdminController
                                 $order_detail = new OrderDetail($id_order_detail);
                                 $customization_quantity = 0;
                                 if (array_key_exists($order_detail->product_id, $customization_quantities) && array_key_exists($order_detail->product_attribute_id, $customization_quantities[$order_detail->product_id])) {
-                                    $customization_quantity = (int)$customization_quantities[$order_detail->product_id][$order_detail->product_attribute_id];
+                                    $customization_quantity = (float)$customization_quantities[$order_detail->product_id][$order_detail->product_attribute_id];
                                 }
 
                                 if (($order_detail->product_quantity - $customization_quantity - $order_detail->product_quantity_refunded - $order_detail->product_quantity_return) < $qtyCancelProduct) {
@@ -1031,26 +1831,26 @@ class AdminOrdersControllerCore extends AdminController
                             } else {
                                 Hook::exec('actionOrderSlipAdd', array('order' => $order, 'productList' => $full_product_list, 'qtyList' => $full_quantity_list), null, false, true, false, $order->id_shop);
                                 $orderLanguage = new Language((int) $order->id_lang);
-//                                @Mail::Send(
-//                                    (int)$order->id_lang,
-//                                    'credit_slip',
-//                                    $this->trans(
-//                                        'New credit slip regarding your order',
-//                                        array(),
-//                                        'Emails.Subject',
-//                                        $orderLanguage->locale
-//                                    ),
-//                                    $params,
-//                                    $customer->email,
-//                                    $customer->firstname.' '.$customer->lastname,
-//                                    null,
-//                                    null,
-//                                    null,
-//                                    null,
-//                                    _PS_MAIL_DIR_,
-//                                    true,
-//                                    (int)$order->id_shop
-//                                );
+                                @Mail::Send(
+                                    (int)$order->id_lang,
+                                    'credit_slip',
+                                    $this->trans(
+                                        'New credit slip regarding your order',
+                                        array(),
+                                        'Emails.Subject',
+                                        $orderLanguage->locale
+                                    ),
+                                    $params,
+                                    $customer->email,
+                                    $customer->firstname.' '.$customer->lastname,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    _PS_MAIL_DIR_,
+                                    true,
+                                    (int)$order->id_shop
+                                );
                             }
                         }
 
@@ -1112,26 +1912,26 @@ class AdminOrdersControllerCore extends AdminController
                                     $params['{voucher_amount}'] = Tools::displayPrice($cartrule->reduction_amount, $currency, false);
                                     $params['{voucher_num}'] = $cartrule->code;
                                     $orderLanguage = new Language((int) $order->id_lang);
-//                                    @Mail::Send(
-//                                        (int)$order->id_lang,
-//                                        'voucher',
-//                                        $this->trans(
-//                                            'New voucher for your order #%s',
-//                                            array($order->reference),
-//                                            'Emails.Subject',
-//                                            $orderLanguage->locale
-//                                        ),
-//                                        $params,
-//                                        $customer->email,
-//                                        $customer->firstname.' '.$customer->lastname,
-//                                        null,
-//                                        null,
-//                                        null,
-//                                        null,
-//                                        _PS_MAIL_DIR_,
-//                                        true,
-//                                        (int)$order->id_shop
-//                                    );
+                                    @Mail::Send(
+                                        (int)$order->id_lang,
+                                        'voucher',
+                                        $this->trans(
+                                            'New voucher for your order #%s',
+                                            array($order->reference),
+                                            'Emails.Subject',
+                                            $orderLanguage->locale
+                                        ),
+                                        $params,
+                                        $customer->email,
+                                        $customer->firstname.' '.$customer->lastname,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        _PS_MAIL_DIR_,
+                                        true,
+                                        (int)$order->id_shop
+                                    );
                                 }
                             }
                         }
@@ -1147,11 +1947,54 @@ class AdminOrdersControllerCore extends AdminController
             } else {
                 $this->errors[] = $this->trans('You do not have permission to delete this.', array(), 'Admin.Notifications.Error');
             }
-        } elseif (Tools::isSubmit('messageReaded')) {
+        }
+        elseif (Tools::isSubmit('messageReaded')) {
             Message::markAsReaded(Tools::getValue('messageReaded'), $this->context->employee->id);
-        } elseif (Tools::isSubmit('submitAddPayment') && isset($order)) {
+        }
+        elseif (Tools::isSubmit('submitAddPayment') && isset($order)) {
             if ($this->access('edit')) {
+                if (Tools::getValue('tipo_documento_electronico_fisico')) {
+                    $tipo_comprobante = Tools::getValue('tipo_documento_electronico_fisico');
+                    $numeracion_documento = NumeracionDocumento::getNumTipoDoc($tipo_comprobante);
+                    if (empty($numeracion_documento)) {
+                        $this->errors[] = $this->trans('Porfavor cree las series y numeración para su tienda gracias. Nombre: ' . $tipo_comprobante, array(), 'Admin.Orderscustomers.Notification');
+                    }
+                }
+
+                if ($this->existeCajasAbiertas){
+                    $last_caja = PosArqueoscaja::getCajaLast($this->context->shop->id);
+                }
+                else{
+                    $this->errors[] = $this->trans('No existe ninguna caja abierta!!', array(), 'Admin.Orderscustomers.Notification');
+                    return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+                }
+
+                $tipo_comprobante = '';
                 $amount = str_replace(',', '.', Tools::getValue('payment_amount'));
+                $debe_vuelto = 0;
+                $vuelto_pago = 0;
+                $ultimopago = 0;
+                foreach ($order->getOrderPaymentCollection() as $payment){
+                    $ultimopago += $payment->amount;
+                }
+
+                if ($amount > $order->total_paid){
+                    $debe_vuelto = $amount - $order->total_paid;
+                    $vuelto_pago = $amount - $order->total_paid;
+                    $amount = $order->total_paid;
+                }
+                else {
+                    $ultimopago_final = $order->total_paid - $ultimopago ;
+
+                    if($amount > $ultimopago_final){
+                        $vuelto_pago = $amount - $ultimopago_final;
+                        $debe_vuelto = $amount - $ultimopago_final;
+                        $amount = $ultimopago_final;
+                    }else{
+                        $debe_vuelto = $amount - $ultimopago_final;
+                    }
+                }
+//            d(Tools::ps_round($debe_vuelto,4));
                 $currency = new Currency(Tools::getValue('payment_currency'));
                 $order_has_invoice = $order->hasInvoice();
                 if ($order_has_invoice) {
@@ -1159,6 +2002,7 @@ class AdminOrdersControllerCore extends AdminController
                 } else {
                     $order_invoice = null;
                 }
+
 
                 if (!Validate::isLoadedObject($order)) {
                     $this->errors[] = $this->trans('The order cannot be found', array(), 'Admin.Orderscustomers.Notification');
@@ -1175,16 +2019,65 @@ class AdminOrdersControllerCore extends AdminController
                 } elseif (!Validate::isDate(Tools::getValue('payment_date'))) {
                     $this->errors[] = $this->trans('The date is invalid', array(), 'Admin.Orderscustomers.Notification');
                 } else {
-                    if (!$order->addOrderPayment($amount, Tools::getValue('payment_method'), Tools::getValue('payment_transaction_id'), $currency, Tools::getValue('payment_date'), $order_invoice)) {
+                    if (!$order->addOrderPayment($amount, Tools::getValue('payment_method'), Tools::getValue('payment_transaction_id'), $currency, Tools::getValue('payment_date'), $order_invoice, $vuelto_pago, (int)Tools::getValue('tipo_pago'), null, $this->context->employee->id)) {
                         $this->errors[] = $this->trans('An error occurred during payment.', array(), 'Admin.Orderscustomers.Notification');
                     } else {
+                        // actualizar la caja o la cuenta
+                        if ((int)Tools::getValue('tipo_pago') == 1){
+                            $obj_caja = new PosArqueoscaja((int)$last_caja['id_pos_arqueoscaja']);
+                            $montoinicial = $obj_caja->monto_operaciones;
+                            $montofinal=$montoinicial + $amount;
+                            $obj_caja->monto_operaciones=$montofinal;
+                            $obj_caja->update();
+                        }
+
+
+
+                        if (!$order->id_employee){
+                            $order->id_employee = $this->context->employee->id;
+                        }
+
+                        // cambiar de estado a pagado si hay vuelto o si el monto es >= 0
+                        if (Tools::ps_round($debe_vuelto,6) >= 0) {
+//                            $order->setCurrentState((int)ConfigurationCore::get('PS_OS_PAYMENT'), $order->id_employee); // cambiar el estado a pagado
+                            $order_state = new OrderState((int)ConfigurationCore::get('PS_OS_PAYMENT'), (int)$this->context->language->id);
+                            $current_order_state = $order->getCurrentOrderState();
+
+                            if ($current_order_state->id != $order_state->id) {
+                                // Create new OrderHistory
+                                $history = new OrderHistory();
+                                $history->id_order = $order->id;
+                                $history->id_employee = (int)$this->context->employee->id;
+
+                                $use_existings_payment = false;
+                                if (!$order->hasInvoice()) {
+                                    $use_existings_payment = true;
+                                }
+                                $history->changeIdOrderState((int)$order_state->id, $order, $use_existings_payment);
+
+                                // Save all changes
+                                if ($history->addWithemail(true)) {
+                                    // synchronizes quantities if needed..
+                                    if (Configuration::get('PS_ADVANCED_STOCK_MANAGEMENT')) {
+                                        foreach ($order->getProducts() as $product) {
+                                            if (StockAvailable::dependsOnStock($product['product_id'])) {
+                                                StockAvailable::synchronize($product['product_id'], (int)$product['id_shop']);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        $order->update();
                         Tools::redirectAdmin(self::$currentIndex.'&id_order='.$order->id.'&vieworder&conf=4&token='.$this->token);
                     }
                 }
             } else {
                 $this->errors[] = $this->trans('You do not have permission to edit this.', array(), 'Admin.Notifications.Error');
             }
-        } elseif (Tools::isSubmit('submitEditNote')) {
+        }
+        elseif (Tools::isSubmit('submitEditNote')) {
             $note = Tools::getValue('note');
             $order_invoice = new OrderInvoice((int)Tools::getValue('id_order_invoice'));
             if (Validate::isLoadedObject($order_invoice) && Validate::isCleanHtml($note)) {
@@ -1201,7 +2094,8 @@ class AdminOrdersControllerCore extends AdminController
             } else {
                 $this->errors[] = $this->trans('Failed to upload the invoice and edit its note.', array(), 'Admin.Orderscustomers.Notification');
             }
-        } elseif (Tools::isSubmit('submitAddOrder') && ($id_cart = Tools::getValue('id_cart')) &&
+        }
+        elseif (Tools::isSubmit('submitAddOrder') && ($id_cart = Tools::getValue('id_cart')) &&
             ($module_name = Tools::getValue('payment_module_name')) &&
             ($id_order_state = Tools::getValue('id_order_state')) && Validate::isModuleName($module_name)) {
             if ($this->access('edit')) {
@@ -1228,7 +2122,7 @@ class AdminOrdersControllerCore extends AdminController
                     $payment_module->validateOrder(
                         (int)$cart->id, (int)$id_order_state,
                         $cart->getOrderTotal(true, Cart::BOTH), $payment_module->displayName, $this->trans('Manual order -- Employee:', array(), 'Admin.Orderscustomers.Feature').' '.
-                        $employee->firstname, array(), null, false, $cart->secure_key
+                        substr($employee->firstname, 0, 1).'. '.$employee->lastname, array(), null, false, $cart->secure_key
                     );
                     if ($payment_module->currentOrder) {
                         Tools::redirectAdmin(self::$currentIndex.'&id_order='.$payment_module->currentOrder.'&vieworder'.'&token='.$this->token);
@@ -1237,7 +2131,8 @@ class AdminOrdersControllerCore extends AdminController
             } else {
                 $this->errors[] = $this->trans('You do not have permission to add this.', array(), 'Admin.Notifications.Error');
             }
-        } elseif ((Tools::isSubmit('submitAddressShipping') || Tools::isSubmit('submitAddressInvoice')) && isset($order)) {
+        }
+        elseif ((Tools::isSubmit('submitAddressShipping') || Tools::isSubmit('submitAddressInvoice')) && isset($order)) {
             if ($this->access('edit')) {
                 $address = new Address(Tools::getValue('id_address'));
                 if (Validate::isLoadedObject($address)) {
@@ -1257,7 +2152,8 @@ class AdminOrdersControllerCore extends AdminController
             } else {
                 $this->errors[] = $this->trans('You do not have permission to edit this.', array(), 'Admin.Notifications.Error');
             }
-        } elseif (Tools::isSubmit('submitChangeCurrency') && isset($order)) {
+        }
+        elseif (Tools::isSubmit('submitChangeCurrency') && isset($order)) {
             if ($this->access('edit')) {
                 if (Tools::getValue('new_currency') != $order->id_currency && !$order->valid) {
                     $old_currency = new Currency($order->id_currency);
@@ -1353,7 +2249,8 @@ class AdminOrdersControllerCore extends AdminController
             } else {
                 $this->errors[] = $this->trans('You do not have permission to edit this.', array(), 'Admin.Notifications.Error');
             }
-        } elseif (Tools::isSubmit('submitGenerateInvoice') && isset($order)) {
+        }
+        elseif (Tools::isSubmit('submitGenerateInvoice') && isset($order)) {
             if (!Configuration::get('PS_INVOICE', null, null, $order->id_shop)) {
                 $this->errors[] = $this->trans('Invoice management has been disabled.', array(), 'Admin.Orderscustomers.Notification');
             } elseif ($order->hasInvoice()) {
@@ -1362,7 +2259,8 @@ class AdminOrdersControllerCore extends AdminController
                 $order->setInvoice(true);
                 Tools::redirectAdmin(self::$currentIndex.'&id_order='.$order->id.'&vieworder&conf=4&token='.$this->token);
             }
-        } elseif (Tools::isSubmit('submitDeleteVoucher') && isset($order)) {
+        }
+        elseif (Tools::isSubmit('submitDeleteVoucher') && isset($order)) {
             if ($this->access('edit')) {
                 $order_cart_rule = new OrderCartRule(Tools::getValue('id_order_cart_rule'));
                 if (Validate::isLoadedObject($order_cart_rule) && $order_cart_rule->id_order == $order->id) {
@@ -1402,7 +2300,8 @@ class AdminOrdersControllerCore extends AdminController
             } else {
                 $this->errors[] = $this->trans('You do not have permission to edit this.', array(), 'Admin.Notifications.Error');
             }
-        } elseif (Tools::isSubmit('submitNewVoucher') && isset($order)) {
+        }
+        elseif (Tools::isSubmit('submitNewVoucher') && isset($order)) {
             if ($this->access('edit')) {
                 if (!Tools::getValue('discount_name')) {
                     $this->errors[] = $this->trans('You must specify a name in order to create a new discount.', array(), 'Admin.Orderscustomers.Notification');
@@ -1424,8 +2323,8 @@ class AdminOrdersControllerCore extends AdminController
                         case 1:
                             if ($discount_value < 100) {
                                 if (isset($order_invoice)) {
-                                    $cart_rules[$order_invoice->id]['value_tax_incl'] = Tools::ps_round($order_invoice->total_paid_tax_incl * $discount_value / 100, 2);
-                                    $cart_rules[$order_invoice->id]['value_tax_excl'] = Tools::ps_round($order_invoice->total_paid_tax_excl * $discount_value / 100, 2);
+                                    $cart_rules[$order_invoice->id]['value_tax_incl'] = Tools::ps_round($order_invoice->total_paid_tax_incl * $discount_value / 100, 4);
+                                    $cart_rules[$order_invoice->id]['value_tax_excl'] = Tools::ps_round($order_invoice->total_paid_tax_excl * $discount_value / 100, 4);
 
                                     // Update OrderInvoice
                                     $this->applyDiscountOnInvoice($order_invoice, $cart_rules[$order_invoice->id]['value_tax_incl'], $cart_rules[$order_invoice->id]['value_tax_excl']);
@@ -1440,8 +2339,8 @@ class AdminOrdersControllerCore extends AdminController
                                         $this->applyDiscountOnInvoice($order_invoice, $cart_rules[$order_invoice->id]['value_tax_incl'], $cart_rules[$order_invoice->id]['value_tax_excl']);
                                     }
                                 } else {
-                                    $cart_rules[0]['value_tax_incl'] = Tools::ps_round($order->total_paid_tax_incl * $discount_value / 100, 2);
-                                    $cart_rules[0]['value_tax_excl'] = Tools::ps_round($order->total_paid_tax_excl * $discount_value / 100, 2);
+                                    $cart_rules[0]['value_tax_incl'] = Tools::ps_round($order->total_paid_tax_incl * $discount_value / 100, 3);
+                                    $cart_rules[0]['value_tax_excl'] = Tools::ps_round($order->total_paid_tax_excl * $discount_value / 100, 3);
                                 }
                             } else {
                                 $this->errors[] = $this->trans('The discount value is invalid.', array(), 'Admin.Orderscustomers.Notification');
@@ -1570,7 +2469,8 @@ class AdminOrdersControllerCore extends AdminController
             } else {
                 $this->errors[] = $this->trans('You do not have permission to edit this.', array(), 'Admin.Notifications.Error');
             }
-        } elseif (Tools::isSubmit('sendStateEmail') && Tools::getValue('sendStateEmail') > 0 && Tools::getValue('id_order') > 0) {
+        }
+        elseif (Tools::isSubmit('sendStateEmail') && Tools::getValue('sendStateEmail') > 0 && Tools::getValue('id_order') > 0) {
             if ($this->access('edit')) {
                 $order_state = new OrderState((int)Tools::getValue('sendStateEmail'));
 
@@ -1596,20 +2496,82 @@ class AdminOrdersControllerCore extends AdminController
             }
         }
 
+        elseif (Tools::isSubmit('submitNuevoCliente') && isset($order)) {
+            $id_order_buscar = Tools::getValue('id_order');
+            $id_nuevo_customer = Tools::getValue('id_nuevo_customer');
+            if ($id_nuevo_customer == 0)
+                $id_nuevo_customer = 1;
+
+
+            if (Validate::isLoadedObject($order) && Validate::isCleanHtml($id_order_buscar)) {
+                if ($this->access('edit')) {
+                    $order->id_customer = $id_nuevo_customer;
+                    if ($id_nuevo_customer > 0){
+                        if ($order->save()) {
+                            $this->confirmations[] = 'El cliente se a cambiado.';
+                            Tools::redirectAdmin(self::$currentIndex.'&id_order='.(int)$order->id.'&vieworder&token='.$this->token);
+
+                        } else {
+                            $this->errors[] = $this->trans('No se pudo guardar el cliente.', array(), 'Admin.Orderscustomers.Notification');
+                        }
+                    }
+                    else{
+                        $this->errors[] = $this->trans('Porfavor Seleccione un Cliente Valido.', array(), 'Admin.Orderscustomers.Notification');
+                    }
+                }
+                else {
+                    $this->errors[] = $this->trans('You do not have permission to edit this.', array(), 'Admin.Notifications.Error');
+                }
+            }
+            else {
+                $this->errors[] = $this->trans('Failed to upload the invoice and edit its note.', array(), 'Admin.Orderscustomers.Notification');
+            }
+        }
+        elseif (Tools::isSubmit('submitNuevoProveedor') && isset($order)) {
+            $id_order_buscar = Tools::getValue('id_order');
+            $id_nuevo_proveedor = Tools::getValue('cb_proveedores');
+
+            if (Validate::isLoadedObject($order) && Validate::isCleanHtml($id_order_buscar)) {
+                if ($this->access('edit')) {
+                    $order->cliente_empresa = "Empresa";
+                    $order->id_supplier = $id_nuevo_proveedor;
+                    if ($id_nuevo_proveedor >= 0){
+                        if ($order->save()) {
+//                            $this->confirmations[] = 'El cliente se a cambiado.';
+                            Tools::redirectAdmin(self::$currentIndex.'&id_order='.(int)$order->id.'&vieworder&token='.$this->token);
+
+                        } else {
+                            $this->errors[] = $this->trans('The invoice note was not saved.', array(), 'Admin.Orderscustomers.Notification');
+                        }
+                    }
+                    else{
+                        $this->errors[] = $this->trans('Porfavor Seleccione una Empresa Valida.', array(), 'Admin.Orderscustomers.Notification');
+                    }
+                }
+                else {
+                    $this->errors[] = $this->trans('You do not have permission to edit this.', array(), 'Admin.Notifications.Error');
+                }
+            }
+            else {
+                $this->errors[] = $this->trans('Failed to upload the invoice and edit its note.', array(), 'Admin.Orderscustomers.Notification');
+            }
+        }
+
         parent::postProcess();
     }
 
-    public function render123Kpis()
+    public function renderbcaKpis()
     {
         $time = time();
         $kpis = array();
+
 
         /* The data generation is located in AdminStatsControllerCore */
 
         $helper = new HelperKpi();
         $helper->id = 'box-conversion-rate';
         $helper->icon = 'icon-sort-by-attributes-alt';
-        //$helper->chart = true;
+        $helper->chart = true;
         $helper->color = 'color1';
         $helper->title = $this->trans('Conversion Rate', array(), 'Admin.Global');
         $helper->subtitle = $this->trans('30 days', array(), 'Admin.Global');
@@ -1665,15 +2627,32 @@ class AdminOrdersControllerCore extends AdminController
 
         $helper = new HelperKpiRow();
         $helper->kpis = $kpis;
+
         return $helper->generate();
+    }
+
+    public function ajaxProcessChangeMetodoPago(){
+
+        $context = Context::getContext();
+        $context->cookie->__set("metodo_pago", Tools::getValue('metodo_pago'));
+
     }
 
     public function renderView()
     {
+
         $order = new Order(Tools::getValue('id_order'));
         if (!Validate::isLoadedObject($order)) {
             $this->errors[] = $this->trans('The order cannot be found within your database.', array(), 'Admin.Orderscustomers.Notification');
         }
+
+//        d($this->context->cookie->metodo_pago);
+        $metodo_pago = $this->context->cookie->metodo_pago;
+        if(!$this->context->cookie->metodo_pago){
+            $this->context->cookie->__set("metodo_pago", 1);
+            $metodo_pago = $this->context->cookie->metodo_pago;
+        }
+
 
         $customer = new Customer($order->id_customer);
         $carrier = new Carrier($order->id_carrier);
@@ -1707,7 +2686,7 @@ class AdminOrdersControllerCore extends AdminController
         }
 
         $this->toolbar_title = $this->trans(
-            'Order #%id% (%ref%) - %firstname%',
+            'Order #%id% (%ref%) - %firstname% %lastname%',
             array(
                 '%id%' => $order->id,
                 '%ref%' => $order->reference,
@@ -1716,6 +2695,7 @@ class AdminOrdersControllerCore extends AdminController
             ),
             'Admin.Orderscustomers.Feature'
         );
+
         if (Shop::isFeatureActive()) {
             $shop = new Shop((int)$order->id_shop);
             $this->toolbar_title .= ' - '.$this->trans('Shop: %shop_name%', array('%shop_name%' => $shop->name), 'Admin.Orderscustomers.Feature');
@@ -1726,11 +2706,10 @@ class AdminOrdersControllerCore extends AdminController
 
         $order_details = $order->getOrderDetailList();
         foreach ($order_details as $order_detail) {
-            $product = new Product($order_detail['product_id']);
-
-            if (Configuration::get('PS_ADVANCED_STOCK_MANAGEMENT')
-                && $product->advanced_stock_management) {
+            $product = new ProductCore((int)$order_detail['product_id']);
+            if (Configuration::get('PS_ADVANCED_STOCK_MANAGEMENT') && $product->advanced_stock_management) {
                 $warehouses = Warehouse::getWarehousesByProductId($order_detail['product_id'], $order_detail['product_attribute_id']);
+
                 foreach ($warehouses as $warehouse) {
                     if (!isset($warehouse_list[$warehouse['id_warehouse']])) {
                         $warehouse_list[$warehouse['id_warehouse']] = $warehouse;
@@ -1738,6 +2717,7 @@ class AdminOrdersControllerCore extends AdminController
                 }
             }
         }
+
 
         $payment_methods = array();
         foreach (PaymentModule::getInstalledPaymentModules() as $payment) {
@@ -1762,7 +2742,7 @@ class AdminOrdersControllerCore extends AdminController
             if (is_array($product['customizedDatas'])) {
                 foreach ($product['customizedDatas'] as $customizationPerAddress) {
                     foreach ($customizationPerAddress as $customizationId => $customization) {
-                        $customized_product_quantity += (int)$customization['quantity'];
+                        $customized_product_quantity += (float)$customization['quantity'];
                     }
                 }
             }
@@ -1779,7 +2759,7 @@ class AdminOrdersControllerCore extends AdminController
 
             // if the current stock requires a warning
             if ($product['current_stock'] <= 0 && $display_out_of_stock_warning) {
-                $this->displayWarning($this->trans('This product is out of stock: ', array(), 'Admin.Orderscustomers.Notification').' '.$product['product_name']);
+//                $this->displayWarning($this->trans('This product is out of stock: ', array(), 'Admin.Orderscustomers.Notification').' '.$product['product_name']);
             }
             if ($product['id_warehouse'] != 0) {
                 $warehouse = new Warehouse((int)$product['id_warehouse']);
@@ -1798,12 +2778,14 @@ class AdminOrdersControllerCore extends AdminController
 
         // Package management for order
         foreach ($products as &$product) {
+//            d($product['product_name']);
             $pack_items = $product['cache_is_pack'] ? Pack::getItemTable($product['id_product'], $this->context->language->id, true) : array();
             foreach ($pack_items as &$pack_item) {
+
                 $pack_item['current_stock'] = StockAvailable::getQuantityAvailableByProduct($pack_item['id_product'], $pack_item['id_product_attribute'], $pack_item['id_shop']);
                 // if the current stock requires a warning
                 if ($product['current_stock'] <= 0 && $display_out_of_stock_warning) {
-                    $this->displayWarning($this->trans('This product, included in package ('.$product['product_name'].') is out of stock: ', array(), 'Admin.Orderscustomers.Notification').' '.$pack_item['product_name']);
+//                    $this->displayWarning($this->trans('Este producto, incluido en el pack ('.$product['product_name'].') esta fuera de stock: ', array(), 'Admin.Orderscustomers.Notification').' '.$pack_item['name']);
                 }
                 $this->setProductImageInformations($pack_item);
                 if ($pack_item['image'] != null) {
@@ -1838,8 +2820,23 @@ class AdminOrdersControllerCore extends AdminController
         $shipping_refundable_tax_excl = max(0, $shipping_refundable_tax_excl);
         $shipping_refundable_tax_incl = max(0, $shipping_refundable_tax_incl);
 
+        $certificado = Certificadofe::getByAllShop();
+        $doc = PosOrdercomprobantes::getComprobantesByOrderLimit($order->id);
+        if (!empty($doc)){
+            $objComprobantes = new PosOrdercomprobantes($doc['id_pos_ordercomprobantes']);
+        }
+
+        $cajas = PosArqueoscaja::cajasAbiertasJoinEmpleado();
+
+
         // Smarty assign
         $this->tpl_view_vars = array(
+            'metodo_pago' => $metodo_pago,
+            'perfil_empleado' => $this->nombre_access['name'],
+            'existeCajasAbiertas' => $this->existeCajasAbiertas,
+            'objComprobantes'=>$objComprobantes,
+            'certificado'=>$certificado,
+            'cajas'=>$cajas,
             'order' => $order,
             'cart' => new Cart($order->id_cart),
             'customer' => $customer,
@@ -1886,24 +2883,24 @@ class AdminOrdersControllerCore extends AdminController
             'carrier_list' => $this->getCarrierList($order),
             'recalculate_shipping_cost' => (int)Configuration::get('PS_ORDER_RECALCULATE_SHIPPING'),
             'HOOK_CONTENT_ORDER' => Hook::exec('displayAdminOrderContentOrder', array(
-                'order' => $order,
-                'products' => $products,
-                'customer' => $customer)
+                    'order' => $order,
+                    'products' => $products,
+                    'customer' => $customer)
             ),
             'HOOK_CONTENT_SHIP' => Hook::exec('displayAdminOrderContentShip', array(
-                'order' => $order,
-                'products' => $products,
-                'customer' => $customer)
+                    'order' => $order,
+                    'products' => $products,
+                    'customer' => $customer)
             ),
             'HOOK_TAB_ORDER' => Hook::exec('displayAdminOrderTabOrder', array(
-                'order' => $order,
-                'products' => $products,
-                'customer' => $customer)
+                    'order' => $order,
+                    'products' => $products,
+                    'customer' => $customer)
             ),
             'HOOK_TAB_SHIP' => Hook::exec('displayAdminOrderTabShip', array(
-                'order' => $order,
-                'products' => $products,
-                'customer' => $customer)
+                    'order' => $order,
+                    'products' => $products,
+                    'customer' => $customer)
             ),
         );
 
@@ -1914,13 +2911,17 @@ class AdminOrdersControllerCore extends AdminController
     {
         Context::getContext()->customer = new Customer((int)Tools::getValue('id_customer'));
         $currency = new Currency((int)Tools::getValue('id_currency'));
-        if ($products = Product::searchByName((int)$this->context->language->id, pSQL(Tools::getValue('product_search')))) {
+
+        //exclude ids
+        $ids_prod = Db::getInstance()->getValue('SELECT GROUP_CONCAT(product_id)  FROM tm_order_detail where id_order = '. (int)Tools::getValue('id_order'));
+
+        if ($products = Product::searchByName((int)$this->context->language->id, pSQL(Tools::getValue('product_search')), null, $ids_prod)) {
             foreach ($products as &$product) {
                 // Formatted price
                 $product['formatted_price'] = Tools::displayPrice(Tools::convertPrice($product['price_tax_incl'], $currency), $currency);
                 // Concret price
-                $product['price_tax_incl'] = Tools::ps_round(Tools::convertPrice($product['price_tax_incl'], $currency), 2);
-                $product['price_tax_excl'] = Tools::ps_round(Tools::convertPrice($product['price_tax_excl'], $currency), 2);
+                $product['price_tax_incl'] = Tools::ps_round(Tools::convertPrice($product['price_tax_incl'], $currency), 4);
+                $product['price_tax_excl'] = Tools::ps_round(Tools::convertPrice($product['price_tax_excl'], $currency), 4);
                 $productObj = new Product((int)$product['id_product'], false, (int)$this->context->language->id);
                 $combinations = array();
                 $attributes = $productObj->getAttributesGroups((int)$this->context->language->id);
@@ -1942,8 +2943,8 @@ class AdminOrdersControllerCore extends AdminController
                     if (!isset($combinations[$attribute['id_product_attribute']]['price'])) {
                         $price_tax_incl = Product::getPriceStatic((int)$product['id_product'], true, $attribute['id_product_attribute']);
                         $price_tax_excl = Product::getPriceStatic((int)$product['id_product'], false, $attribute['id_product_attribute']);
-                        $combinations[$attribute['id_product_attribute']]['price_tax_incl'] = Tools::ps_round(Tools::convertPrice($price_tax_incl, $currency), 2);
-                        $combinations[$attribute['id_product_attribute']]['price_tax_excl'] = Tools::ps_round(Tools::convertPrice($price_tax_excl, $currency), 2);
+                        $combinations[$attribute['id_product_attribute']]['price_tax_incl'] = Tools::ps_round(Tools::convertPrice($price_tax_incl, $currency), 4);
+                        $combinations[$attribute['id_product_attribute']]['price_tax_excl'] = Tools::ps_round(Tools::convertPrice($price_tax_excl, $currency), 4);
                         $combinations[$attribute['id_product_attribute']]['formatted_price'] = Tools::displayPrice(Tools::convertPrice($price_tax_excl, $currency), $currency);
                     }
                     if (!isset($combinations[$attribute['id_product_attribute']]['qty_in_stock'])) {
@@ -2003,25 +3004,25 @@ class AdminOrdersControllerCore extends AdminController
                     );
                     $cartLanguage = new Language((int) $cart->id_lang);
                     if (
-                        Mail::Send(
-                            (int)$cart->id_lang,
-                            'backoffice_order',
-                            $this->trans(
-                                'Process the payment of your order',
-                                array(),
-                                'Emails.Subject',
-                                $cartLanguage->locale
-                            ),
-                            $mailVars,
-                            $customer->email,
-                            $customer->firstname.' '.$customer->lastname,
-                            null,
-                            null,
-                            null,
-                            null,
-                            _PS_MAIL_DIR_,
-                            true,
-                            $cart->id_shop)
+                    Mail::Send(
+                        (int)$cart->id_lang,
+                        'backoffice_order',
+                        $this->trans(
+                            'Process the payment of your order',
+                            array(),
+                            'Emails.Subject',
+                            $cartLanguage->locale
+                        ),
+                        $mailVars,
+                        $customer->email,
+                        $customer->firstname.' '.$customer->lastname,
+                        null,
+                        null,
+                        null,
+                        null,
+                        _PS_MAIL_DIR_,
+                        true,
+                        $cart->id_shop)
                     ) {
                         die(json_encode(array('errors' => false, 'result' => $this->trans('The email was sent to your customer.', array(), 'Admin.Orderscustomers.Notification'))));
                     }
@@ -2033,6 +3034,8 @@ class AdminOrdersControllerCore extends AdminController
 
     public function ajaxProcessAddProductOnOrder()
     {
+
+
         // Load object
         $order = new Order((int)Tools::getValue('id_order'));
         if (!Validate::isLoadedObject($order)) {
@@ -2041,6 +3044,7 @@ class AdminOrdersControllerCore extends AdminController
                 'error' => $this->trans('The order object cannot be loaded.', array(), 'Admin.Orderscustomers.Notification')
             )));
         }
+
 
         $old_cart_rules = Context::getContext()->cart->getCartRules();
 
@@ -2052,11 +3056,15 @@ class AdminOrdersControllerCore extends AdminController
         }
 
         $product_informations = $_POST['add_product'];
+
         if (isset($_POST['add_invoice'])) {
             $invoice_informations = $_POST['add_invoice'];
         } else {
             $invoice_informations = array();
         }
+
+//        d($product_informations['product_id']);
+//        d(Language::getLanguage($order->id_lang));
         $product = new Product($product_informations['product_id'], false, $order->id_lang);
         if (!Validate::isLoadedObject($product)) {
             die(json_encode(array(
@@ -2089,7 +3097,6 @@ class AdminOrdersControllerCore extends AdminController
         $cart->id_currency = $order->id_currency;
         $cart->id_lang = $order->id_lang;
         $cart->secure_key = $order->secure_key;
-
         // Save new cart
         $cart->add();
 
@@ -2143,10 +3150,12 @@ class AdminOrdersControllerCore extends AdminController
         // If order is valid, we can create a new invoice or edit an existing invoice
         if ($order->hasInvoice()) {
             $order_invoice = new OrderInvoice($product_informations['invoice']);
+
             // Create new invoice
             if ($order_invoice->id == 0) {
                 // If we create a new invoice, we calculate shipping cost
                 $total_method = Cart::BOTH;
+
                 // Create Cart rule in order to make free shipping
                 if (isset($invoice_informations['free_shipping']) && $invoice_informations['free_shipping']) {
                     $cart_rule = new CartRule();
@@ -2181,11 +3190,13 @@ class AdminOrdersControllerCore extends AdminController
                 }
 
                 $invoice_address = new Address((int)$order->{Configuration::get('PS_TAX_ADDRESS_TYPE', null, null, $order->id_shop)});
+
                 $carrier = new Carrier((int)$order->id_carrier);
+
                 $tax_calculator = $carrier->getTaxCalculator($invoice_address);
 
-                $order_invoice->total_paid_tax_excl = Tools::ps_round((float)$cart->getOrderTotal(false, $total_method), 2);
-                $order_invoice->total_paid_tax_incl = Tools::ps_round((float)$cart->getOrderTotal($use_taxes, $total_method), 2);
+                $order_invoice->total_paid_tax_excl = Tools::ps_round((float)$cart->getOrderTotal(false, $total_method), 4);
+                $order_invoice->total_paid_tax_incl = Tools::ps_round((float)$cart->getOrderTotal($use_taxes, $total_method), 4);
                 $order_invoice->total_products = (float)$cart->getOrderTotal(false, Cart::ONLY_PRODUCTS);
                 $order_invoice->total_products_wt = (float)$cart->getOrderTotal($use_taxes, Cart::ONLY_PRODUCTS);
                 $order_invoice->total_shipping_tax_excl = (float)$cart->getTotalShippingCost(null, false);
@@ -2217,8 +3228,8 @@ class AdminOrdersControllerCore extends AdminController
                 $order_carrier->add();
             } else {
                 // Update current invoice
-                $order_invoice->total_paid_tax_excl += Tools::ps_round((float)($cart->getOrderTotal(false, $total_method)), 2);
-                $order_invoice->total_paid_tax_incl += Tools::ps_round((float)($cart->getOrderTotal($use_taxes, $total_method)), 2);
+                $order_invoice->total_paid_tax_excl += Tools::ps_round((float)($cart->getOrderTotal(false, $total_method)), 4);
+                $order_invoice->total_paid_tax_incl += Tools::ps_round((float)($cart->getOrderTotal($use_taxes, $total_method)), 4);
                 $order_invoice->total_products += (float)$cart->getOrderTotal(false, Cart::ONLY_PRODUCTS);
                 $order_invoice->total_products_wt += (float)$cart->getOrderTotal($use_taxes, Cart::ONLY_PRODUCTS);
                 $order_invoice->update();
@@ -2233,9 +3244,9 @@ class AdminOrdersControllerCore extends AdminController
         $order->total_products += (float)$cart->getOrderTotal(false, Cart::ONLY_PRODUCTS);
         $order->total_products_wt += (float)$cart->getOrderTotal($use_taxes, Cart::ONLY_PRODUCTS);
 
-        $order->total_paid += Tools::ps_round((float)($cart->getOrderTotal(true, $total_method)), 2);
-        $order->total_paid_tax_excl += Tools::ps_round((float)($cart->getOrderTotal(false, $total_method)), 2);
-        $order->total_paid_tax_incl += Tools::ps_round((float)($cart->getOrderTotal($use_taxes, $total_method)), 2);
+        $order->total_paid += Tools::ps_round((float)($cart->getOrderTotal(true, $total_method)), 3);
+        $order->total_paid_tax_excl += Tools::ps_round((float)($cart->getOrderTotal(false, $total_method)), 3);
+        $order->total_paid_tax_incl += Tools::ps_round((float)($cart->getOrderTotal($use_taxes, $total_method)), 3);
 
         if (isset($order_invoice) && Validate::isLoadedObject($order_invoice)) {
             $order->total_shipping = $order_invoice->total_shipping_tax_incl;
@@ -2253,13 +3264,13 @@ class AdminOrdersControllerCore extends AdminController
         StockAvailable::synchronize($product->id);
 
         // Update weight SUM
-        $order_carrier = new OrderCarrier((int)$order->getIdOrderCarrier());
-        if (Validate::isLoadedObject($order_carrier)) {
-            $order_carrier->weight = (float)$order->getTotalWeight();
-            if ($order_carrier->update()) {
-                $order->weight = sprintf("%.3f ".Configuration::get('PS_WEIGHT_UNIT'), $order_carrier->weight);
-            }
-        }
+//        $order_carrier = new OrderCarrier((int)$order->getIdOrderCarrier());
+//        if (Validate::isLoadedObject($order_carrier)) {
+//            $order_carrier->weight = (float)$order->getTotalWeight();
+//            if ($order_carrier->update()) {
+//                $order->weight = sprintf("%.3f ".Configuration::get('PS_WEIGHT_UNIT'), $order_carrier->weight);
+//            }
+//        }
 
         // Update Tax lines
         $order_detail->updateTaxAmount($order);
@@ -2302,7 +3313,7 @@ class AdminOrdersControllerCore extends AdminController
             $invoice->name = $invoice->getInvoiceNumberFormatted(Context::getContext()->language->id, (int)$order->id_shop);
             $invoice_array[] = $invoice;
         }
-
+//        d($new_cart_rules);
         $order = $order->refreshShippingCost();
 
         // Assign to smarty informations in order to show the new product line
@@ -2331,9 +3342,9 @@ class AdminOrdersControllerCore extends AdminController
             // Create OrderCartRule
             $rule = new CartRule($cart_rule['id_cart_rule']);
             $values = array(
-                    'tax_incl' => $rule->getContextualValue(true),
-                    'tax_excl' => $rule->getContextualValue(false)
-                    );
+                'tax_incl' => $rule->getContextualValue(true),
+                'tax_excl' => $rule->getContextualValue(false)
+            );
             $order_cart_rule = new OrderCartRule();
             $order_cart_rule->id_order = $order->id;
             $order_cart_rule->id_cart_rule = $cart_rule['id_cart_rule'];
@@ -2354,6 +3365,7 @@ class AdminOrdersControllerCore extends AdminController
         // Update Order
         $res &= $order->update();
 
+        $order->pagado = $order->getTotalPaid();
 
         die(json_encode(array(
             'result' => true,
@@ -2379,7 +3391,9 @@ class AdminOrdersControllerCore extends AdminController
 
     public function ajaxProcessLoadProductInformation()
     {
+
         $order_detail = new OrderDetail(Tools::getValue('id_order_detail'));
+
         if (!Validate::isLoadedObject($order_detail)) {
             die(json_encode(array(
                 'result' => false,
@@ -2396,12 +3410,13 @@ class AdminOrdersControllerCore extends AdminController
         }
 
         $address = new Address(Tools::getValue('id_address'));
-        if (!Validate::isLoadedObject($address)) {
-            die(json_encode(array(
-                'result' => false,
-                'error' => $this->trans('The address object cannot be loaded.', array(), 'Admin.Orderscustomers.Notification')
-            )));
-        }
+//        d($address);
+//        if (!Validate::isLoadedObject($address)) {
+//            die(json_encode(array(
+//                'result' => false,
+//                'error' => $this->trans('The address object cannot be loaded.', array(), 'Admin.Orderscustomers.Notification')
+//            )));
+//        }
 
         die(json_encode(array(
             'result' => true,
@@ -2432,7 +3447,7 @@ class AdminOrdersControllerCore extends AdminController
         if (is_array(Tools::getValue('product_quantity'))) {
             foreach (Tools::getValue('product_quantity') as $id_customization => $qty) {
                 // Update quantity of each customization
-                Db::getInstance()->update('customization', array('quantity' => (int)$qty), 'id_customization = '.(int)$id_customization);
+                Db::getInstance()->update('customization', array('quantity' => (float)$qty), 'id_customization = '.(int)$id_customization);
                 // Calculate the real quantity of the product
                 $product_quantity += $qty;
             }
@@ -2440,8 +3455,8 @@ class AdminOrdersControllerCore extends AdminController
             $product_quantity = Tools::getValue('product_quantity');
         }
 
-        $product_price_tax_incl = Tools::ps_round(Tools::getValue('product_price_tax_incl'), 2);
-        $product_price_tax_excl = Tools::ps_round(Tools::getValue('product_price_tax_excl'), 2);
+        $product_price_tax_incl = Tools::ps_round(Tools::getValue('product_price_tax_incl'), 4);
+        $product_price_tax_excl = Tools::ps_round(Tools::getValue('product_price_tax_excl'), 4);
         $total_products_tax_incl = $product_price_tax_incl * $product_quantity;
         $total_products_tax_excl = $product_price_tax_excl * $product_quantity;
 
@@ -2511,7 +3526,7 @@ class AdminOrdersControllerCore extends AdminController
 
         // Save order detail
         $res &= $order_detail->update();
-
+//        d($order->getIdOrderCarrier());
         // Update weight SUM
         $order_carrier = new OrderCarrier((int)$order->getIdOrderCarrier());
         if (Validate::isLoadedObject($order_carrier)) {
@@ -2564,6 +3579,7 @@ class AdminOrdersControllerCore extends AdminController
 
         $order = $order->refreshShippingCost();
 
+
         // Assign to smarty informations in order to show the new product line
         $this->context->smarty->assign(array(
             'product' => $product,
@@ -2592,6 +3608,8 @@ class AdminOrdersControllerCore extends AdminController
         }
 
         $this->sendChangedNotification($order);
+
+        $order->pagado = $order->getTotalPaid();
 
         die(json_encode(array(
             'result' => $res,
@@ -2677,6 +3695,7 @@ class AdminOrdersControllerCore extends AdminController
         ));
 
         $this->sendChangedNotification($order);
+        $order->pagado = $order->getTotalPaid();
 
         die(json_encode(array(
             'result' => $res,
@@ -2736,6 +3755,7 @@ class AdminOrdersControllerCore extends AdminController
         $product_price_tax_incl = str_replace(',', '.', Tools::getValue('product_price_tax_incl'));
         $product_price_tax_excl = str_replace(',', '.', Tools::getValue('product_price_tax_excl'));
 
+//        d($product_price_tax_excl);
         if (!Validate::isPrice($product_price_tax_incl) || !Validate::isPrice($product_price_tax_excl)) {
             die(json_encode(array(
                 'result' => false,
@@ -2743,14 +3763,14 @@ class AdminOrdersControllerCore extends AdminController
             )));
         }
 
-        if (!is_array(Tools::getValue('product_quantity')) && !Validate::isUnsignedInt(Tools::getValue('product_quantity'))) {
+        if (!is_array(Tools::getValue('product_quantity')) && !Validate::isUnsignedFloat(Tools::getValue('product_quantity'))) {
             die(json_encode(array(
                 'result' => false,
                 'error' => $this->trans('Invalid quantity', array(), 'Admin.Orderscustomers.Notification')
             )));
         } elseif (is_array(Tools::getValue('product_quantity'))) {
             foreach (Tools::getValue('product_quantity') as $qty) {
-                if (!Validate::isUnsignedInt($qty)) {
+                if (!Validate::isUnsignedFloat($qty)) {
                     die(json_encode(array(
                         'result' => false,
                         'error' => $this->trans('Invalid quantity', array(), 'Admin.Orderscustomers.Notification')
@@ -2758,6 +3778,7 @@ class AdminOrdersControllerCore extends AdminController
                 }
             }
         }
+
     }
 
     protected function doDeleteProductLineValidation(OrderDetail $order_detail, Order $order)
@@ -2826,7 +3847,7 @@ class AdminOrdersControllerCore extends AdminController
     protected function reinjectQuantity($order_detail, $qty_cancel_product, $delete = false)
     {
         // Reinject product
-        $reinjectable_quantity = (int)$order_detail->product_quantity - (int)$order_detail->product_quantity_reinjected;
+        $reinjectable_quantity = (float)$order_detail->product_quantity - (float)$order_detail->product_quantity_reinjected;
         $quantity_to_reinject = $qty_cancel_product > $reinjectable_quantity ? $reinjectable_quantity : $qty_cancel_product;
         // @since 1.5.0 : Advanced Stock Management
         $product_to_inject = new Product($order_detail->product_id, false, (int)$this->context->language->id, (int)$order_detail->id_shop);
@@ -2836,11 +3857,11 @@ class AdminOrdersControllerCore extends AdminController
         if (Configuration::get('PS_ADVANCED_STOCK_MANAGEMENT') && $product->advanced_stock_management && $order_detail->id_warehouse != 0) {
             $manager = StockManagerFactory::getManager();
             $movements = StockMvt::getNegativeStockMvts(
-                                $order_detail->id_order,
-                                $order_detail->product_id,
-                                $order_detail->product_attribute_id,
-                                $quantity_to_reinject
-                            );
+                $order_detail->id_order,
+                $order_detail->product_id,
+                $order_detail->product_attribute_id,
+                $quantity_to_reinject
+            );
             $left_to_reinject = $quantity_to_reinject;
             foreach ($movements as $movement) {
                 if ($left_to_reinject > $movement['physical_quantity']) {
@@ -2880,17 +3901,6 @@ class AdminOrdersControllerCore extends AdminController
                         )
                     ) {
                         $manager->addProduct(
-                                $order_detail->product_id,
-                                $order_detail->product_attribute_id,
-                                new Warehouse($movement['id_warehouse']),
-                                $quantity_to_reinject,
-                                null,
-                                $movement['price_te'],
-                                true
-                            );
-                    }
-                } else {
-                    $manager->addProduct(
                             $order_detail->product_id,
                             $order_detail->product_attribute_id,
                             new Warehouse($movement['id_warehouse']),
@@ -2899,6 +3909,17 @@ class AdminOrdersControllerCore extends AdminController
                             $movement['price_te'],
                             true
                         );
+                    }
+                } else {
+                    $manager->addProduct(
+                        $order_detail->product_id,
+                        $order_detail->product_attribute_id,
+                        new Warehouse($movement['id_warehouse']),
+                        $quantity_to_reinject,
+                        null,
+                        $movement['price_te'],
+                        true
+                    );
                 }
             }
 
@@ -2985,10 +4006,10 @@ class AdminOrdersControllerCore extends AdminController
     }
 
     /**
-    *
-    * This method allow to add image information on a package detail
-    * @param array &pack_item
-    */
+     *
+     * This method allow to add image information on a package detail
+     * @param array &pack_item
+     */
     protected function setProductImageInformations(&$pack_item)
     {
         if (isset($pack_item['id_product_attribute']) && $pack_item['id_product_attribute']) {
@@ -3027,4 +4048,1225 @@ class AdminOrdersControllerCore extends AdminController
         $address = new Address((int) $cart->id_address_delivery);
         return Carrier::getCarriersForOrder(Address::getZoneById((int) $address->id), null, $cart);
     }
+
+    public function ajaxProcessGetOrdersTimes(){
+        $ordenes = Order::getOrdersTimes();
+        die(Tools::jsonEncode(array('errors' => false, 'ordenes' => $ordenes)));
+    }
+
+    public function initProcess()
+    {
+        parent::initProcess();
+//        $action = Tools::getValue('submitAction');
+//        $this->action = $action;
+
+    }
+
+    public function ajaxProcessRealizarXMLComprobante(){
+
+//        d(Tools::getAllValues());
+        $tienda_actual = new Shop((int)$this->context->shop->id); //
+        $nombre_virtual_uri = $tienda_actual->virtual_uri;
+        $tipo_comprobante = Tools::getValue("tipo_comprobante");
+        $arr = Certificadofe::getCertificado();
+        if ($arr && (int)$arr > 0){
+            $objCerti = new Certificadofe((int)$arr); // buscar el certificado
+            if (!(bool)$objCerti->active){
+                $this->errors[] = "La ".$tipo_comprobante." no se pudo enviar: No hay un certificado valido";
+                return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+            }
+        }else{
+            $this->errors[] = "La ".$tipo_comprobante." no se pudo enviar: No hay un certificado valido";
+            return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+        }
+
+        if (($id_order = Tools::getValue("id_order"))){
+            $order = new Order((int)$id_order);
+
+            $id_cliente = Tools::getValue("id_customer");
+
+            if ($cliente = Customer::getCustomerByDocumento(Tools::getValue('nro_documento'))){
+                $id_cliente = $cliente['id_customer'];
+            }
+
+            if ($id_cliente){
+                $order->id_customer = $id_cliente;
+                $customer = new Customer((int)$id_cliente);
+                $customer->direccion = Tools::getValue('direccion') !== ""?Tools::getValue('direccion'):"no hay direccion";
+                $customer->update();
+            }
+            else{
+                $customer = new Customer();
+                $customer->id_shop_group = Context::getContext()->shop->id_shop_group;
+                $customer->id_shop = Context::getContext()->shop->id;
+                $customer->id_gender = 0;
+                $customer->id_default_group = (int) Configuration::get('PS_CUSTOMER_GROUP');
+                $customer->id_lang = Context::getContext()->language->id;
+                $customer->id_risk = 0;
+
+                $customer->firstname = Tools::getValue('nombre');
+                $customer->lastname = "";
+                $customer->email = '';
+                $pass = $this->get('hashing')->hash("123456789", _COOKIE_KEY_);
+                $customer->passwd = $pass;
+                $customer->last_passwd_gen = date('Y-m-d H:i:s', strtotime('-'.Configuration::get('PS_PASSWD_TIME_FRONT').'minutes'));
+                $customer->newsletter = 0;
+                $customer->optin = 0;
+                $customer->outstanding_allow_amount = 0;
+                $customer->show_public_prices = 0;
+                $customer->max_payment_days = 0;
+                $customer->secure_key = md5(uniqid(rand(), true));
+                $customer->active = 1;
+                $customer->is_guest = 0;
+                $customer->deleted = 0;
+                $customer->id_document = Tools::getValue('tipo_documento');
+                $customer->num_document = Tools::getValue('nro_documento');
+                $customer->telefono = "";
+                $customer->direccion = Tools::getValue('direccion') !== ""?Tools::getValue('direccion'):"no hay direccion";
+                $customer->add();
+                $customer->updateGroup(array($customer->id_default_group));
+
+                $order->id_customer = $customer->id;
+            }
+            $order->update();
+
+            $prods =  Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
+                        SELECT *
+                        FROM `'._DB_PREFIX_.'order_detail` od
+                        WHERE od.`id_order` = '.(int)$order->id);
+
+            foreach ($prods as $prod) {
+                if ((int)$prod['id_tax_rules_group'] == 0){
+                    $respuesta["respuesta"] = "error";
+                    $this->errors[] = "HAY PRODUCTOS SIN IGV";
+                    return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+                }
+            }
+
+
+            if ($order->current_state == (int)ConfigurationCore::get("PS_OS_PAYMENT")){
+
+                $doc = PosOrdercomprobantes::getComprobantesByOrderLimit($order->id);
+                if (!empty($doc)){
+                    $objComprobantes = new PosOrdercomprobantes($doc['id_pos_ordercomprobantes']);
+                }else{
+                    $objComprobantes = new PosOrdercomprobantes();
+                }
+
+                // comprobanr si ya existe una numeracion para el comprobante
+                if (!$objComprobantes->numero_comprobante && $objComprobantes->numero_comprobante == ""){
+
+                    $objComprobantes->id_order = $order->id;
+                    $objComprobantes->tipo_documento_electronico = $tipo_comprobante;
+                    $objComprobantes->sub_total = $order->total_paid_tax_excl;
+                    $objComprobantes->impuesto = (float)($order->total_paid_tax_incl - $order->total_paid_tax_excl);
+                    $objComprobantes->total = $order->total_paid_tax_incl;
+
+                    //creamos la numeracion
+                    $numeracion_documento = NumeracionDocumento::getNumTipoDoc($tipo_comprobante);
+                    if (empty($numeracion_documento)){
+                        $this->errors[] = "No existe numeración cree una <a href='index.php?controller=AdminNumeracionDocumentos&addnumeracion_documentos&token=".Tools::getAdminTokenLite("AdminNumeracionDocumentos")."&nombre=".$tipo_comprobante."' target='_blank'>&nbsp; -> Crear Numeración para los Comprobantes Electrónicos</a>";
+                        return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+                    }
+                    else{
+                        $objNu2 = new NumeracionDocumento((int)$numeracion_documento["id_numeracion_documentos"]);
+                        $objNu2->correlativo = ($numeracion_documento["correlativo"]+1);
+                        $objNu2->update();
+                    }
+
+                    $serie = $objNu2->serie;
+                    $numeracion = $objNu2->correlativo;
+                    $numero_comprobante = $serie."-".$numeracion;
+
+                    $objComprobantes->numero_comprobante = $numero_comprobante;
+
+                }
+                else{
+                    // hacer que se consulta a la sunat el comprobante
+                    $numero_comprobante = $objComprobantes->numero_comprobante;
+                    $array_num = explode("-", $numero_comprobante);
+                    $serie = $array_num[0];
+                    $numeracion = $array_num[1];
+                    $numero_comprobante = $serie."-".$numeracion;
+                }
+//            d($numero_comprobante);
+
+                // armamos la numeracion
+                // armamos la numeracion
+                $tipo_documento = "";
+                //d($tipo_comprobante);
+                $CLIENTE = new Customer((int)$order->id_customer);
+                $nro_documento_cliente = $CLIENTE->num_document; // numero de documento del cliente
+                $razon_social_nombre_cliente = $CLIENTE->firstname; // razon_social o nombre del cliente
+                $direccion_cliente = $CLIENTE->direccion;
+
+                if ($tipo_comprobante == "Factura"){
+                    $archivo = $tienda_actual->ruc . "-01-" . $numero_comprobante;  // nombre del archivo  del comprobante
+                    $tipo_documento = "01"; //cod de comprobante electronico
+                    $tipo_code_doc_cliente = "6"; // codigo de documento de identidad
+                }
+                else if ($tipo_comprobante == "Boleta"){
+                    $archivo = $tienda_actual->ruc . "-03-" . $numero_comprobante; // nombre del archivo  del comprobante
+                    $tipo_documento = "03"; //cod de comprobante electronico
+
+                    $tipo_documento_legal = new Tipodocumentolegal((int)$CLIENTE->id_document);
+                    //d($tipo_documento_legal);
+                    if ((int)$order->id_customer !== 1){
+                        $tipo_code_doc_cliente = $tipo_documento_legal->cod_sunat; // codigo de documento de identidad
+                    }else{
+                        $tipo_code_doc_cliente = "0"; // codigo de documento de identidad
+                    }
+                }
+                else{
+                    $this->errors[] = $this->trans('Error: Tipo de comprobante no válido!!', array(), 'Admin.Orderscustomers.Notification');
+                    return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+                }
+
+                $monbre_archivo = $objComprobantes->tipo_documento_electronico.'_'.$tienda_actual->ruc.'-'.$tipo_documento.'-'.$objComprobantes->numero_comprobante.'.pdf';
+
+                $tax_amount_total = number_format((float)$order->total_paid_tax_incl - (float)$order->total_paid_tax_excl, 2, '.', '');
+
+                $valor_qr = $tienda_actual->ruc.' | '.strtoupper($objComprobantes->tipo_documento_electronico).' | '.$serie.' | '.$numeracion.' | '.$tax_amount_total.' | '.$order->total_paid_tax_incl.' | '.Tools::getFormatFechaGuardar($order->date_add).' | '.$tipo_code_doc_cliente.' | '.$nro_documento_cliente.' | ';
+                ///////////
+
+                //creamos las RUTAS de los documentos
+                // creamos la carpeta donde se guardara el XML
+                $ruta_general_xml = "archivos_sunat/".$tienda_actual->ruc."/xml/";
+                if (!file_exists($ruta_general_xml)) {
+                    mkdir($ruta_general_xml, 0777, true);
+                }
+                $ruta_general_cdr = "archivos_sunat/".$tienda_actual->ruc."/cdr/";
+                if (!file_exists($ruta_general_cdr)) {
+                    mkdir($ruta_general_cdr, 0777, true);
+                }
+
+                $ruta_xml = $ruta_general_xml.$archivo;
+                $ruta_cdr = $ruta_general_cdr;
+
+
+                //d($razon_social_nombre_cliente);
+                if (trim($tipo_code_doc_cliente) != "" &&
+                    trim($nro_documento_cliente) != "" &&
+                    trim($razon_social_nombre_cliente) != ""){
+                    $receptor = array();
+                    $receptor['TIPO_DOCUMENTO_CLIENTE'] = $tipo_code_doc_cliente;
+                    $receptor['NRO_DOCUMENTO_CLIENTE'] = $nro_documento_cliente;
+                    $receptor['RAZON_SOCIAL_CLIENTE'] = $razon_social_nombre_cliente;
+                    $receptor['DIRECCION_CLIENTE'] = $direccion_cliente;
+                }else{
+
+                    $objComprobantes->cod_sunat = 9999;
+
+                    $this->errors[] = $this->trans('Error algunos campos del cliente estan vacios!!', array(), 'Admin.Orderscustomers.Notification');
+                    return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+                }
+
+                if (trim($tienda_actual->ruc) != "" &&
+                    trim($tienda_actual->name) != "" &&
+                    trim($tienda_actual->razon_social) != "" &&
+                    trim($objCerti->user_sunat) != "" &&
+                    trim($objCerti->pass_sunat) != ""){
+                    $emisor = array();
+                    $emisor['ruc'] = $tienda_actual->ruc;
+                    $emisor['tipo_doc'] = "6";
+                    $emisor['nom_comercial'] = Tools::eliminar_tildes($tienda_actual->name);
+                    $emisor['razon_social'] = Tools::eliminar_tildes($tienda_actual->razon_social);
+                    $emisor['codigo_ubigeo'] = "060101";
+                    $emisor['direccion'] = Configuration::get('PS_SHOP_ADDR1', $this->context->language->id, null, $tienda_actual->id,'NO DEFINIDO');
+                    $emisor['direccion_departamento'] = "CAJAMARCA";
+                    $emisor['direccion_provincia'] = "CAJAMARCA";
+                    $emisor['direccion_distrito'] = "CAJAMARCA";
+                    $emisor['direccion_codigo_pais'] = "PE";
+                    $emisor['usuario_sol'] = $objCerti->user_sunat;
+                    $emisor['clave_sol'] = $objCerti->pass_sunat;
+//                $emisor['tipo_proceso'] = $tipo_proceso;
+                }else{
+
+                    $objComprobantes->cod_sunat = 9999;
+                    $this->errors[] = $this->trans('Error algunos campos del Emisor estan vacios!!', array(), 'Admin.Orderscustomers.Notification');
+                    return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+                }
+
+                if (trim($archivo) != "" &&
+                    trim($ruta_xml) != "" &&
+                    trim($ruta_cdr) != "" &&
+                    trim($objCerti->archivo) != "" &&
+                    trim($objCerti->clave_certificado) != "" &&
+                    trim($objCerti->web_service_sunat) != ""){
+                    $rutas = array();
+                    $rutas['ruta_comprobantes'] = $archivo;
+                    $rutas['nombre_archivo'] = $archivo;
+                    $rutas['ruta_xml'] = $ruta_xml;
+                    $rutas['ruta_cdr'] = $ruta_cdr;
+                    $rutas['ruta_firma'] = $objCerti->archivo;
+                    $rutas['pass_firma'] = $objCerti->clave_certificado;
+                    $rutas['ruta_ws'] = $objCerti->web_service_sunat;
+                }else{
+                    $objComprobantes->cod_sunat = 9999;
+                    $this->errors[] = $this->trans('Error algunos campos de las rutas estan vacios!!', array(), 'Admin.Orderscustomers.Notification');
+                    return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+                }
+                if (!empty($doc)){
+                    $objComprobantes->update();
+                }else{
+                    $objComprobantes->add();
+                }
+
+
+                $datos_comprobante = Apisunat_2_1::crear_cabecera($emisor, $order, $objComprobantes, $tipo_documento, $receptor);
+
+                $ruta = 'documentos_pdf/'.$tienda_actual->virtual_uri;
+                $ruta_a4 = 'documentos_pdf_a4/'.$tienda_actual->virtual_uri;
+                if (!file_exists($ruta)) {
+                    mkdir($ruta, 0777, true);
+                }
+                if (!file_exists($ruta_a4)) {
+                    mkdir($ruta_a4, 0777, true);
+                }
+
+                $pdf_ticket = new PDF($objComprobantes, ucfirst('ComprobanteElectronico'), Context::getContext()->smarty,'P');
+                $pdf_ticket->Guardar("Ticket-".$monbre_archivo, $valor_qr, 'ticket', $objComprobantes->hash_cpe);
+
+                $pdf = new PDF($objComprobantes, ucfirst('ComprobanteElectronicopdfa4'), Context::getContext()->smarty,'P');
+                $pdf->Guardar("A4-".$monbre_archivo, $valor_qr, 'a4');
+
+                $resp["ruta_ticket"] = $ruta."Ticket-".$monbre_archivo;
+                $resp["ruta_pdf_a4"] = $ruta_a4."A4-".$monbre_archivo;
+                $resp["numero_comprobante"] = $objComprobantes->numero_comprobante;
+
+                $objComprobantes->ruta_ticket =  $ruta."Ticket-".$monbre_archivo;
+                $objComprobantes->ruta_pdf_a4 =  $ruta_a4."A4-".$monbre_archivo;
+                $objComprobantes->update();
+
+//                    $order->setCurrentState(2, $this->context->employee->id); //estado 2 pago aceptado temporal
+
+                if ($tipo_comprobante == "Factura"){
+
+                    $resp = ProcesarComprobante::procesar_factura($datos_comprobante, $objComprobantes, $rutas);
+
+                    $objComprobantes->ruta_ticket =  $ruta."Ticket-".$monbre_archivo;
+                    $objComprobantes->ruta_pdf_a4 =  $ruta_a4."A4-".$monbre_archivo;
+                    $objComprobantes->hash_cpe =  $resp["hash_cpe"];
+                    $objComprobantes->ruta_xml =  $rutas["ruta_xml"].".zip";
+                    $objComprobantes->hash_cdr =  $resp["hash_cdr"];
+                    $objComprobantes->ruta_cdr =  $rutas["ruta_cdr"].'R-'. $rutas['nombre_archivo'].".zip";
+                    $objComprobantes->cod_sunat =  $resp["cod_sunat"];
+                    $objComprobantes->msj_sunat =  $resp["msj_sunat"];
+                    $objComprobantes->update();
+
+                    return die(json_encode($resp));
+
+                }else if ($tipo_comprobante == "Boleta"){
+
+                    $resp = ProcesarComprobante::procesar_boleta($datos_comprobante, $objComprobantes, $rutas);
+
+                    $objComprobantes->hash_cpe =  $resp["hash_cpe"];
+                    $objComprobantes->ruta_xml =  $rutas["ruta_xml"].".zip";
+                    $objComprobantes->hash_cdr =  $resp["hash_cdr"];
+                    $objComprobantes->ruta_cdr =  $rutas["ruta_cdr"].'R-'. $rutas['nombre_archivo'].".zip";
+                    $objComprobantes->cod_sunat =  $resp["cod_sunat"];
+                    $objComprobantes->msj_sunat =  $resp["msj_sunat"];
+                    $objComprobantes->update();
+
+                    return die(json_encode($resp));
+                }else{
+                    return die(json_encode(false));
+                }
+            }else{
+                $this->errors[] = $this->trans('Error: No tiene un estado válido!!', array(), 'Admin.Orderscustomers.Notification');
+                return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+            }
+        }
+        //error si no existe la venta
+        else{
+            $this->errors[] = $this->trans('Error no existe una venta!!', array(), 'Admin.Orderscustomers.Notification');
+            return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+        }
+
+    }
+
+    public function ajaxProcessGuardarClienteOrder(){
+
+//        d(Tools::getAllValues());
+
+        if (($id_order = Tools::getValue("id_order"))){
+            $order = new Order((int)$id_order);
+            $id_cliente = Tools::getValue("id_customer");
+
+            if ($cliente = Customer::getCustomerByDocumento(Tools::getValue('nro_documento'))){
+                $id_cliente = $cliente['id_customer'];
+            }
+            if ($id_cliente){
+                $order->id_customer = $id_cliente;
+                $customer = new Customer((int)$id_cliente);
+                $customer->direccion = Tools::getValue('direccion') !== ""?Tools::getValue('direccion'):"no hay direccion";
+                $customer->update();
+            }
+            else{
+                $customer = new Customer();
+                $customer->id_shop_group = Context::getContext()->shop->id_shop_group;
+                $customer->id_shop = Context::getContext()->shop->id;
+                $customer->id_gender = 0;
+                $customer->id_default_group = (int) Configuration::get('PS_CUSTOMER_GROUP');
+                $customer->id_lang = Context::getContext()->language->id;
+                $customer->id_risk = 0;
+
+                $customer->firstname = Tools::getValue('nombre');
+                $customer->lastname = "";
+                $customer->email = '';
+                $pass = $this->get('hashing')->hash("123456789", _COOKIE_KEY_);
+                $customer->passwd = $pass;
+                $customer->last_passwd_gen = date('Y-m-d H:i:s', strtotime('-'.Configuration::get('PS_PASSWD_TIME_FRONT').'minutes'));
+                $customer->newsletter = 0;
+                $customer->optin = 0;
+                $customer->outstanding_allow_amount = 0;
+                $customer->show_public_prices = 0;
+                $customer->max_payment_days = 0;
+                $customer->secure_key = md5(uniqid(rand(), true));
+                $customer->active = 1;
+                $customer->is_guest = 0;
+                $customer->deleted = 0;
+                $customer->id_document = Tools::getValue('tipo_documento');
+                $customer->num_document = Tools::getValue('nro_documento');
+                $customer->telefono = "";
+                $customer->direccion = Tools::getValue('direccion') !== ""?Tools::getValue('direccion'):"no hay direccion";
+                $customer->add();
+                $customer->updateGroup(array($customer->id_default_group));
+
+                $order->id_customer = $customer->id;
+            }
+            $order->update();
+            $order->cliente = $customer->firstname;
+
+            return die(json_encode($order));
+        }
+        //error si no existe la venta
+        else{
+            $this->errors[] = $this->trans('Error no existe una venta!!', array(), 'Admin.Orderscustomers.Notification');
+            return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+        }
+
+    }
+
+    public function ajaxProcessEliminarOrderComunicacionBaja()
+    {
+//        d(Tools::getValue('id_order'));
+        $order = new Order((int)Tools::getValue('id_order'));
+        $order_invoice = new OrderInvoice((int)Tools::getValue('id_order_invoice'));
+        $order_details = $order->getOrderDetailList();
+
+        $caja= AperturaCaja::getAllCajasByLocal($order->id_caja_local);
+
+        $shop = Context::getContext()->shop;
+        $ruc_shop = $shop->ruc;
+        $razon_social = Tools::eliminar_tildes($shop->razon_social);
+        $cod_type_doc_shop = '6';
+        $cod_postal = $caja[0]['codigo_postal'];
+        $direccion_shop = Tools::eliminar_tildes($caja[0]['direccion_caja']);
+        $ciudad_shop = $caja[0]['ciudad_caja'];
+        $provincia_shop = $caja[0]['provincia_caja'];
+        $distrito_shop = $caja[0]['distrito_caja'];
+        $cod_identificacion_pais_shop = 'PE';
+
+        $tax_amount_total = number_format((float)$order_invoice->total_paid_tax_incl - (float)$order_invoice->total_paid_tax_excl, 2, '.', '');
+
+
+
+        $cabecera = '<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?><VoidedDocuments xmlns="urn:sunat:names:specification:ubl:peru:schema:xsd:VoidedDocuments-1" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2" xmlns:sac="urn:sunat:names:specification:ubl:peru:schema:xsd:SunatAggregateComponents-1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>';
+
+        $date_de_la_baja = date('Y-m-d');
+
+        if (!$order->numeracion_nota_baja && $order->numeracion_nota_baja == ""){
+            $correlativo_comanda1 = NumeracionDocumento::getNumTipoDoc('ComunicacionBaja');
+            if (empty($correlativo_comanda1)){
+                $this->errors[] = 'No existe numeracion cree una '.' <a href="index.php?controller=AdminNumeracionComanda&addnumeracion_comanda&token='.Tools::getAdminTokenLite('AdminNumeracionComanda').'" target="_blank">&nbsp; -> Crear Numeración para Comunicacion de baja (nombre: ComunicacionBaja)</a>';
+            }
+            else{
+                $objNu2 = new NumeracionDocumento((int)$correlativo_comanda1['id_numeracion_documentos']);
+
+                $objNu2->correlativo = ($correlativo_comanda1['correlativo']+1);
+                $objNu2->update();
+                $correlativo_comanda = NumeracionDocumento::getNumTipoDoc('ComunicacionBaja');
+
+                $serie_comprobante = $order->numero_comprobante;
+                $serie = explode("-", $serie_comprobante);
+                $identificador_baja = $correlativo_comanda['serie'];
+                $numeracion = Tools::zero_fill($correlativo_comanda['correlativo'],5);
+                $date = date('Ymd');
+                $numero_comprobante = $identificador_baja.'-'.$date.'-'.$numeracion;
+                $nombre_xml_comprobante = $ruc_shop.'-'.$numero_comprobante;
+            }
+        }else{
+            $serie_comprobante = $order->numero_comprobante;
+            $serie = explode("-", $serie_comprobante);
+            // hacer que se consulta a la sunat el comprobante
+            $numero_comprobante = $order->numeracion_nota_baja;
+            $nombre_xml_comprobante = $ruc_shop."-".$numero_comprobante;
+        }
+
+
+        $xml = new SimpleXMLElement($cabecera);
+        $UBLExtensionsXml = $xml->addChild('UBLExtensions',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2');
+        $UBLExtensionXml = $UBLExtensionsXml->addChild('UBLExtension',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2');
+        $ExtensionContentXml = $UBLExtensionXml->addChild('ExtensionContent',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2');
+
+        $xml->addChild('UBLVersionID','2.0','urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+        $xml->addChild('CustomizationID','1.0','urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+        $xml->addChild('ID',$numero_comprobante,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+        $xml->addChild('ReferenceDate',Tools::getFormatFechaGuardar($order->date_upd),'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');//aqui va fecha DEL DOCUMENTO A DAR DE BAJA ES DECIR LA FECHA de emision de factura
+        $xml->addChild('IssueDate',$date_de_la_baja,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');//aqui va fecha de emision de factura
+
+        $SignatureXml = $xml->addChild('Signature',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
+        $SignatureXml->addChild('ID',$ruc_shop,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+        $SignatoryPartyXml = $SignatureXml->addChild('SignatoryParty',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
+        $PartyIdentificationXml = $SignatoryPartyXml->addChild('PartyIdentification',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
+        $PartyIdentificationXml->addChild('ID',$ruc_shop,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+        $PartyNameXml = $SignatoryPartyXml->addChild('PartyName',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
+        $PartyNameXml->addChild('Name',$razon_social,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+        $DigitalSignatureAttachmentXml = $SignatureXml->addChild('DigitalSignatureAttachment',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
+        $ExternalReferenceXml = $DigitalSignatureAttachmentXml->addChild('ExternalReference',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
+        $ExternalReferenceXml->addChild('URI','SIGN','urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+
+        $AccountingSupplierPartyXml = $xml->addChild('AccountingSupplierParty',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
+        $AccountingSupplierPartyXml->addChild('CustomerAssignedAccountID', $ruc_shop,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+        $AccountingSupplierPartyXml->addChild('AdditionalAccountID',$cod_type_doc_shop,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+        $PartyXml = $AccountingSupplierPartyXml->addChild('Party',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
+        $PartyNameXml = $PartyXml->addChild('PartyName',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
+        $PartyNameXml->addChild('Name',$razon_social,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+        $PostalAddressXml = $PartyXml->addChild('PostalAddress',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
+        $PostalAddressXml->addChild('ID',$cod_postal,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+        $PostalAddressXml->addChild('StreetName',$direccion_shop,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+        $PostalAddressXml->addChild('CitySubdivisionName',' ','urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+        $PostalAddressXml->addChild('CityName',$ciudad_shop,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+        $PostalAddressXml->addChild('CountrySubentity',Tools::eliminar_tildes($provincia_shop),'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+        $PostalAddressXml->addChild('District',Tools::eliminar_tildes($distrito_shop),'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+        $CountryXml = $PostalAddressXml->addChild('Country',null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
+        $CountryXml->addChild('IdentificationCode',$cod_identificacion_pais_shop, 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+
+        $RegistrationNameXml = $PartyXml->addChild('PartyLegalEntity',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
+        $RegistrationNameXml->addChild('RegistrationName',$razon_social,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+
+        $InvoiceLineXml = $xml->addChild('VoidedDocumentsLine',null,'urn:sunat:names:specification:ubl:peru:schema:xsd:SunatAggregateComponents-1');
+        $InvoiceLineXml->addChild('LineID', 1,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+
+        $codigo_doc='01';
+
+        $InvoiceLineXml->addChild('DocumentTypeCode', $codigo_doc,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+        $InvoiceLineXml->addChild('DocumentSerialID', $serie[0],'urn:sunat:names:specification:ubl:peru:schema:xsd:SunatAggregateComponents-1');
+        $InvoiceLineXml->addChild('DocumentNumberID', $serie[1],'urn:sunat:names:specification:ubl:peru:schema:xsd:SunatAggregateComponents-1');
+        $razon_baja = Tools::getValue('descripcion');
+        $InvoiceLineXml->addChild('VoidReasonDescription', Tools::eliminar_tildes($razon_baja),'urn:sunat:names:specification:ubl:peru:schema:xsd:SunatAggregateComponents-1');
+
+        $xml = dom_import_simplexml($xml)->ownerDocument;
+        $xml->formatOutput = true;
+        $xml_doc = $xml->saveXML();
+//        echo ($xml_doc);
+//        d($xml_doc);
+        $tienda_actual = new Shop((int)$this->context->shop->id);
+
+        $nombre_virtual_uri = $tienda_actual->virtual_uri;
+
+        if (!file_exists("archivos_sunat/baja/".$tienda_actual->ruc."/")) {
+            mkdir("archivos_sunat/baja/".$tienda_actual->ruc."/", 0777, true);
+        }
+
+        $fp = fopen('archivos_sunat/baja/'.$tienda_actual->ruc."/".$nombre_xml_comprobante.'.xml',"wb");
+        fwrite($fp,$xml_doc);
+        fclose($fp);
+
+        $ruta_xml = "archivos_sunat/baja/".$tienda_actual->ruc."/".$nombre_xml_comprobante;
+        $ruta_cdr = "archivos_sunat/baja/".$tienda_actual->ruc."/";
+
+        //firmar xml
+        $arr = Certificadofe::getIdCertife(Context::getContext()->shop->id);
+        if ($arr == 0){
+            $this->errors[] = 'Porfavor suba un certificado para firmar los DOCUMENTOS!'.'<a href="index.php?controller=AdminCertificadoFE&addcertificadofe&token='.Tools::getAdminTokenLite('AdminCertificadoFE').'" target="_blank">&nbsp; -> Subir Certificado</a>';
+        }else{
+            $objCerti = new Certificadofe((int)$arr); // buscar el certificado
+
+            $rutas = array();
+            $rutas['ruta_comprobantes'] = $nombre_xml_comprobante;
+            $rutas['nombre_archivo'] = $nombre_xml_comprobante;
+            $rutas['ruta_xml'] = $ruta_xml;
+            $rutas['ruta_cdr'] = $ruta_cdr;
+            $rutas['ruta_firma'] = $objCerti->archivo;
+            $rutas['pass_firma'] = $objCerti->clave_certificado;
+            $rutas['ruta_ws'] = $objCerti->web_service_sunat;
+
+            $resp_firma = FirmarDocumento::firmar_xml($order, $rutas["ruta_xml"], $rutas["ruta_firma"], $rutas["pass_firma"], $rutas["nombre_archivo"]);
+
+            if ($resp_firma['respuesta'] == "error"){
+                return die(json_encode($resp_firma));
+            }
+
+            $resp_envio = ProcesarComprobante::enviar_documento_para_baja($objCerti->user_sunat, $objCerti->pass_sunat,  $rutas["ruta_xml"], $rutas['nombre_archivo'], $rutas['ruta_ws']);
+
+            if ($resp_envio['respuesta'] == 'error') {
+                return $resp_envio;
+            }
+
+            $order->identificador_comunicacion = $resp_envio['cod_ticket'];
+            $order->nota_baja = 'Baja';
+            $order->numeracion_nota_baja = $numero_comprobante;
+            $order->descripcion_eliminacion = $razon_baja;
+            $order->mensaje_cdr = $resp_envio['extra'];
+            $order->update();
+
+            if (Tools::getValue('devolver') == 'pasarcostos') {
+                //d($this->context->shop->id);
+                foreach ($order->getOrderPaymentCollection() as $payment){
+                    if ((int)$payment->es_cuenta == 1){ // 1 es caja
+                        $objCaja = new AperturaCaja((int)$payment->id_caja_cuenta);
+                        $monto_inicial = $objCaja->monto_inicial;
+                        $objCaja->monto_inicial = (float)$monto_inicial - (float)$payment->amount;
+                        $objCaja->update();
+                    }else if((int)$payment->es_cuenta == 2){ // 2 es cuenta
+                        $objcuenta = new CtaYam((int)$payment->id_caja_cuenta);
+                        $importeinicial = $objcuenta->monto_inicio;
+                        $montofinal = (float)$importeinicial - (float)$payment->amount;
+                        $objcuenta->monto_inicio=$montofinal;
+                        $objcuenta->update();
+                    }
+                }
+            }
+
+            $order->setCurrentState(14, $this->context->employee->id); //estado 14 comunicacion de baja
+
+            ProcesarComprobante::consultar_envio_ticket($objCerti->user_sunat, $objCerti->pass_sunat,  $order->identificador_comunicacion, $rutas['nombre_archivo'], $rutas['ruta_cdr'], $rutas['ruta_ws']);
+
+            die(Tools::jsonEncode(array('errors' => true, 'devolver' => 'si', 'mensaje_confirmacion' => $this->confirmations)));
+        }
+
+    }
+
+    public function ajaxProcessEliminarOrderNotaCredito()
+    {
+//        d(Tools::getValue('id_order'));
+        $order = new Order((int)Tools::getValue('id_order'));
+        $order_invoice = new OrderInvoice((int)Tools::getValue('id_order_invoice'));
+        $order_details = $order->getOrderDetailList();
+
+        $caja= AperturaCaja::getCajasByID($order->id_caja_local);
+        // verificamos el certificado
+        $arr = Certificadofe::getIdCertife(Context::getContext()->shop->id);
+        $objCerti = new Certificadofe((int)$arr); // buscar el certificado
+
+        if (!$order->numeracion_nota_baja && $order->numeracion_nota_baja == "") {
+            $correlativo_comanda1 = NumeracionDocumento::getNumTipoDoc('NotaCredito');
+            if (empty($correlativo_comanda1)) {
+                $this->errors[] = 'No existe numeracion cree una ' . ' <a href="index.php?controller=AdminNumeracionDocumentos&addnumeracion_documentos&token=' . Tools::getAdminTokenLite('AdminNumeracionDocumentos') . '&nombre=NotaCredito" target="_blank">&nbsp; -> Crear Numeración para Nota de crédito (con el nombre: NotaCredito)</a>';
+            } else {
+                $objNu2 = new NumeracionDocumento((int)$correlativo_comanda1['id_numeracion_documentos']);
+                $objNu2->correlativo = ($correlativo_comanda1['correlativo'] + 1);
+                $objNu2->update();
+                $correlativo_comanda = NumeracionDocumento::getNumTipoDoc('NotaCredito');
+                $serie_comprobante = $order->numero_comprobante;
+                $serie = explode("-", $serie_comprobante);
+                $numeracion = Tools::zero_fill($correlativo_comanda['correlativo'], 8);
+
+                $numero_comprobante = $serie[0] . '-' . $numeracion;
+            }
+        }
+        else{
+            // hacer que se consulta a la sunat el comprobante
+            $numero_comprobante = $order->numeracion_nota_baja;
+            $array_num = explode("-", $numero_comprobante);
+            $serie = $array_num[0];
+            $numeracion = $array_num[1];
+            $numero_comprobante = $serie."-".$numeracion;
+        }
+        $order->nota_baja = 'NotaCredito';
+        $order->descripcion_eliminacion = Tools::getValue('descripcion');
+        $order->numeracion_nota_baja = $numero_comprobante;
+        $order->update();
+//d($order->boleta_factura);
+        $tipo_documento = "07";
+
+        if ($order->tipo_documento_electronico == 'Factura') {
+
+            $empresa_cliente = new Supplier($order->id_supplier); // para facturas
+
+            if (!$empresa_cliente->ruc_supplier) {
+                $this->errors[] = $this->trans('La Empresa no tiene RUC.', array(), 'Admin.Global');
+            }
+
+            $ruc_sup = $empresa_cliente->ruc_supplier;
+            $tipo_code_doc_sup = '6';
+            $nombre_empresa =  Tools::eliminar_tildes($empresa_cliente->razon_social_supplier);
+            $invoice_type_code = '01';
+            $arrayAddress = AddressCore::getAddressIdBySupplierId($order->id_supplier);
+            $objAddress = new AddressCore((int)$arrayAddress);
+            $direccion_cliente = $objAddress->address1;
+        }
+        else if($order->tipo_documento_electronico == 'Boleta'){
+
+            if ($order->cliente_empresa == 'Empresa'){
+                $empresa_cliente = new Supplier($order->id_supplier); // para facturas
+                $ruc_sup = $empresa_cliente->ruc_supplier;
+                $tipo_code_doc_sup = '6';
+                $nombre_empresa =  Tools::eliminar_tildes($empresa_cliente->razon_social_supplier);
+                $arrayAddress= AddressCore::getAddressIdBySupplierId($order->id_supplier);
+                $objAddress = new AddressCore((int)$arrayAddress);
+                $direccion_cliente = $objAddress->address1;
+            }
+            else if ($order->cliente_empresa == 'Cliente'){
+                $customer = new Customer($order->id_customer); // para boletas
+                if (!$customer->num_document) {
+                    $this->errors[] = $this->trans('El Cliente no tiene DNI.', array(), 'Admin.Global');
+                }
+                $ruc_sup = $customer->num_document;
+
+                $tipo_documento_legal = new TipoDocumentoLegal((int)$customer->id_document);
+                if ((int)$order->id_customer !== 1){
+                    $tipo_code_doc_sup = $tipo_documento_legal->cod_sunat; // codigo de documento de identidad
+                }else{
+                    $tipo_code_doc_sup = "0"; // codigo de documento de identidad
+                }
+                $nombre_empresa =  Tools::eliminar_tildes($customer->firstname . ' ' . $customer->lastname);
+
+            }
+            $invoice_type_code = '03';
+        }
+        $tienda_actual = new Shop((int)$this->context->shop->id);
+
+        $nombre_xml_comprobante = $tienda_actual->ruc.'-07-'.$numero_comprobante;
+
+
+        $nombre_virtual_uri = $tienda_actual->virtual_uri;
+
+        $hoy = getdate();
+        $f = $hoy['year'].'-'.$hoy['mon'].'-'.$hoy['mday'];
+
+        $tax_amount_total = number_format((float)$order_invoice->total_paid_tax_incl - (float)$order_invoice->total_paid_tax_excl, 2, '.', '');
+
+        $valor_qr_nota = $tienda_actual->ruc.' | NOTA DE CREDITO | '.$serie[0].' | '.$numeracion.' | '.$tax_amount_total.' | '.$order_invoice->total_paid_tax_incl.' | '.$f.' | '.$tipo_code_doc_sup.' | '.$ruc_sup.' | ';
+//                            d($valor_qr_nota);
+        $monbre_archivo= 'NOTACREDITO_'.$nombre_xml_comprobante.'.pdf';
+
+        if (!file_exists("archivos_sunat/notacredito/".$tienda_actual->ruc."/")) {
+            mkdir("archivos_sunat/notacredito/".$tienda_actual->ruc."/".$nombre_virtual_uri, 0777, true);
+        }
+        $ruta_xml = "archivos_sunat/notacredito/".$tienda_actual->ruc."/".$nombre_xml_comprobante;
+        $ruta_cdr = "archivos_sunat/notacredito/".$tienda_actual->ruc."/";
+
+        $receptor = array();
+        $receptor['TIPO_DOCUMENTO_CLIENTE'] = $tipo_code_doc_sup;
+        $receptor['NRO_DOCUMENTO_CLIENTE'] = $ruc_sup;
+        $receptor['RAZON_SOCIAL_CLIENTE'] = $nombre_empresa;
+        $receptor['DIRECCION_CLIENTE'] = $direccion_cliente;
+
+        $emisor = array();
+        $emisor['es_porconsumo'] = $order->es_porconsumo;
+        $emisor['ruc'] = $tienda_actual->ruc;
+        $emisor['tipo_doc'] = "6";
+        $emisor['nom_comercial'] = Tools::eliminar_tildes($tienda_actual->name);
+        $emisor['razon_social'] = Tools::eliminar_tildes($tienda_actual->razon_social);
+        $emisor['codigo_ubigeo'] = "060101";
+        $emisor['direccion'] = Tools::eliminar_tildes($caja['direccion_caja']);
+        $emisor['direccion_departamento'] = "CAJAMARCA";
+        $emisor['direccion_provincia'] = "CAJAMARCA";
+        $emisor['direccion_distrito'] = "CAJAMARCA";
+        $emisor['direccion_codigo_pais'] = "PE";
+        $emisor['usuario_sol'] = $objCerti->user_sunat;
+        $emisor['clave_sol'] = $objCerti->pass_sunat;
+        $emisor['tipo_preceso'] = "1";
+
+        $rutas = array();
+        $rutas['ruta_comprobantes'] = $nombre_xml_comprobante;
+        $rutas['nombre_archivo'] = $nombre_xml_comprobante;
+        $rutas['ruta_xml'] = $ruta_xml;
+        $rutas['ruta_cdr'] = $ruta_cdr;
+        $rutas['ruta_firma'] = $objCerti->archivo;
+        $rutas['pass_firma'] = $objCerti->clave_certificado;
+        $rutas['ruta_ws'] = $objCerti->web_service_sunat;
+
+        $order->tipo_comprobante_modificado = $invoice_type_code;
+        $order->num_comprobante_modificado = $order->numero_comprobante;
+        $order->notacredito_motivo_id = Tools::getValue('id_code_nota_credito');
+
+        $datos_comprobante = Apisunat_2_1::crear_cabecera($emisor, $order, $tipo_documento, $receptor);
+
+        $ruta = 'documentos_pdf/'.$nombre_virtual_uri;
+        $ruta_a4 = 'documentos_pdf_a4/'.$nombre_virtual_uri;
+
+        //generar pdf
+        $pdf = new PDF($order, ucfirst('ComprobanteElectronicopdfa4credito'), Context::getContext()->smarty,'P');
+
+//                                            $pdf->render();
+        $pdf->Guardar($monbre_archivo,$valor_qr_nota, 'a4');
+
+        $resp = ProcesarComprobante::procesar_nota_de_credito($datos_comprobante, $order, $rutas);
+
+
+        $order->mensaje_cdr = $resp['msj_sunat'];
+        $order->valor_qr_nota = $valor_qr_nota;
+        $order->ruta_pdf_a4nota = 'documentos_pdf_a4/notas/'.$nombre_virtual_uri.$monbre_archivo;
+        $order->update();
+
+        if (Tools::getValue('devolver') == 'pasarcostos') {
+
+            foreach ($order->getOrderPaymentCollection() as $payment){
+                if ((int)$payment->es_cuenta == 1){ // 1 es caja
+                    $objCaja = new AperturaCaja((int)$payment->id_caja_cuenta);
+                    $monto_inicial = $objCaja->monto_inicial;
+                    $objCaja->monto_inicial = (float)$monto_inicial - (float)$payment->amount;
+                    $objCaja->update();
+                }else if((int)$payment->es_cuenta == 2){ // 2 es cuenta
+                    $objcuenta = new CtaYam((int)$payment->id_caja_cuenta);
+                    $importeinicial = $objcuenta->monto_inicio;
+                    $montofinal = (float)$importeinicial - (float)$payment->amount;
+                    $objcuenta->monto_inicio=$montofinal;
+                    $objcuenta->update();
+                }
+            }
+            //
+        }
+
+        $order->setCurrentState(15, $this->context->employee->id); //estado 15 Nota de credito
+
+        die(Tools::jsonEncode(array('errors' => true, 'devolver' => 'si', 'mensaje_confirmacion' => $resp['msj_sunat'])));
+
+
+    }
+
+    public function ajaxProcessSendMailValidateOrderDocs()
+    {
+//        d($this->tabAccess['edit']);
+        if ($this->tabAccess['edit']) {
+//            d(Tools::getValue('id_order'));
+            $order = new Order((int)Tools::getValue('id_order'));
+
+//         d($order);
+            if (Validate::isLoadedObject($order)) {
+
+                $customer = new Customer((int)$order->id_customer);
+//                d($customer);
+
+                if (Validate::isLoadedObject($customer)) {
+//                    if ($order->cliente_empresa == 'Empresa'){
+//
+//                    }
+//                    else if ($order->cliente_empresa == 'Cliente'){
+//
+//                    }
+                    $arraycorreo = explode(';', Tools::getValue('correos'));
+
+
+
+                    if($order->nota_baja != "" && $order->nota_baja == "NotaCredito"){
+                        $files[] = $order->ruta_pdf_a4nota;
+                    }else if($order->nota_baja != "" && $order->nota_baja == "Baja"){
+                        $files[] = $order->ruta_ticket;
+                        $files[] = $order->ruta_pdf_a4;
+                    }else{
+                        $files[] = $order->ruta_ticket;
+                        $files[] = $order->ruta_pdf_a4;
+                        $files[] = $order->ruta_xml;
+                        $files[] = $order->ruta_cdr;
+                    }
+
+
+//                    $array2 = array_pop($files);
+//                    d($files);
+//                    $ruta = 'documentos_email/';
+                    $semi_rand = md5(time());
+                    $mime_boundary = "==Multipart_Boundary_x{$semi_rand}x";
+//                    d($files);
+
+
+                    for($x=0;$x<(count($files));$x++){
+                        $file = fopen($files[$x],"rb");
+                        $data = fread($file,filesize($files[$x]));
+                        fclose($file);
+                        $extencion=explode('.',$files[$x]);
+                        $data = chunk_split(base64_encode($data));
+                        $adjuntoArchivos[$x]['content'] = file_get_contents($files[$x]);
+                        $nombre_archivo = explode("/", $files[$x]);
+                        $adjuntoArchivos[$x]['name'] = end($nombre_archivo);
+                        $adjuntoArchivos[$x]['mime']="application/"+$extencion[1];
+                    }
+//                 d($adjuntoArchivos);
+
+                    if($order->nota_baja != "" && $order->nota_baja == "NotaCredito"){
+                        $formato_page = 'nota_credito_email';
+
+                        if ($order->cliente_empresa == "Cliente") {
+                            $titulo_m = 'Nota de Credito del Comprobante Nro. ' . $order->numero_comprobante . ' - ' . $customer->firstname . ' ' . $customer->lastname;
+
+                            $mailVars = array(
+                                '{nombre}' =>$customer->firstname.' '.$customer->lastname,
+                                '{firstname}' => $customer->firstname,
+                                '{lastname}' => $customer->lastname,
+                                '{numero_comprobante}' => $order->numero_comprobante,
+                                '{numeracion_nota_baja}' => $order->numeracion_nota_baja,
+
+                            );
+                            $nombre_cliente = $customer->firstname.' '.$customer->lastname;
+                        }
+                        else {
+                            $supplier = new Supplier((int)$order->id_supplier);
+                            $titulo_m = 'Nota de Credito del Comprobante Nro. ' . $order->numero_comprobante . $supplier->razon_social_supplier;
+                            $mailVars = array(
+                                '{nombre}' => $supplier->razon_social_supplier,
+                                '{firstname}' => "",
+                                '{lastname}' => "",
+                                '{numero_comprobante}' => $order->numero_comprobante,
+                                '{numeracion_nota_baja}' => $order->numeracion_nota_baja,
+                            );
+                            $nombre_cliente = $supplier->razon_social_supplier;
+                        }
+
+                    }else if($order->nota_baja != "" && $order->nota_baja == "Baja"){
+                        $formato_page = 'comunicacion_baja_email';
+
+                        if ($order->cliente_empresa == "Cliente") {
+                            $titulo_m = 'Comunicacion de baja del Comprobante Nro. ' . $order->numero_comprobante . ' - ' . $customer->firstname . ' ' . $customer->lastname;
+
+                            $mailVars = array(
+                                '{nombre}' =>$customer->firstname.' '.$customer->lastname,
+                                '{firstname}' => $customer->firstname,
+                                '{lastname}' => $customer->lastname,
+                                '{numero_comprobante}' => $order->numero_comprobante,
+                                '{numeracion_nota_baja}' => $order->numeracion_nota_baja,
+                                '{mensaje_anulacion}' => $order->tipo_documento_electronico == "Factura"?"con la Comunicación de Baja":"en un Resumen diario",
+//                        '{total}' => $detalleCotiza[0]['total_con_impuesto'],
+//                        '{attached_file}'=>'Por favor ver Archivos Adjuntos'
+                            );
+                            $nombre_cliente = $customer->firstname.' '.$customer->lastname;
+                        }
+                        else {
+                            $supplier = new Supplier((int)$order->id_supplier);
+                            $titulo_m = 'Comunicacion de baja del Comprobante Nro. ' . $order->numero_comprobante . ' - ' . $supplier->razon_social_supplier;
+                            $mailVars = array(
+                                '{nombre}' => $supplier->razon_social_supplier,
+                                '{firstname}' => "",
+                                '{lastname}' => "",
+                                '{numero_comprobante}' => $order->numero_comprobante,
+                                '{numeracion_nota_baja}' => $order->numeracion_nota_baja,
+                            );
+
+                            $nombre_cliente = $supplier->razon_social_supplier;
+                        }
+
+                    }else{
+                        $formato_page = 'comprobantes_electronicos';
+
+                        if ($order->cliente_empresa == "Cliente") {
+                            $titulo_m = 'Adjuntos Nro. ' . $order->id . ' - ' . $customer->firstname . ' ' . $customer->lastname;
+                            $mailVars = array(
+                                '{nombre}' =>$customer->firstname.' '.$customer->lastname,
+                                '{firstname}' => $customer->firstname,
+                                '{lastname}' => $customer->lastname,
+//                        '{total}' => $detalleCotiza[0]['total_con_impuesto'],
+//                        '{attached_file}'=>'Por favor ver Archivos Adjuntos'
+                            );
+                            $nombre_cliente = $customer->firstname.' '.$customer->lastname;
+                        }
+                        else {
+                            $supplier = new Supplier((int)$order->id_supplier);
+                            $titulo_m = 'Adjuntos Nro. ' . $order->id . ' - ' . $supplier->razon_social_supplier;
+                            $mailVars = array(
+                                '{nombre}' => $supplier->razon_social_supplier,
+                                '{firstname}' => "",
+                                '{lastname}' => "",
+                            );
+                            $nombre_cliente = $supplier->razon_social_supplier;
+                        }
+
+                    }
+
+
+//                    d($correo);
+//                    d($arraycorreo);
+//                    d(_PS_MAIL_DIR_);
+                    $correo='';
+//                    d( $this->context->language->id);
+                    $cart = new Shop((int)Context::getContext()->shop->id);
+                    foreach ($arraycorreo as $email) {
+                        if ($email) {
+//                            echo $email.'<br/>';
+//                            d($email);
+                            if ($order->cliente_empresa == "Cliente") {
+                                $customer->email = $email;
+                                $customer->update();
+                            }
+
+                            Mail::Send($this->context->language->id, $formato_page, Mail::l($titulo_m, 1), $mailVars, $email, $nombre_cliente, null, null, $adjuntoArchivos, null, _PS_MAIL_DIR_, true, $cart->id);
+                            $correo = $email . '; ';
+                        }
+                    }
+//                    d($correo);
+
+                    die(Tools::jsonEncode(array('errors' => false, 'result' => $this->l('El correo fue enviado correctamente a "' . $correo . '". '))));
+                    //Tools::redirectAdmin(self::$currentIndex.'&token='.$this->token);
+                }
+            }
+            $this->content = Tools::jsonEncode(array('errors' => true, 'result' => $this->l('Error in sending the email to your customer.')));
+        }
+    }
+
+    public function ajaxProcessSumarMontos()
+    {
+
+        $order = new Order((int)Tools::getValue('id_order'));
+        $order_details = $order->getProductsDetail();
+
+        $total_paid = 0;
+        $total_paid_tax_incl = 0;
+        $total_paid_tax_excl = 0;
+        $total_products = 0;
+        $total_products_wt = 0;
+        foreach ($order_details as $order_detail) {
+            $total_paid += $order_detail['total_price_tax_incl'];
+            $total_paid_tax_incl += $order_detail['total_price_tax_incl'];
+            $total_paid_tax_excl += $order_detail['total_price_tax_excl'];
+            $total_products += $order_detail['total_price_tax_excl'];
+            $total_products_wt += $order_detail['total_price_tax_incl'];
+        }
+
+        // Update Order
+        $order->total_paid = $total_paid;
+        $order->total_paid_tax_incl = $total_paid_tax_incl;
+        $order->total_paid_tax_excl = $total_paid_tax_excl;
+        $order->total_products = $total_products;
+        $order->total_products_wt = $total_products_wt;
+
+        $res = $order->update();
+
+        // Update weight SUM
+        $order_carrier = new OrderCarrier((int)$order->getIdOrderCarrier());
+        if (Validate::isLoadedObject($order_carrier)) {
+            $order_carrier->weight = (float)$order->getTotalWeight();
+            $res &= $order_carrier->update();
+            if ($res) {
+                $order->weight = sprintf("%.3f ".Configuration::get('PS_WEIGHT_UNIT'), $order_carrier->weight);
+            }
+        }
+
+        if (!$res) {
+            die(json_encode(array(
+                'result' => $res,
+                'error' => $this->trans('A ocurrido un error al tratar de volver a sumar los montos.', array(), 'Admin.Orderscustomers.Notification')
+            )));
+        }
+
+        // Get invoices collection
+        $invoice_collection = $order->getInvoicesCollection();
+
+        $invoice_array = array();
+        foreach ($invoice_collection as $invoice) {
+            /** @var OrderInvoice $invoice */
+            $invoice->name = $invoice->getInvoiceNumberFormatted(Context::getContext()->language->id, (int)$order->id_shop);
+            $invoice_array[] = $invoice;
+        }
+
+        $order = $order->refreshShippingCost();
+
+        // Assign to smarty informations in order to show the new product line
+        $this->context->smarty->assign(array(
+            'order' => $order,
+            'currency' => new Currency($order->id_currency),
+            'invoices_collection' => $invoice_collection,
+            'current_id_lang' => Context::getContext()->language->id,
+            'link' => Context::getContext()->link,
+            'current_index' => self::$currentIndex
+        ));
+
+        $this->sendChangedNotification($order);
+
+        $order->pagado = $order->getTotalPaid();
+
+        die(json_encode(array(
+            'result' => $res,
+            'order' => $order,
+            'invoices' => $invoice_array,
+        )));
+    }
+
+    public function ajaxProcessActualizarProximoPago()
+    {
+
+        $order = new Order((int)Tools::getValue('id_order'));
+        $order->fecha_proximo_pago = Tools::getValue('fecha_proximo_pago');
+        $order->update();
+
+        die(Tools::jsonEncode(array('errors' => true, 'estado' => 'disponible')));
+    }
+
+    public function ajaxProcessGetDetailAndPayments()
+    {
+
+        $order = new Order((int)Tools::getValue('id_order'));
+        $pagos = $order->getOrderPayments();
+        foreach ($pagos as &$item) {
+            if ($item->es_cuenta == 1){
+                $caja = PosArqueoscaja::cajaByID($item->id_cuenta);
+                $item->caja_empleado = $caja['empleado'];
+            }
+            if ($item->es_cuenta == 2){
+                $caja = new PosCuentasbanco((int)$item->id_cuenta);
+                $item->caja_empleado = $caja->nombre_tarjeta;
+            }
+
+        }
+        unset($item);
+
+        $detalle = $order->getOrderDetailList();
+        foreach ($detalle as &$item) {
+            $item['link'] = $this->context->link->getAdminLink('AdminProducts', true, ['id_product' => $item['product_id'], 'updateproduct' => '1']);
+        }
+        unset($item);
+
+
+        die(Tools::jsonEncode(array('errors' => true, 'pagos' => $pagos, 'detalle' => $detalle)));
+    }
+
+    public function ajaxProcessGuardarContado(){
+        $order = new Order((int)Tools::getValue('id_order'));
+        //d($order);
+        //die();
+        if($order) {
+            $order->es_credito = Tools::getValue('es_credito');
+            $order->update();
+            $this->ajaxDie(json_encode(array("result" => "ok", "order" => $order)));
+        }else{
+            $this->ajaxDie(json_encode(array("result" => "error")));
+        }
+    }
+
+    public function ajaxProcessGuardarGuiaRemision(){
+        $order = new Order((int)Tools::getValue('id_order'));
+        //d($order);
+        //die();
+        if($order) {
+            $order->nro_guia_remision = Tools::getValue('nro_guia_remision');
+            $order->update();
+            $this->ajaxDie(json_encode(array("result" => "ok", "order" => $order)));
+        }else{
+            $this->ajaxDie(json_encode(array("result" => "error")));
+        }
+    }
+    public function ajaxProcessRealizarVentaCotizacion(){
+
+        foreach (json_decode(Tools::getValue('productos')) as $item) {
+            $producto = new Product((int)$item->id_product, false, $this->context->language->id);
+            $is_pack = Pack::isPack($item->id_product);
+            if ($is_pack) {
+                $pack = Db::getInstance()->getRow('
+                                SELECT id_product_item, quantity
+                                FROM `' . _DB_PREFIX_ . 'pack` a
+                                WHERE a.`id_product_pack` = ' . (int)$item->id_product);
+
+                $id_prod = $pack['id_product_item'];
+                $quantity_pack = StockAvailable::getQuantityAvailableByProduct($id_prod, null, (int)$this->context->shop->id);
+            } else {
+                $quantity_pack = StockAvailable::getQuantityAvailableByProduct($item->id_product, null, (int)$this->context->shop->id);
+            }
+
+            if ($quantity_pack <= 0){
+                $this->ajaxDie(json_encode(array('response' => 'failed', 'msg' => '¡El producto '.$producto->name.' no tiene suficiente stock !')));
+            }
+        }
+
+
+        $cart = new Cart((int)Tools::getValue('id_cart'));
+        $summary = $cart->getSummaryDetails($this->context->language->id,true);
+        $total = (string) $summary['total_price'];
+        $cashondelivery = Module::getInstanceByName("ps_checkpayment");
+        //d($cart);
+        if($cashondelivery->validateOrder(
+            (int)$cart->id,
+            Configuration::get('PS_OS_CHEQUE'),
+            $total,
+            "Venta Cotización",
+            null,
+            array(),
+            $cart->id_currency
+        )) {
+            PrestaShopLogger::addLog($this->trans('Venta creada por cotización: %ip%', array('%ip%' => Tools::getRemoteAddr()), 'Admin.Advparameters.Feature'), 1, null, '', 0, true, (int)$this->context->employee->id);
+            $result['orderid'] = (string)$cashondelivery->currentOrder;
+
+            $order = new Order((int)$result['orderid']);
+
+            $nombre_access = Profile::getProfile(Context::getContext()->employee->id_profile);
+            if($nombre_access['name'] == 'Cajero'){
+                $order->id_empleado_caja = $this->context->employee->id;
+            }
+
+            if($nombre_access['name'] == 'Administrador' || $nombre_access['name'] == 'SuperAdmin'){
+                $last_caja = PosArqueoscaja::cajaAbierta($this->context->cookie->admin_caja);
+                $order->id_empleado_caja = $last_caja['id_employee_apertura'];
+            }
+
+            $order->update();
+
+            $ordeD = OrderDetail::getList($order->id);
+            foreach ($ordeD as $k => $val) {
+                foreach(json_decode(Tools::getValue('productos')) as $key=>$product) {
+                    $oderDetalle = new OrderDetail((int)$val['id_order_detail']);
+                    if ($oderDetalle->product_id === $product->id_product){
+                        $oderDetalle->monto_descuento = $product->monto_descuento;
+                        $oderDetalle->monto_aumento = $product->monto_aumento;
+                        $oderDetalle->update();
+                    }
+                }
+            }
+
+            $this->crearTicketVenta($order);
+            $this->ajaxDie(json_encode(array('response' => 'ok', 'order' => $order, 'cart' => $this->context->cart)));
+        }else{
+            $this->ajaxDie(json_encode(array('response' => 'failed', 'msg' => '¡Error al Ralizadar la venta!')));
+        }
+    }
+
+    protected function crearTicketVenta($order){
+        $nombre_virtual_uri = $this->context->shop->virtual_uri;
+
+        $correlativo_comanda = NumeracionDocumento::getNumTipoDoc('Ticket');
+        if (empty($correlativo_comanda)){
+            $objNC = new NumeracionDocumento();
+            $objNC->serie = '';
+            $objNC->correlativo = 0;
+            $objNC->nombre = 'Ticket';
+            $objNC->id_shop = Context::getContext()->shop->id;
+            $objNC->add();
+            $correlativo_comanda = NumeracionDocumento::getNumTipoDoc('Ticket');
+        }
+        else{
+            $correlativo_comanda = NumeracionDocumento::getNumTipoDoc('Ticket');
+        }
+
+        if (!$order->nro_ticket){
+            $co = new NumeracionDocumento((int)$correlativo_comanda['id_numeracion_documentos']);
+            $co->correlativo = ($correlativo_comanda['correlativo']+1);
+            $co->update();
+            $numero_de_ticket = $correlativo_comanda['correlativo'];
+            $monbre_archivo='Ticket_numero_'.($numero_de_ticket+1).'.pdf';
+            $order->nro_ticket = ($numero_de_ticket+1);
+
+        }
+        else{
+            $numero_de_ticket = $order->nro_ticket;
+            $monbre_archivo='Ticket_numero_'.($numero_de_ticket).'.pdf';
+        }
+
+        $ruta = 'archivos_sunat/'.$nombre_virtual_uri;
+        $ruta_documentos = 'documentos_pdf/'.$nombre_virtual_uri;
+        if (!file_exists($ruta)) {
+            mkdir($ruta, 0777, true);
+        }
+        if (!file_exists($ruta_documentos)) {
+            mkdir($ruta_documentos, 0777, true);
+        }
+
+        $order->ruta_ticket_normal = $ruta_documentos.'/'.$monbre_archivo;
+        $order->update();
+
+        $pdf_ticket = new PDF($order, ucfirst('FacturaVentaRapida'), Context::getContext()->smarty,'P');
+        $pdf_ticket->Guardar($monbre_archivo, "", 'ticket', "");
+
+        $this->confirmations[] = $order;
+
+    }
+
 }
