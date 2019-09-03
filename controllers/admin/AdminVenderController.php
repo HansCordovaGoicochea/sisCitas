@@ -773,7 +773,7 @@ class AdminVenderControllerCore extends AdminController {
         }
 
         if (empty($doc)) {
-            //crear ticket y pdf electronico y enviar a SUNAT
+            //crear ticket y pdf electronico
             if (Tools::getValue('tipo_comprobante') && Tools::getValue('tipo_comprobante') != '') {
                 $this->crearComprobanteElectronico($order, $objCerti);
             }
@@ -781,7 +781,7 @@ class AdminVenderControllerCore extends AdminController {
 
         if ($order->current_state == (int)ConfigurationCore::get("PS_OS_PAYMENT")){
 //            $this->confirmations[] = "Todo correcto 2";
-
+            $doc = PosOrdercomprobantes::getComprobantesByOrderLimit($order->id);
             if (!empty($doc)) {
                 $objComprobantes = new PosOrdercomprobantes($doc['id_pos_ordercomprobantes']);
                 $tipo_comprobante = $objComprobantes->tipo_documento_electronico;
@@ -936,7 +936,8 @@ class AdminVenderControllerCore extends AdminController {
                 }else{
                     return die(json_encode(false));
                 }
-            }else{
+            }
+            else{
                 $this->errors[] = $this->trans('No existe una numeración!!', array(), 'Admin.Orderscustomers.Notification');
                 return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
             }

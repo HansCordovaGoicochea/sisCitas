@@ -62,7 +62,6 @@ class ProcesarComprobante
 
         $resp = Apisunat_2_1::crear_xml_factura_boleta($data_comprobante, json_decode(json_encode($order_detail)), $rutas["ruta_xml"]);
 
-
         if ($resp['result'] == "error"){
             return die(json_encode($resp));
         }
