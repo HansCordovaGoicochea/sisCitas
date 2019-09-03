@@ -27,10 +27,10 @@
             <table>
                 <tr>
                     <td style="text-align: center">
-                        <h1>{$tienda->razon_social}</h1>
+                        <h1>{$PS_SHOP_RAZON_SOCIAL}</h1>
                         {*<div style="border: 1px solid #ddd; ">*}
                         <h1 style="color: #428bca;">
-                            <span>RUC: {$tienda->ruc}</span>
+                            <span>RUC: {$PS_SHOP_RUC}</span>
                             <br>
                             <span>{$comprobante->tipo_documento_electronico|upper}<br>ELECTRONICA</span>
                             <br>

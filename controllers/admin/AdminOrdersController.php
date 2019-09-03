@@ -427,7 +427,7 @@ class AdminOrdersControllerCore extends AdminController
 //        $fcs = $client->__getFunctions(); // mostrar las funciones que tiene el web service
 //        $fcs = $client->__getTypes(); // mostrar las funciones que tiene el web service
 //d($fcs);
-        $RUC= $shop->ruc;
+        $RUC= PS_SHOP_RUC;
         $tipo_comprobante = "01";
         $numeracion_factura = explode("-", $factura->numero_comprobante);
         $serie = $numeracion_factura[0];
@@ -557,7 +557,7 @@ class AdminOrdersControllerCore extends AdminController
         if ($factura->tipo_documento_electronico =='Boleta'){
             $code = '03';
         }
-        $monbre_archivo = $factura->tipo_documento_electronico.'_'.$this->context->shop->ruc.'-'.$code.'-'.$factura->numero_comprobante.'.pdf';
+        $monbre_archivo = $factura->tipo_documento_electronico.'_'.PS_SHOP_RUC.'-'.$code.'-'.$factura->numero_comprobante.'.pdf';
         $valor_qr = $factura->valor_qr;
 //        $pdf->Guardar($monbre_archivo,$valor_qr, 'a4');
 
@@ -898,7 +898,7 @@ class AdminOrdersControllerCore extends AdminController
                 $serie = explode("-", $serie_comprobante);
                 $numeracion = Tools::zero_fill($correlativo_comanda['correlativo'],8);
                 $numero_comprobante = $serie[0].'-'.$numeracion;
-                $nombre_xml_comprobante = $this->context->shop->ruc.'-07-'.$numero_comprobante;
+                $nombre_xml_comprobante = PS_SHOP_RUC.'-07-'.$numero_comprobante;
 
                 $ruta = 'documentos_pdf_a4/fisico/notas/'.$this->context->shop->virtual_uri;
                 $monbre_archivo= 'NOTACREDITO_fisica_'.$nombre_xml_comprobante.'.pdf';
@@ -4201,12 +4201,12 @@ class AdminOrdersControllerCore extends AdminController
                 $direccion_cliente = $CLIENTE->direccion;
 
                 if ($tipo_comprobante == "Factura"){
-                    $archivo = $tienda_actual->ruc . "-01-" . $numero_comprobante;  // nombre del archivo  del comprobante
+                    $archivo = PS_SHOP_RUC . "-01-" . $numero_comprobante;  // nombre del archivo  del comprobante
                     $tipo_documento = "01"; //cod de comprobante electronico
                     $tipo_code_doc_cliente = "6"; // codigo de documento de identidad
                 }
                 else if ($tipo_comprobante == "Boleta"){
-                    $archivo = $tienda_actual->ruc . "-03-" . $numero_comprobante; // nombre del archivo  del comprobante
+                    $archivo = PS_SHOP_RUC . "-03-" . $numero_comprobante; // nombre del archivo  del comprobante
                     $tipo_documento = "03"; //cod de comprobante electronico
 
                     $tipo_documento_legal = new Tipodocumentolegal((int)$CLIENTE->id_document);
@@ -4222,20 +4222,20 @@ class AdminOrdersControllerCore extends AdminController
                     return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
                 }
 
-                $monbre_archivo = $objComprobantes->tipo_documento_electronico.'_'.$tienda_actual->ruc.'-'.$tipo_documento.'-'.$objComprobantes->numero_comprobante.'.pdf';
+                $monbre_archivo = $objComprobantes->tipo_documento_electronico.'_'.PS_SHOP_RUC.'-'.$tipo_documento.'-'.$objComprobantes->numero_comprobante.'.pdf';
 
                 $tax_amount_total = number_format((float)$order->total_paid_tax_incl - (float)$order->total_paid_tax_excl, 2, '.', '');
 
-                $valor_qr = $tienda_actual->ruc.' | '.strtoupper($objComprobantes->tipo_documento_electronico).' | '.$serie.' | '.$numeracion.' | '.$tax_amount_total.' | '.$order->total_paid_tax_incl.' | '.Tools::getFormatFechaGuardar($order->date_add).' | '.$tipo_code_doc_cliente.' | '.$nro_documento_cliente.' | ';
+                $valor_qr = PS_SHOP_RUC.' | '.strtoupper($objComprobantes->tipo_documento_electronico).' | '.$serie.' | '.$numeracion.' | '.$tax_amount_total.' | '.$order->total_paid_tax_incl.' | '.Tools::getFormatFechaGuardar($order->date_add).' | '.$tipo_code_doc_cliente.' | '.$nro_documento_cliente.' | ';
                 ///////////
 
                 //creamos las RUTAS de los documentos
                 // creamos la carpeta donde se guardara el XML
-                $ruta_general_xml = "archivos_sunat/".$tienda_actual->ruc."/xml/";
+                $ruta_general_xml = "archivos_sunat/".PS_SHOP_RUC."/xml/";
                 if (!file_exists($ruta_general_xml)) {
                     mkdir($ruta_general_xml, 0777, true);
                 }
-                $ruta_general_cdr = "archivos_sunat/".$tienda_actual->ruc."/cdr/";
+                $ruta_general_cdr = "archivos_sunat/".PS_SHOP_RUC."/cdr/";
                 if (!file_exists($ruta_general_cdr)) {
                     mkdir($ruta_general_cdr, 0777, true);
                 }
@@ -4261,16 +4261,16 @@ class AdminOrdersControllerCore extends AdminController
                     return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
                 }
 
-                if (trim($tienda_actual->ruc) != "" &&
-                    trim($tienda_actual->name) != "" &&
-                    trim($tienda_actual->razon_social) != "" &&
+                if (trim(PS_SHOP_RUC) != "" &&
+                    trim(PS_SHOP_NAME) != "" &&
+                    trim(PS_SHOP_RAZON_SOCIAL) != "" &&
                     trim($objCerti->user_sunat) != "" &&
                     trim($objCerti->pass_sunat) != ""){
                     $emisor = array();
-                    $emisor['ruc'] = $tienda_actual->ruc;
+                    $emisor['ruc'] = PS_SHOP_RUC;
                     $emisor['tipo_doc'] = "6";
-                    $emisor['nom_comercial'] = Tools::eliminar_tildes($tienda_actual->name);
-                    $emisor['razon_social'] = Tools::eliminar_tildes($tienda_actual->razon_social);
+                    $emisor['nom_comercial'] = Tools::eliminar_tildes(PS_SHOP_NAME);
+                    $emisor['razon_social'] = Tools::eliminar_tildes(PS_SHOP_RAZON_SOCIAL);
                     $emisor['codigo_ubigeo'] = "060101";
                     $emisor['direccion'] = Configuration::get('PS_SHOP_ADDR1', $this->context->language->id, null, $tienda_actual->id,'NO DEFINIDO');
                     $emisor['direccion_departamento'] = "CAJAMARCA";
@@ -4445,387 +4445,6 @@ class AdminOrdersControllerCore extends AdminController
             $this->errors[] = $this->trans('Error no existe una venta!!', array(), 'Admin.Orderscustomers.Notification');
             return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
         }
-
-    }
-
-    public function ajaxProcessEliminarOrderComunicacionBaja()
-    {
-//        d(Tools::getValue('id_order'));
-        $order = new Order((int)Tools::getValue('id_order'));
-        $order_invoice = new OrderInvoice((int)Tools::getValue('id_order_invoice'));
-        $order_details = $order->getOrderDetailList();
-
-        $caja= AperturaCaja::getAllCajasByLocal($order->id_caja_local);
-
-        $shop = Context::getContext()->shop;
-        $ruc_shop = $shop->ruc;
-        $razon_social = Tools::eliminar_tildes($shop->razon_social);
-        $cod_type_doc_shop = '6';
-        $cod_postal = $caja[0]['codigo_postal'];
-        $direccion_shop = Tools::eliminar_tildes($caja[0]['direccion_caja']);
-        $ciudad_shop = $caja[0]['ciudad_caja'];
-        $provincia_shop = $caja[0]['provincia_caja'];
-        $distrito_shop = $caja[0]['distrito_caja'];
-        $cod_identificacion_pais_shop = 'PE';
-
-        $tax_amount_total = number_format((float)$order_invoice->total_paid_tax_incl - (float)$order_invoice->total_paid_tax_excl, 2, '.', '');
-
-
-
-        $cabecera = '<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?><VoidedDocuments xmlns="urn:sunat:names:specification:ubl:peru:schema:xsd:VoidedDocuments-1" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2" xmlns:sac="urn:sunat:names:specification:ubl:peru:schema:xsd:SunatAggregateComponents-1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>';
-
-        $date_de_la_baja = date('Y-m-d');
-
-        if (!$order->numeracion_nota_baja && $order->numeracion_nota_baja == ""){
-            $correlativo_comanda1 = NumeracionDocumento::getNumTipoDoc('ComunicacionBaja');
-            if (empty($correlativo_comanda1)){
-                $this->errors[] = 'No existe numeracion cree una '.' <a href="index.php?controller=AdminNumeracionComanda&addnumeracion_comanda&token='.Tools::getAdminTokenLite('AdminNumeracionComanda').'" target="_blank">&nbsp; -> Crear Numeración para Comunicacion de baja (nombre: ComunicacionBaja)</a>';
-            }
-            else{
-                $objNu2 = new NumeracionDocumento((int)$correlativo_comanda1['id_numeracion_documentos']);
-
-                $objNu2->correlativo = ($correlativo_comanda1['correlativo']+1);
-                $objNu2->update();
-                $correlativo_comanda = NumeracionDocumento::getNumTipoDoc('ComunicacionBaja');
-
-                $serie_comprobante = $order->numero_comprobante;
-                $serie = explode("-", $serie_comprobante);
-                $identificador_baja = $correlativo_comanda['serie'];
-                $numeracion = Tools::zero_fill($correlativo_comanda['correlativo'],5);
-                $date = date('Ymd');
-                $numero_comprobante = $identificador_baja.'-'.$date.'-'.$numeracion;
-                $nombre_xml_comprobante = $ruc_shop.'-'.$numero_comprobante;
-            }
-        }else{
-            $serie_comprobante = $order->numero_comprobante;
-            $serie = explode("-", $serie_comprobante);
-            // hacer que se consulta a la sunat el comprobante
-            $numero_comprobante = $order->numeracion_nota_baja;
-            $nombre_xml_comprobante = $ruc_shop."-".$numero_comprobante;
-        }
-
-
-        $xml = new SimpleXMLElement($cabecera);
-        $UBLExtensionsXml = $xml->addChild('UBLExtensions',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2');
-        $UBLExtensionXml = $UBLExtensionsXml->addChild('UBLExtension',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2');
-        $ExtensionContentXml = $UBLExtensionXml->addChild('ExtensionContent',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2');
-
-        $xml->addChild('UBLVersionID','2.0','urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $xml->addChild('CustomizationID','1.0','urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $xml->addChild('ID',$numero_comprobante,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $xml->addChild('ReferenceDate',Tools::getFormatFechaGuardar($order->date_upd),'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');//aqui va fecha DEL DOCUMENTO A DAR DE BAJA ES DECIR LA FECHA de emision de factura
-        $xml->addChild('IssueDate',$date_de_la_baja,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');//aqui va fecha de emision de factura
-
-        $SignatureXml = $xml->addChild('Signature',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $SignatureXml->addChild('ID',$ruc_shop,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $SignatoryPartyXml = $SignatureXml->addChild('SignatoryParty',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $PartyIdentificationXml = $SignatoryPartyXml->addChild('PartyIdentification',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $PartyIdentificationXml->addChild('ID',$ruc_shop,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $PartyNameXml = $SignatoryPartyXml->addChild('PartyName',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $PartyNameXml->addChild('Name',$razon_social,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $DigitalSignatureAttachmentXml = $SignatureXml->addChild('DigitalSignatureAttachment',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $ExternalReferenceXml = $DigitalSignatureAttachmentXml->addChild('ExternalReference',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $ExternalReferenceXml->addChild('URI','SIGN','urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-
-        $AccountingSupplierPartyXml = $xml->addChild('AccountingSupplierParty',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $AccountingSupplierPartyXml->addChild('CustomerAssignedAccountID', $ruc_shop,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $AccountingSupplierPartyXml->addChild('AdditionalAccountID',$cod_type_doc_shop,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $PartyXml = $AccountingSupplierPartyXml->addChild('Party',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $PartyNameXml = $PartyXml->addChild('PartyName',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $PartyNameXml->addChild('Name',$razon_social,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $PostalAddressXml = $PartyXml->addChild('PostalAddress',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $PostalAddressXml->addChild('ID',$cod_postal,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $PostalAddressXml->addChild('StreetName',$direccion_shop,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $PostalAddressXml->addChild('CitySubdivisionName',' ','urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $PostalAddressXml->addChild('CityName',$ciudad_shop,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $PostalAddressXml->addChild('CountrySubentity',Tools::eliminar_tildes($provincia_shop),'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $PostalAddressXml->addChild('District',Tools::eliminar_tildes($distrito_shop),'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $CountryXml = $PostalAddressXml->addChild('Country',null, 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $CountryXml->addChild('IdentificationCode',$cod_identificacion_pais_shop, 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-
-        $RegistrationNameXml = $PartyXml->addChild('PartyLegalEntity',null,'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        $RegistrationNameXml->addChild('RegistrationName',$razon_social,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-
-        $InvoiceLineXml = $xml->addChild('VoidedDocumentsLine',null,'urn:sunat:names:specification:ubl:peru:schema:xsd:SunatAggregateComponents-1');
-        $InvoiceLineXml->addChild('LineID', 1,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-
-        $codigo_doc='01';
-
-        $InvoiceLineXml->addChild('DocumentTypeCode', $codigo_doc,'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
-        $InvoiceLineXml->addChild('DocumentSerialID', $serie[0],'urn:sunat:names:specification:ubl:peru:schema:xsd:SunatAggregateComponents-1');
-        $InvoiceLineXml->addChild('DocumentNumberID', $serie[1],'urn:sunat:names:specification:ubl:peru:schema:xsd:SunatAggregateComponents-1');
-        $razon_baja = Tools::getValue('descripcion');
-        $InvoiceLineXml->addChild('VoidReasonDescription', Tools::eliminar_tildes($razon_baja),'urn:sunat:names:specification:ubl:peru:schema:xsd:SunatAggregateComponents-1');
-
-        $xml = dom_import_simplexml($xml)->ownerDocument;
-        $xml->formatOutput = true;
-        $xml_doc = $xml->saveXML();
-//        echo ($xml_doc);
-//        d($xml_doc);
-        $tienda_actual = new Shop((int)$this->context->shop->id);
-
-        $nombre_virtual_uri = $tienda_actual->virtual_uri;
-
-        if (!file_exists("archivos_sunat/baja/".$tienda_actual->ruc."/")) {
-            mkdir("archivos_sunat/baja/".$tienda_actual->ruc."/", 0777, true);
-        }
-
-        $fp = fopen('archivos_sunat/baja/'.$tienda_actual->ruc."/".$nombre_xml_comprobante.'.xml',"wb");
-        fwrite($fp,$xml_doc);
-        fclose($fp);
-
-        $ruta_xml = "archivos_sunat/baja/".$tienda_actual->ruc."/".$nombre_xml_comprobante;
-        $ruta_cdr = "archivos_sunat/baja/".$tienda_actual->ruc."/";
-
-        //firmar xml
-        $arr = Certificadofe::getIdCertife(Context::getContext()->shop->id);
-        if ($arr == 0){
-            $this->errors[] = 'Porfavor suba un certificado para firmar los DOCUMENTOS!'.'<a href="index.php?controller=AdminCertificadoFE&addcertificadofe&token='.Tools::getAdminTokenLite('AdminCertificadoFE').'" target="_blank">&nbsp; -> Subir Certificado</a>';
-        }else{
-            $objCerti = new Certificadofe((int)$arr); // buscar el certificado
-
-            $rutas = array();
-            $rutas['ruta_comprobantes'] = $nombre_xml_comprobante;
-            $rutas['nombre_archivo'] = $nombre_xml_comprobante;
-            $rutas['ruta_xml'] = $ruta_xml;
-            $rutas['ruta_cdr'] = $ruta_cdr;
-            $rutas['ruta_firma'] = $objCerti->archivo;
-            $rutas['pass_firma'] = $objCerti->clave_certificado;
-            $rutas['ruta_ws'] = $objCerti->web_service_sunat;
-
-            $resp_firma = FirmarDocumento::firmar_xml($order, $rutas["ruta_xml"], $rutas["ruta_firma"], $rutas["pass_firma"], $rutas["nombre_archivo"]);
-
-            if ($resp_firma['respuesta'] == "error"){
-                return die(json_encode($resp_firma));
-            }
-
-            $resp_envio = ProcesarComprobante::enviar_documento_para_baja($objCerti->user_sunat, $objCerti->pass_sunat,  $rutas["ruta_xml"], $rutas['nombre_archivo'], $rutas['ruta_ws']);
-
-            if ($resp_envio['respuesta'] == 'error') {
-                return $resp_envio;
-            }
-
-            $order->identificador_comunicacion = $resp_envio['cod_ticket'];
-            $order->nota_baja = 'Baja';
-            $order->numeracion_nota_baja = $numero_comprobante;
-            $order->descripcion_eliminacion = $razon_baja;
-            $order->mensaje_cdr = $resp_envio['extra'];
-            $order->update();
-
-            if (Tools::getValue('devolver') == 'pasarcostos') {
-                //d($this->context->shop->id);
-                foreach ($order->getOrderPaymentCollection() as $payment){
-                    if ((int)$payment->es_cuenta == 1){ // 1 es caja
-                        $objCaja = new AperturaCaja((int)$payment->id_caja_cuenta);
-                        $monto_inicial = $objCaja->monto_inicial;
-                        $objCaja->monto_inicial = (float)$monto_inicial - (float)$payment->amount;
-                        $objCaja->update();
-                    }else if((int)$payment->es_cuenta == 2){ // 2 es cuenta
-                        $objcuenta = new CtaYam((int)$payment->id_caja_cuenta);
-                        $importeinicial = $objcuenta->monto_inicio;
-                        $montofinal = (float)$importeinicial - (float)$payment->amount;
-                        $objcuenta->monto_inicio=$montofinal;
-                        $objcuenta->update();
-                    }
-                }
-            }
-
-            $order->setCurrentState(14, $this->context->employee->id); //estado 14 comunicacion de baja
-
-            ProcesarComprobante::consultar_envio_ticket($objCerti->user_sunat, $objCerti->pass_sunat,  $order->identificador_comunicacion, $rutas['nombre_archivo'], $rutas['ruta_cdr'], $rutas['ruta_ws']);
-
-            die(Tools::jsonEncode(array('errors' => true, 'devolver' => 'si', 'mensaje_confirmacion' => $this->confirmations)));
-        }
-
-    }
-
-    public function ajaxProcessEliminarOrderNotaCredito()
-    {
-//        d(Tools::getValue('id_order'));
-        $order = new Order((int)Tools::getValue('id_order'));
-        $order_invoice = new OrderInvoice((int)Tools::getValue('id_order_invoice'));
-        $order_details = $order->getOrderDetailList();
-
-        $caja= AperturaCaja::getCajasByID($order->id_caja_local);
-        // verificamos el certificado
-        $arr = Certificadofe::getIdCertife(Context::getContext()->shop->id);
-        $objCerti = new Certificadofe((int)$arr); // buscar el certificado
-
-        if (!$order->numeracion_nota_baja && $order->numeracion_nota_baja == "") {
-            $correlativo_comanda1 = NumeracionDocumento::getNumTipoDoc('NotaCredito');
-            if (empty($correlativo_comanda1)) {
-                $this->errors[] = 'No existe numeracion cree una ' . ' <a href="index.php?controller=AdminNumeracionDocumentos&addnumeracion_documentos&token=' . Tools::getAdminTokenLite('AdminNumeracionDocumentos') . '&nombre=NotaCredito" target="_blank">&nbsp; -> Crear Numeración para Nota de crédito (con el nombre: NotaCredito)</a>';
-            } else {
-                $objNu2 = new NumeracionDocumento((int)$correlativo_comanda1['id_numeracion_documentos']);
-                $objNu2->correlativo = ($correlativo_comanda1['correlativo'] + 1);
-                $objNu2->update();
-                $correlativo_comanda = NumeracionDocumento::getNumTipoDoc('NotaCredito');
-                $serie_comprobante = $order->numero_comprobante;
-                $serie = explode("-", $serie_comprobante);
-                $numeracion = Tools::zero_fill($correlativo_comanda['correlativo'], 8);
-
-                $numero_comprobante = $serie[0] . '-' . $numeracion;
-            }
-        }
-        else{
-            // hacer que se consulta a la sunat el comprobante
-            $numero_comprobante = $order->numeracion_nota_baja;
-            $array_num = explode("-", $numero_comprobante);
-            $serie = $array_num[0];
-            $numeracion = $array_num[1];
-            $numero_comprobante = $serie."-".$numeracion;
-        }
-        $order->nota_baja = 'NotaCredito';
-        $order->descripcion_eliminacion = Tools::getValue('descripcion');
-        $order->numeracion_nota_baja = $numero_comprobante;
-        $order->update();
-//d($order->boleta_factura);
-        $tipo_documento = "07";
-
-        if ($order->tipo_documento_electronico == 'Factura') {
-
-            $empresa_cliente = new Supplier($order->id_supplier); // para facturas
-
-            if (!$empresa_cliente->ruc_supplier) {
-                $this->errors[] = $this->trans('La Empresa no tiene RUC.', array(), 'Admin.Global');
-            }
-
-            $ruc_sup = $empresa_cliente->ruc_supplier;
-            $tipo_code_doc_sup = '6';
-            $nombre_empresa =  Tools::eliminar_tildes($empresa_cliente->razon_social_supplier);
-            $invoice_type_code = '01';
-            $arrayAddress = AddressCore::getAddressIdBySupplierId($order->id_supplier);
-            $objAddress = new AddressCore((int)$arrayAddress);
-            $direccion_cliente = $objAddress->address1;
-        }
-        else if($order->tipo_documento_electronico == 'Boleta'){
-
-            if ($order->cliente_empresa == 'Empresa'){
-                $empresa_cliente = new Supplier($order->id_supplier); // para facturas
-                $ruc_sup = $empresa_cliente->ruc_supplier;
-                $tipo_code_doc_sup = '6';
-                $nombre_empresa =  Tools::eliminar_tildes($empresa_cliente->razon_social_supplier);
-                $arrayAddress= AddressCore::getAddressIdBySupplierId($order->id_supplier);
-                $objAddress = new AddressCore((int)$arrayAddress);
-                $direccion_cliente = $objAddress->address1;
-            }
-            else if ($order->cliente_empresa == 'Cliente'){
-                $customer = new Customer($order->id_customer); // para boletas
-                if (!$customer->num_document) {
-                    $this->errors[] = $this->trans('El Cliente no tiene DNI.', array(), 'Admin.Global');
-                }
-                $ruc_sup = $customer->num_document;
-
-                $tipo_documento_legal = new TipoDocumentoLegal((int)$customer->id_document);
-                if ((int)$order->id_customer !== 1){
-                    $tipo_code_doc_sup = $tipo_documento_legal->cod_sunat; // codigo de documento de identidad
-                }else{
-                    $tipo_code_doc_sup = "0"; // codigo de documento de identidad
-                }
-                $nombre_empresa =  Tools::eliminar_tildes($customer->firstname . ' ' . $customer->lastname);
-
-            }
-            $invoice_type_code = '03';
-        }
-        $tienda_actual = new Shop((int)$this->context->shop->id);
-
-        $nombre_xml_comprobante = $tienda_actual->ruc.'-07-'.$numero_comprobante;
-
-
-        $nombre_virtual_uri = $tienda_actual->virtual_uri;
-
-        $hoy = getdate();
-        $f = $hoy['year'].'-'.$hoy['mon'].'-'.$hoy['mday'];
-
-        $tax_amount_total = number_format((float)$order_invoice->total_paid_tax_incl - (float)$order_invoice->total_paid_tax_excl, 2, '.', '');
-
-        $valor_qr_nota = $tienda_actual->ruc.' | NOTA DE CREDITO | '.$serie[0].' | '.$numeracion.' | '.$tax_amount_total.' | '.$order_invoice->total_paid_tax_incl.' | '.$f.' | '.$tipo_code_doc_sup.' | '.$ruc_sup.' | ';
-//                            d($valor_qr_nota);
-        $monbre_archivo= 'NOTACREDITO_'.$nombre_xml_comprobante.'.pdf';
-
-        if (!file_exists("archivos_sunat/notacredito/".$tienda_actual->ruc."/")) {
-            mkdir("archivos_sunat/notacredito/".$tienda_actual->ruc."/".$nombre_virtual_uri, 0777, true);
-        }
-        $ruta_xml = "archivos_sunat/notacredito/".$tienda_actual->ruc."/".$nombre_xml_comprobante;
-        $ruta_cdr = "archivos_sunat/notacredito/".$tienda_actual->ruc."/";
-
-        $receptor = array();
-        $receptor['TIPO_DOCUMENTO_CLIENTE'] = $tipo_code_doc_sup;
-        $receptor['NRO_DOCUMENTO_CLIENTE'] = $ruc_sup;
-        $receptor['RAZON_SOCIAL_CLIENTE'] = $nombre_empresa;
-        $receptor['DIRECCION_CLIENTE'] = $direccion_cliente;
-
-        $emisor = array();
-        $emisor['es_porconsumo'] = $order->es_porconsumo;
-        $emisor['ruc'] = $tienda_actual->ruc;
-        $emisor['tipo_doc'] = "6";
-        $emisor['nom_comercial'] = Tools::eliminar_tildes($tienda_actual->name);
-        $emisor['razon_social'] = Tools::eliminar_tildes($tienda_actual->razon_social);
-        $emisor['codigo_ubigeo'] = "060101";
-        $emisor['direccion'] = Tools::eliminar_tildes($caja['direccion_caja']);
-        $emisor['direccion_departamento'] = "CAJAMARCA";
-        $emisor['direccion_provincia'] = "CAJAMARCA";
-        $emisor['direccion_distrito'] = "CAJAMARCA";
-        $emisor['direccion_codigo_pais'] = "PE";
-        $emisor['usuario_sol'] = $objCerti->user_sunat;
-        $emisor['clave_sol'] = $objCerti->pass_sunat;
-        $emisor['tipo_preceso'] = "1";
-
-        $rutas = array();
-        $rutas['ruta_comprobantes'] = $nombre_xml_comprobante;
-        $rutas['nombre_archivo'] = $nombre_xml_comprobante;
-        $rutas['ruta_xml'] = $ruta_xml;
-        $rutas['ruta_cdr'] = $ruta_cdr;
-        $rutas['ruta_firma'] = $objCerti->archivo;
-        $rutas['pass_firma'] = $objCerti->clave_certificado;
-        $rutas['ruta_ws'] = $objCerti->web_service_sunat;
-
-        $order->tipo_comprobante_modificado = $invoice_type_code;
-        $order->num_comprobante_modificado = $order->numero_comprobante;
-        $order->notacredito_motivo_id = Tools::getValue('id_code_nota_credito');
-
-        $datos_comprobante = Apisunat_2_1::crear_cabecera($emisor, $order, $tipo_documento, $receptor);
-
-        $ruta = 'documentos_pdf/'.$nombre_virtual_uri;
-        $ruta_a4 = 'documentos_pdf_a4/'.$nombre_virtual_uri;
-
-        //generar pdf
-        $pdf = new PDF($order, ucfirst('ComprobanteElectronicopdfa4credito'), Context::getContext()->smarty,'P');
-
-//                                            $pdf->render();
-        $pdf->Guardar($monbre_archivo,$valor_qr_nota, 'a4');
-
-        $resp = ProcesarComprobante::procesar_nota_de_credito($datos_comprobante, $order, $rutas);
-
-
-        $order->mensaje_cdr = $resp['msj_sunat'];
-        $order->valor_qr_nota = $valor_qr_nota;
-        $order->ruta_pdf_a4nota = 'documentos_pdf_a4/notas/'.$nombre_virtual_uri.$monbre_archivo;
-        $order->update();
-
-        if (Tools::getValue('devolver') == 'pasarcostos') {
-
-            foreach ($order->getOrderPaymentCollection() as $payment){
-                if ((int)$payment->es_cuenta == 1){ // 1 es caja
-                    $objCaja = new AperturaCaja((int)$payment->id_caja_cuenta);
-                    $monto_inicial = $objCaja->monto_inicial;
-                    $objCaja->monto_inicial = (float)$monto_inicial - (float)$payment->amount;
-                    $objCaja->update();
-                }else if((int)$payment->es_cuenta == 2){ // 2 es cuenta
-                    $objcuenta = new CtaYam((int)$payment->id_caja_cuenta);
-                    $importeinicial = $objcuenta->monto_inicio;
-                    $montofinal = (float)$importeinicial - (float)$payment->amount;
-                    $objcuenta->monto_inicio=$montofinal;
-                    $objcuenta->update();
-                }
-            }
-            //
-        }
-
-        $order->setCurrentState(15, $this->context->employee->id); //estado 15 Nota de credito
-
-        die(Tools::jsonEncode(array('errors' => true, 'devolver' => 'si', 'mensaje_confirmacion' => $resp['msj_sunat'])));
-
 
     }
 
@@ -5083,16 +4702,6 @@ class AdminOrdersControllerCore extends AdminController
         )));
     }
 
-    public function ajaxProcessActualizarProximoPago()
-    {
-
-        $order = new Order((int)Tools::getValue('id_order'));
-        $order->fecha_proximo_pago = Tools::getValue('fecha_proximo_pago');
-        $order->update();
-
-        die(Tools::jsonEncode(array('errors' => true, 'estado' => 'disponible')));
-    }
-
     public function ajaxProcessGetDetailAndPayments()
     {
 
@@ -5134,139 +4743,5 @@ class AdminOrdersControllerCore extends AdminController
         }
     }
 
-    public function ajaxProcessGuardarGuiaRemision(){
-        $order = new Order((int)Tools::getValue('id_order'));
-        //d($order);
-        //die();
-        if($order) {
-            $order->nro_guia_remision = Tools::getValue('nro_guia_remision');
-            $order->update();
-            $this->ajaxDie(json_encode(array("result" => "ok", "order" => $order)));
-        }else{
-            $this->ajaxDie(json_encode(array("result" => "error")));
-        }
-    }
-    public function ajaxProcessRealizarVentaCotizacion(){
-
-        foreach (json_decode(Tools::getValue('productos')) as $item) {
-            $producto = new Product((int)$item->id_product, false, $this->context->language->id);
-            $is_pack = Pack::isPack($item->id_product);
-            if ($is_pack) {
-                $pack = Db::getInstance()->getRow('
-                                SELECT id_product_item, quantity
-                                FROM `' . _DB_PREFIX_ . 'pack` a
-                                WHERE a.`id_product_pack` = ' . (int)$item->id_product);
-
-                $id_prod = $pack['id_product_item'];
-                $quantity_pack = StockAvailable::getQuantityAvailableByProduct($id_prod, null, (int)$this->context->shop->id);
-            } else {
-                $quantity_pack = StockAvailable::getQuantityAvailableByProduct($item->id_product, null, (int)$this->context->shop->id);
-            }
-
-            if ($quantity_pack <= 0){
-                $this->ajaxDie(json_encode(array('response' => 'failed', 'msg' => '¡El producto '.$producto->name.' no tiene suficiente stock !')));
-            }
-        }
-
-
-        $cart = new Cart((int)Tools::getValue('id_cart'));
-        $summary = $cart->getSummaryDetails($this->context->language->id,true);
-        $total = (string) $summary['total_price'];
-        $cashondelivery = Module::getInstanceByName("ps_checkpayment");
-        //d($cart);
-        if($cashondelivery->validateOrder(
-            (int)$cart->id,
-            Configuration::get('PS_OS_CHEQUE'),
-            $total,
-            "Venta Cotización",
-            null,
-            array(),
-            $cart->id_currency
-        )) {
-            PrestaShopLogger::addLog($this->trans('Venta creada por cotización: %ip%', array('%ip%' => Tools::getRemoteAddr()), 'Admin.Advparameters.Feature'), 1, null, '', 0, true, (int)$this->context->employee->id);
-            $result['orderid'] = (string)$cashondelivery->currentOrder;
-
-            $order = new Order((int)$result['orderid']);
-
-            $nombre_access = Profile::getProfile(Context::getContext()->employee->id_profile);
-            if($nombre_access['name'] == 'Cajero'){
-                $order->id_empleado_caja = $this->context->employee->id;
-            }
-
-            if($nombre_access['name'] == 'Administrador' || $nombre_access['name'] == 'SuperAdmin'){
-                $last_caja = PosArqueoscaja::cajaAbierta($this->context->cookie->admin_caja);
-                $order->id_empleado_caja = $last_caja['id_employee_apertura'];
-            }
-
-            $order->update();
-
-            $ordeD = OrderDetail::getList($order->id);
-            foreach ($ordeD as $k => $val) {
-                foreach(json_decode(Tools::getValue('productos')) as $key=>$product) {
-                    $oderDetalle = new OrderDetail((int)$val['id_order_detail']);
-                    if ($oderDetalle->product_id === $product->id_product){
-                        $oderDetalle->monto_descuento = $product->monto_descuento;
-                        $oderDetalle->monto_aumento = $product->monto_aumento;
-                        $oderDetalle->update();
-                    }
-                }
-            }
-
-            $this->crearTicketVenta($order);
-            $this->ajaxDie(json_encode(array('response' => 'ok', 'order' => $order, 'cart' => $this->context->cart)));
-        }else{
-            $this->ajaxDie(json_encode(array('response' => 'failed', 'msg' => '¡Error al Ralizadar la venta!')));
-        }
-    }
-
-    protected function crearTicketVenta($order){
-        $nombre_virtual_uri = $this->context->shop->virtual_uri;
-
-        $correlativo_comanda = NumeracionDocumento::getNumTipoDoc('Ticket');
-        if (empty($correlativo_comanda)){
-            $objNC = new NumeracionDocumento();
-            $objNC->serie = '';
-            $objNC->correlativo = 0;
-            $objNC->nombre = 'Ticket';
-            $objNC->id_shop = Context::getContext()->shop->id;
-            $objNC->add();
-            $correlativo_comanda = NumeracionDocumento::getNumTipoDoc('Ticket');
-        }
-        else{
-            $correlativo_comanda = NumeracionDocumento::getNumTipoDoc('Ticket');
-        }
-
-        if (!$order->nro_ticket){
-            $co = new NumeracionDocumento((int)$correlativo_comanda['id_numeracion_documentos']);
-            $co->correlativo = ($correlativo_comanda['correlativo']+1);
-            $co->update();
-            $numero_de_ticket = $correlativo_comanda['correlativo'];
-            $monbre_archivo='Ticket_numero_'.($numero_de_ticket+1).'.pdf';
-            $order->nro_ticket = ($numero_de_ticket+1);
-
-        }
-        else{
-            $numero_de_ticket = $order->nro_ticket;
-            $monbre_archivo='Ticket_numero_'.($numero_de_ticket).'.pdf';
-        }
-
-        $ruta = 'archivos_sunat/'.$nombre_virtual_uri;
-        $ruta_documentos = 'documentos_pdf/'.$nombre_virtual_uri;
-        if (!file_exists($ruta)) {
-            mkdir($ruta, 0777, true);
-        }
-        if (!file_exists($ruta_documentos)) {
-            mkdir($ruta_documentos, 0777, true);
-        }
-
-        $order->ruta_ticket_normal = $ruta_documentos.'/'.$monbre_archivo;
-        $order->update();
-
-        $pdf_ticket = new PDF($order, ucfirst('FacturaVentaRapida'), Context::getContext()->smarty,'P');
-        $pdf_ticket->Guardar($monbre_archivo, "", 'ticket', "");
-
-        $this->confirmations[] = $order;
-
-    }
 
 }

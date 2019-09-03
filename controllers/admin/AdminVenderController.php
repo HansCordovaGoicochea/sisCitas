@@ -623,12 +623,12 @@ class AdminVenderControllerCore extends AdminController {
             $direccion_cliente = $CLIENTE->direccion;
 
             if ($tipo_comprobante == "Factura"){
-                $archivo = $tienda_actual->ruc . "-01-" . $numero_comprobante;  // nombre del archivo  del comprobante
+                $archivo = PS_SHOP_RUC . "-01-" . $numero_comprobante;  // nombre del archivo  del comprobante
                 $tipo_documento = "01"; //cod de comprobante electronico
                 $tipo_code_doc_cliente = "6"; // codigo de documento de identidad
             }
             else if ($tipo_comprobante == "Boleta"){
-                $archivo = $tienda_actual->ruc . "-03-" . $numero_comprobante; // nombre del archivo  del comprobante
+                $archivo = PS_SHOP_RUC . "-03-" . $numero_comprobante; // nombre del archivo  del comprobante
                 $tipo_documento = "03"; //cod de comprobante electronico
 
                 $tipo_documento_legal = new Tipodocumentolegal((int)$CLIENTE->id_document);
@@ -643,20 +643,20 @@ class AdminVenderControllerCore extends AdminController {
                 $this->errors[] = $this->trans('Error: Tipo de comprobante no válido!!', array(), 'Admin.Orderscustomers.Notification');
             }
 
-            $monbre_archivo = $objComprobantes->tipo_documento_electronico.'_'.$tienda_actual->ruc.'-'.$tipo_documento.'-'.$objComprobantes->numero_comprobante.'.pdf';
+            $monbre_archivo = $objComprobantes->tipo_documento_electronico.'_'.PS_SHOP_RUC.'-'.$tipo_documento.'-'.$objComprobantes->numero_comprobante.'.pdf';
 
             $tax_amount_total = number_format((float)$order->total_paid_tax_incl - (float)$order->total_paid_tax_excl, 2, '.', '');
 
-            $valor_qr = $tienda_actual->ruc.' | '.strtoupper($objComprobantes->tipo_documento_electronico).' | '.$serie.' | '.$numeracion.' | '.$tax_amount_total.' | '.$order->total_paid_tax_incl.' | '.Tools::getFormatFechaGuardar($order->date_add).' | '.$tipo_code_doc_cliente.' | '.$nro_documento_cliente.' | ';
+            $valor_qr = PS_SHOP_RUC.' | '.strtoupper($objComprobantes->tipo_documento_electronico).' | '.$serie.' | '.$numeracion.' | '.$tax_amount_total.' | '.$order->total_paid_tax_incl.' | '.Tools::getFormatFechaGuardar($order->date_add).' | '.$tipo_code_doc_cliente.' | '.$nro_documento_cliente.' | ';
             ///////////
 
             //creamos las RUTAS de los documentos
             // creamos la carpeta donde se guardara el XML
-            $ruta_general_xml = "archivos_sunat/".$tienda_actual->ruc."/xml/";
+            $ruta_general_xml = "archivos_sunat/".PS_SHOP_RUC."/xml/";
             if (!file_exists($ruta_general_xml)) {
                 mkdir($ruta_general_xml, 0777, true);
             }
-            $ruta_general_cdr = "archivos_sunat/".$tienda_actual->ruc."/cdr/";
+            $ruta_general_cdr = "archivos_sunat/".PS_SHOP_RUC."/cdr/";
             if (!file_exists($ruta_general_cdr)) {
                 mkdir($ruta_general_cdr, 0777, true);
             }
@@ -681,16 +681,16 @@ class AdminVenderControllerCore extends AdminController {
                 $this->errors[] = $this->trans('Error algunos campos del cliente estan vacios!!', array(), 'Admin.Orderscustomers.Notification');
             }
 
-            if (trim($tienda_actual->ruc) != "" &&
-                trim($tienda_actual->name) != "" &&
-                trim($tienda_actual->razon_social) != "" &&
+            if (trim(PS_SHOP_RUC) != "" &&
+                trim(PS_SHOP_NAME) != "" &&
+                trim(PS_SHOP_RAZON_SOCIAL) != "" &&
                 trim($objCerti->user_sunat) != "" &&
                 trim($objCerti->pass_sunat) != ""){
                 $emisor = array();
-                $emisor['ruc'] = $tienda_actual->ruc;
+                $emisor['ruc'] = PS_SHOP_RUC;
                 $emisor['tipo_doc'] = "6";
-                $emisor['nom_comercial'] = Tools::eliminar_tildes($tienda_actual->name);
-                $emisor['razon_social'] = Tools::eliminar_tildes($tienda_actual->razon_social);
+                $emisor['nom_comercial'] = Tools::eliminar_tildes(PS_SHOP_NAME);
+                $emisor['razon_social'] = Tools::eliminar_tildes(PS_SHOP_RAZON_SOCIAL);
                 $emisor['codigo_ubigeo'] = "060101";
                 $emisor['direccion'] = Configuration::get('PS_SHOP_ADDR1', $this->context->language->id, null, $tienda_actual->id,'NO DEFINIDO');
                 $emisor['direccion_departamento'] = "CAJAMARCA";
@@ -796,12 +796,12 @@ class AdminVenderControllerCore extends AdminController {
                 $tipo_code_doc_cliente = "";
                 $tipo_documento = "";
                 if ($tipo_comprobante == "Factura"){
-                    $archivo = $tienda_actual->ruc . "-01-" . $numero_comprobante;  // nombre del archivo  del comprobante
+                    $archivo = PS_SHOP_RUC . "-01-" . $numero_comprobante;  // nombre del archivo  del comprobante
                     $tipo_documento = "01"; //cod de comprobante electronico
                     $tipo_code_doc_cliente = "6"; // codigo de documento de identidad
                 }
                 else if ($tipo_comprobante == "Boleta"){
-                    $archivo = $tienda_actual->ruc . "-03-" . $numero_comprobante; // nombre del archivo  del comprobante
+                    $archivo = PS_SHOP_RUC . "-03-" . $numero_comprobante; // nombre del archivo  del comprobante
                     $tipo_documento = "03"; //cod de comprobante electronico
 
                     $tipo_documento_legal = new Tipodocumentolegal((int)$CLIENTE->id_document);
@@ -833,15 +833,15 @@ class AdminVenderControllerCore extends AdminController {
                 }
 
                 $emisor = array();
-                if (trim($tienda_actual->ruc) != "" &&
-                    trim($tienda_actual->name) != "" &&
-                    trim($tienda_actual->razon_social) != "" &&
+                if (trim(PS_SHOP_RUC) != "" &&
+                    trim(PS_SHOP_NAME) != "" &&
+                    trim(PS_SHOP_RAZON_SOCIAL) != "" &&
                     trim($objCerti->user_sunat) != "" &&
                     trim($objCerti->pass_sunat) != ""){
-                    $emisor['ruc'] = $tienda_actual->ruc;
+                    $emisor['ruc'] = PS_SHOP_RUC;
                     $emisor['tipo_doc'] = "6";
-                    $emisor['nom_comercial'] = Tools::eliminar_tildes($tienda_actual->name);
-                    $emisor['razon_social'] = Tools::eliminar_tildes($tienda_actual->razon_social);
+                    $emisor['nom_comercial'] = Tools::eliminar_tildes(PS_SHOP_NAME);
+                    $emisor['razon_social'] = Tools::eliminar_tildes(PS_SHOP_RAZON_SOCIAL);
                     $emisor['codigo_ubigeo'] = "060101";
                     $emisor['direccion'] = Configuration::get('PS_SHOP_ADDR1', $this->context->language->id, null, $tienda_actual->id,'NO DEFINIDO');
                     $emisor['direccion_departamento'] = "CAJAMARCA";
@@ -860,11 +860,11 @@ class AdminVenderControllerCore extends AdminController {
 
                 //creamos las RUTAS de los documentos
                 // creamos la carpeta donde se guardara el XML
-                $ruta_general_xml = "archivos_sunat/".$tienda_actual->ruc."/xml/";
+                $ruta_general_xml = "archivos_sunat/".PS_SHOP_RUC."/xml/";
                 if (!file_exists($ruta_general_xml)) {
                     mkdir($ruta_general_xml, 0777, true);
                 }
-                $ruta_general_cdr = "archivos_sunat/".$tienda_actual->ruc."/cdr/";
+                $ruta_general_cdr = "archivos_sunat/".PS_SHOP_RUC."/cdr/";
                 if (!file_exists($ruta_general_cdr)) {
                     mkdir($ruta_general_cdr, 0777, true);
                 }

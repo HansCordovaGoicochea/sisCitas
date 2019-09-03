@@ -26,9 +26,9 @@
     {*</thead>*}
     <tr style="text-align: center">
         <td colspan="4">
-            <span >{$tienda->name|upper}</span><br>
+            <span >{$PS_SHOP_NAME|upper}</span><br>
             <span >{$address_shop->address1|upper}</span><br>
-            <span>RUC: {$tienda->ruc}</span><br>
+            <span>RUC: {$PS_SHOP_RUC}</span><br>
             <span>Fecha: {$order->date_upd|date_format:"%d/%m/%Y %H:%m:%S"}</span>
         </td>
     </tr>

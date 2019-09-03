@@ -199,6 +199,3 @@ if (!defined('_PS_JQUERY_VERSION_')) {
 
 define('_PS_CACHE_CA_CERT_FILE_', _PS_CACHE_DIR_.'cacert.pem');
 
-// data shop
-define('PS_SHOP_RAZON_SOCIAL', Configuration::get('PS_SHOP_RAZON_SOCIAL'));
-define('PS_SHOP_RUC', Configuration::get('PS_SHOP_RUC'));

@@ -411,7 +411,7 @@ class AdminPdfControllerCore extends AdminController
             $numero_comprobante = $serie."-".$numeracion;
         }
 
-        $monbre_archivo = $objComprobantes->tipo_documento_electronico.'_'.$tienda_actual->ruc.'-'.$objComprobantes->numero_comprobante.'.pdf';
+        $monbre_archivo = $objComprobantes->tipo_documento_electronico.'_'.PS_SHOP_RUC.'-'.$objComprobantes->numero_comprobante.'.pdf';
 
 
         $ruta_a4 = 'documentos_pdf_a4/fisico/'.$tienda_actual->virtual_uri;

@@ -134,6 +134,9 @@ class HTMLTemplateFacturaVentaRapidaCore extends HTMLTemplate
         }
 
         $data = array(
+            'PS_SHOP_NAME' => Configuration::get('PS_SHOP_NAME'),
+            'PS_SHOP_RAZON_SOCIAL' => Configuration::get('PS_SHOP_RAZON_SOCIAL'),
+            'PS_SHOP_RUC' => Configuration::get('PS_SHOP_RUC'),
             'order' => $this->order,
             'order_order' => $order,
             'orders_total_paid_tax_incl' => $order->getOrdersTotalPaid(),

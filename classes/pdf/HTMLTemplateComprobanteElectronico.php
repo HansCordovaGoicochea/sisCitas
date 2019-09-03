@@ -148,6 +148,9 @@ class HTMLTemplateComprobanteElectronicoCore extends HTMLTemplate
         $this->context = Context::getContext();
 
         $data = array(
+            'PS_SHOP_NAME' => Configuration::get('PS_SHOP_NAME'),
+            'PS_SHOP_RAZON_SOCIAL' => Configuration::get('PS_SHOP_RAZON_SOCIAL'),
+            'PS_SHOP_RUC' => Configuration::get('PS_SHOP_RUC'),
             'order' => $this->order,
             'comprobante' => $this->comprobante,
             'order_order' => $order,

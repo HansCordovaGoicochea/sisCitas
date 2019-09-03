@@ -8,8 +8,8 @@
 <table style="width: 7.4cm; font-size: 8px; color: #000;" cellpadding="1" cellspacing="1">
     <tr style="text-align: center">
         <td >
-            <span><h3>{$tienda->razon_social|upper}</h3></span><br>
-            <span>RUC: {$tienda->ruc}</span><br>
+            <span><h3>{$PS_SHOP_RAZON_SOCIAL|upper}</h3></span><br>
+            <span>RUC: {$PS_SHOP_RUC}</span><br>
             <span>{$comprobante->tipo_documento_electronico|cat:' Electronica'|upper} {$comprobante->numero_comprobante}</span>
         </td>
     </tr>

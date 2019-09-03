@@ -117,6 +117,13 @@ $context = Context::getContext();
 /* Initialize the current Shop */
 try {
     $context->shop = Shop::initialize();
+    // data shop
+    define('PS_SHOP_NAME', Configuration::get('PS_SHOP_NAME'));
+    define('PS_SHOP_RAZON_SOCIAL', Configuration::get('PS_SHOP_RAZON_SOCIAL'));
+    define('PS_SHOP_RUC', Configuration::get('PS_SHOP_RUC'));
+    define('PS_SHOP_ADDR1', Configuration::get('PS_SHOP_ADDR1'));
+    define('PS_SHOP_CITY', Configuration::get('PS_SHOP_CITY'));
+    define('PS_SHOP_PHONE', Configuration::get('PS_SHOP_PHONE'));
 } catch (PrestaShopException $e) {
     $e->displayMessage();
 }

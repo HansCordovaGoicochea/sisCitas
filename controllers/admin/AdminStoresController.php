@@ -96,13 +96,13 @@ class AdminStoresControllerCore extends AdminController
 
     public function initPageHeaderToolbar()
     {
-        if (empty($this->display)) {
-            $this->page_header_toolbar_btn['new_store'] = array(
-                'href' => self::$currentIndex.'&addstore&token='.$this->token,
-                'desc' => $this->trans('Add new store', array(), 'Admin.Shopparameters.Feature'),
-                'icon' => 'process-icon-new'
-            );
-        }
+//        if (empty($this->display)) {
+//            $this->page_header_toolbar_btn['new_store'] = array(
+//                'href' => self::$currentIndex.'&addstore&token='.$this->token,
+//                'desc' => $this->trans('Add new store', array(), 'Admin.Shopparameters.Feature'),
+//                'icon' => 'process-icon-new'
+//            );
+//        }
 
         parent::initPageHeaderToolbar();
     }
@@ -436,7 +436,7 @@ class AdminStoresControllerCore extends AdminController
 
         $formFields = array(
             'PS_SHOP_NAME' => array(
-                'title' => $this->trans('Shop name', array(), 'Admin.Shopparameters.Feature'),
+                'title' => $this->trans('NOMBRE COMERCIAL', array(), 'Admin.Shopparameters.Feature'),
                 'hint' => $this->trans('Displayed in emails and page titles.', array(), 'Admin.Shopparameters.Feature'),
                 'validation' => 'isGenericName',
                 'required' => true,
@@ -466,6 +466,8 @@ class AdminStoresControllerCore extends AdminController
                 'type' => 'text'
             ),
             'PS_SHOP_DETAILS' => array(
+                'form_group_class' => 'hide',
+
                 'title' => $this->trans('Registration number', array(), 'Admin.Shopparameters.Feature'),
                 'hint' => $this->trans('Shop registration information (e.g. SIRET or RCS).', array(), 'Admin.Shopparameters.Help'),
                 'validation' => 'isGenericName',
@@ -474,16 +476,19 @@ class AdminStoresControllerCore extends AdminController
                 'rows' => 5
             ),
             'PS_SHOP_ADDR1' => array(
-                'title' => $this->trans('Shop address line 1', array(), 'Admin.Shopparameters.Feature'),
+                'title' => $this->trans('Direccion', array(), 'Admin.Shopparameters.Feature'),
                 'validation' => 'isAddress',
                 'type' => 'text'
             ),
             'PS_SHOP_ADDR2' => array(
+                'form_group_class' => 'hide',
+
                 'title' => $this->trans('Shop address line 2', array(), 'Admin.Shopparameters.Feature'),
                 'validation' => 'isAddress',
                 'type' => 'text'
             ),
             'PS_SHOP_CODE' => array(
+                'form_group_class' => 'hide',
                 'title' => $this->trans('Zip/postal code', array(), 'Admin.Global'),
                 'validation' => 'isGenericName',
                 'type' => 'text'
@@ -494,6 +499,7 @@ class AdminStoresControllerCore extends AdminController
                 'type' => 'text'
             ),
             'PS_SHOP_COUNTRY_ID' => array(
+                'form_group_class' => 'hide',
                 'title' => $this->trans('Country', array(), 'Admin.Global'),
                 'validation' => 'isInt',
                 'type' => 'select',
@@ -503,6 +509,7 @@ class AdminStoresControllerCore extends AdminController
                 'defaultValue' => (int)$this->context->country->id
             ),
             'PS_SHOP_STATE_ID' => array(
+                'form_group_class' => 'hide',
                 'title' => $this->trans('State', array(), 'Admin.Global'),
                 'validation' => 'isInt',
                 'type' => 'select',
@@ -516,6 +523,8 @@ class AdminStoresControllerCore extends AdminController
                 'type' => 'text'
             ),
             'PS_SHOP_FAX' => array(
+                'form_group_class' => 'hide',
+
                 'title' => $this->trans('Fax', array(), 'Admin.Global'),
                 'validation' => 'isGenericName',
                 'type' => 'text'
