@@ -360,10 +360,11 @@ class AdminOrdersControllerCore extends AdminController
         parent::processExport($text_delimiter);
     }
 
+
     public function displayConsultar_cdrLink($token = null, $id, $name = null)
     {
         $order = new Order((int)$id);
-        if ($order->tipo_documento_electronico != "Factura"){
+        if ($order->tipo_documento_electronico != "Factura" && $order->tipo_documento_electronico != "Boleta"){
             return false;
         }
 
@@ -391,13 +392,16 @@ class AdminOrdersControllerCore extends AdminController
                                             },
                                             success : function(res)
                                             {
-                                                 $.each(res.mensaje, function(k, v) {
-                                                        if (res.url != null){
-                                                              $.growl.notice({ title: "", message:v});
-                                                        }else{
-                                                             $.growl.error({ title: "", message:v});
-                                                        }
-                                                  });
+                                                if (res.response === "ok"){
+                                                    $.each(res.mensaje, function(k, v) {
+                                                        $.growl.notice({ title: "", message:v});
+                                                    });
+                                                }else{
+                                                     $.each(res.mensaje, function(k, v) {
+                                                         $.growl.error({ title: "", message:v});
+                                                    });
+                                                }
+                                                
                                             },
                                         });
                                     }
@@ -412,12 +416,27 @@ class AdminOrdersControllerCore extends AdminController
     //funcion ajax solo dando click en el boton de la lista de ver pdf
     public function ajaxProcessConsultarCDR()
     {
-        $webservice_consulta = $this->service_consulta_sunat;
+        /****
+        CLASE	             DESCRIPCION	                                                         ACTIVO POR DEFECTO
+        ErrorExcepcion	     Errores entre 100 y 1999 inclusive	                                              SI
+        ErrorRechazo	     Errores entre 2000 y 3999 inclusive                                              SI
+        ErrorObservaciones	 Errores mayores a 4000	                                                          SI
+        Error2324	         Error para el error 2324.
+        Pone como aceptado un comprobante que ya fue comunicado como baja anteriormente  SI
+        Error1033	         Error para el error 1033.
+        Permite recuperar el cdr de un comprobante que ya fue enviado anteriormente	  NO
+         ****//////
+
         $shop = Context::getContext()->shop;
+        $RUC= $shop->ruc;
+
+        $webservice_consulta = $this->service_consulta_sunat;
         $arr = Certificadofe::getIdCertife(Context::getContext()->shop->id);
         $objCerti = new Certificadofe((int)$arr); // buscar el certificado
         $user= $objCerti->user_sunat;
         $pass= $objCerti->pass_sunat;
+//        $user= "20604065896CORPOMED";
+//        $pass= "Fac1251ele";
 
         $factura = new Order((int)Tools::getValue('id_order'));
 
@@ -427,7 +446,7 @@ class AdminOrdersControllerCore extends AdminController
 //        $fcs = $client->__getFunctions(); // mostrar las funciones que tiene el web service
 //        $fcs = $client->__getTypes(); // mostrar las funciones que tiene el web service
 //d($fcs);
-        $RUC= PS_SHOP_RUC;
+
         $tipo_comprobante = "01";
         $numeracion_factura = explode("-", $factura->numero_comprobante);
         $serie = $numeracion_factura[0];
@@ -438,28 +457,39 @@ class AdminOrdersControllerCore extends AdminController
             $numeracion =$numeracion_nota[1];
         }
 
+        if ($factura->tipo_documento_electronico == 'Boleta'){
+            $tipo_comprobante = "03";
+        }
+
         $params = array( 'rucComprobante' => $RUC, 'tipoComprobante' => $tipo_comprobante, 'serieComprobante' => $serie, 'numeroComprobante' => $numeracion);
-        $msg = array();
+//        $params = array( 'rucComprobante' => "20604065896", 'tipoComprobante' => "03", 'serieComprobante' => "B001", 'numeroComprobante' => "4111");
 
-        if($factura->nota_baja == "Baja"){
-            $status = $client->getStatus($params);
-            $msg[] = $status->status->statusMessage;
-            die(Tools::jsonEncode(array('errors' => true, 'mensaje' => $msg)));
-        }else{
-            $status = $client->getStatusCdr($params);
-//        d($status->statusCdr->content);
+        $status = $client->getStatus($params);
+        if ((int)$status->status->statusCode == 1 || (int)$status->status->statusCode == 2 || (int)$status->status->statusCode == 3){
+            // El comprobante existe y está aceptado. 1
+            // El comprobante existe pero está rechazado. 2
+            // El comprobante existe existe pero está de baja. 3
 
+            if($factura->nota_baja == "Baja"){
+                $this->errors[] = $status->status->statusMessage;
+                die(Tools::jsonEncode(array('response' => 'ok', 'mensaje' => $this->errors)));
+            }
 
-            if ($status->statusCdr->statusCode == "0004") {
-                $msg[] = $status->statusCdr->statusMessage;
+            $statusCDR = $client->getStatusCdr($params);
+
+            if ((int)$statusCDR->statusCdr->statusCode == 4) {
+                $this->errors[] = $statusCDR->statusCdr->statusMessage;
 
                 $filename_zip = $RUC."-".$tipo_comprobante."-".$serie."-".$numeracion;
-                // recibir la respuesta que te da SUNAT
-                $ifp = fopen( 'archivos_sunat/test-R-'.$filename_zip.".zip", "wb" );
-                fwrite( $ifp, $status->statusCdr->content );
-                fclose( $ifp );
+                if (!file_exists('archivos_sunat/beta/'.$RUC.'/R-'.$filename_zip.".zip")) {
+                    // recibir la respuesta que te da SUNAT
+                    $ifp = fopen( 'archivos_sunat/beta/'.$RUC.'/R-'.$filename_zip.".zip", "wb" );
+                    fwrite( $ifp, $statusCDR->statusCdr->content );
+                    fclose( $ifp );
+                }
+
                 //leer el ZIP de respuesta aun no esta
-                $zip = zip_open('archivos_sunat/test-R-'.$filename_zip.".zip");
+                $zip = zip_open('archivos_sunat/beta/'.$RUC.'/R-'.$filename_zip.".zip");
 
                 if($zip)
                 {
@@ -468,7 +498,7 @@ class AdminOrdersControllerCore extends AdminController
                     while ($zip_entry = zip_read($zip))
                     {
                         // la función zip_entry_name devuelve el nombre de cada uno de nuestros archivos.
-                        if(zip_entry_open($zip, $zip_entry) && 'test-R-'.$filename_zip.'.xml' == zip_entry_name($zip_entry))
+                        if(zip_entry_open($zip, $zip_entry) && 'R-'.$filename_zip.'.xml' == zip_entry_name($zip_entry))
                         {
                             //la función zip_entry_read lee el contenido del fichero
                             $contenido = zip_entry_read($zip_entry,8086);
@@ -477,22 +507,42 @@ class AdminOrdersControllerCore extends AdminController
 
                             $res = simplexml_load_string($response);
 
+                            $factura->cod_sunat = $res->DocumentResponse->Response->ResponseCode;
+                            if ((int)$factura->cod_sunat >= 2000 && (int)$factura->cod_sunat <= 3999){
+//                                $factura->setCurrentState(16, $this->context->employee->id); //RECHAZADO POR SUNAT
+                                $this->errors[] = "Cambiar de estado a rechazo por sunat";
+                            }
                             $factura->mensaje_cdr = $res->DocumentResponse->Response->Description;
-                            $this->confirmations[] = $this->trans($res->DocumentResponse->Response->Description, array(), 'Admin.Global');
-                            $msg[] = $this->trans($res->DocumentResponse->Response->Description, array(), 'Admin.Global');
+                            $this->errors[] = $this->trans($res->DocumentResponse->Response->Description, array(), 'Admin.Global');
 
                         }
-                        zip_entry_close('test-R-'.$filename_zip.".zip");
+                        zip_entry_close('R-'.$filename_zip.".zip");
                     }
                 }
                 zip_close($zip);
 
-                $url = 'archivos_sunat/test-R-'.$filename_zip.".zip";
-            }else{
-                $msg[] = $status->statusCdr->statusMessage;
+
+                $url = 'archivos_sunat/beta/'.$RUC.'/R-'.$filename_zip.".zip";
+                $url_xml = 'archivos_sunat/beta/'.$RUC.'/'.$filename_zip.".zip";
+                $factura->ruta_cdr = $url;
+                $factura->ruta_xml = $url_xml;
+                $factura->update();
             }
-//        d($msg);
-            die(Tools::jsonEncode(array('errors' => true, 'mensaje' => $msg, 'url' => $url)));
+            else{
+                $this->errors[] = $statusCDR->statusCdr->statusCode.' - '.$statusCDR->statusCdr->statusMessage;
+                die(Tools::jsonEncode(array('response' => 'error', 'mensaje' => $this->errors)));
+            }
+
+            die(Tools::jsonEncode(array('response' => 'ok', 'mensaje' => $this->errors)));
+
+        }
+        elseif ((int)$status->status->statusCode == 10){// > Sólo se puede consultar facturas, notas de crédito y debito electrónicas, cuya serie empieza con "F".
+            $this->errors[] = $status->status->statusCode.' - '.$status->status->statusMessage;
+            die(Tools::jsonEncode(array('response' => 'error', 'mensaje' => $this->errors)));
+        }
+        else{
+            $this->errors[] = $status->status->statusCode.' - '.$status->status->statusMessage;
+            die(Tools::jsonEncode(array('response' => 'error', 'mensaje' => $this->errors)));
         }
     }
 

@@ -159,7 +159,6 @@ class Apisunat_2_1
                <cbc:InvoiceTypeCode 
                listID="'.$cabecera['TIPO_OPERACION'].'" 
                listAgencyName="PE:SUNAT" 
-               listName="SUNAT: Identificador de Tipo de Documento" 
                listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo01">'.$cabecera['COD_TIPO_DOCUMENTO'].'</cbc:InvoiceTypeCode> <!-- Código de tipo de documento 01 si es Factura // 03 si es boleta an2 Cat. 01 -->
                <cbc:Note languageLocaleID="1000"><![CDATA['.$cabecera['TOTAL_LETRAS'].']]></cbc:Note> <!-- Leyenda : monto en letras an..100 Cat. 52 -->
                <cbc:DocumentCurrencyCode 
@@ -187,7 +186,6 @@ class Apisunat_2_1
                   <cac:Party>
                      <cac:PartyIdentification>
                         <cbc:ID schemeID="'.$cabecera['TIPO_DOCUMENTO_EMPRESA'].'" 
-                        schemeName="Documento de Identidad" 
                         schemeAgencyName="PE:SUNAT" 
                         schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06">'.$cabecera['NUM_DOCUMENTO_EMPRESA'].'</cbc:ID> <!-- RUC DEL EMISOR -->
                      </cac:PartyIdentification>
@@ -207,7 +205,6 @@ class Apisunat_2_1
                   <cac:Party>
                      <cac:PartyIdentification>
                         <cbc:ID schemeID="'.$cabecera['TIPO_DOCUMENTO_CLIENTE'].'" 
-                        schemeName="SUNAT: Identificador de Documento de Identidad" 
                         schemeAgencyName="PE:SUNAT"
                          schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06">'.$cabecera['NRO_DOCUMENTO_CLIENTE'].'</cbc:ID> <!-- Numero de documento schemeID tipo de documento de identidad -->
                      </cac:PartyIdentification>
@@ -357,7 +354,6 @@ class Apisunat_2_1
                   <cac:Party>
                      <cac:PartyIdentification>
                         <cbc:ID schemeID="'.$cabecera['TIPO_DOCUMENTO_EMPRESA'].'" 
-                        schemeName="Documento de Identidad" 
                         schemeAgencyName="PE:SUNAT" 
                         schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06">'.$cabecera['NUM_DOCUMENTO_EMPRESA'].'</cbc:ID> <!-- RUC DEL EMISOR -->
                      </cac:PartyIdentification>
@@ -376,7 +372,6 @@ class Apisunat_2_1
                   <cac:Party>
                      <cac:PartyIdentification>
                         <cbc:ID schemeID="'.$cabecera['TIPO_DOCUMENTO_CLIENTE'].'" 
-                        schemeName="SUNAT:Identificador de Documento de Identidad" 
                         schemeAgencyName="PE:SUNAT"
                          schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06">'.$cabecera['NRO_DOCUMENTO_CLIENTE'].'</cbc:ID> <!-- Numero de documento schemeID tipo de documento de identidad -->
                      </cac:PartyIdentification>
@@ -554,7 +549,7 @@ class Apisunat_2_1
     <cac:AccountingSupplierParty>
         <cac:Party>
             <cac:PartyIdentification>
-                <cbc:ID schemeID="' . $cabecera['TIPO_DOCUMENTO_EMPRESA'] . '" schemeName="SUNAT:Identificador de Documento de Identidad" schemeAgencyName="PE:SUNAT" schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06">' . $cabecera["NUM_DOCUMENTO_EMPRESA"] . '</cbc:ID>
+                <cbc:ID schemeID="' . $cabecera['TIPO_DOCUMENTO_EMPRESA'] . '" schemeAgencyName="PE:SUNAT" schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06">' . $cabecera["NUM_DOCUMENTO_EMPRESA"] . '</cbc:ID>
             </cac:PartyIdentification>
             <cac:PartyName>
                 <cbc:Name><![CDATA[' . Tools::eliminar_tildes($cabecera['NOMBRE_COMERCIAL_EMPRESA']) . ']]></cbc:Name>
@@ -570,7 +565,7 @@ class Apisunat_2_1
     <cac:AccountingCustomerParty>
         <cac:Party>
             <cac:PartyIdentification>
-                <cbc:ID schemeID="' . $cabecera['TIPO_DOCUMENTO_CLIENTE'] . '" schemeName="SUNAT:Identificador de Documento de Identidad" schemeAgencyName="PE:SUNAT" schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06">' . $cabecera["NRO_DOCUMENTO_CLIENTE"] . '</cbc:ID>
+                <cbc:ID schemeID="' . $cabecera['TIPO_DOCUMENTO_CLIENTE'] . '" schemeAgencyName="PE:SUNAT" schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06">' . $cabecera["NRO_DOCUMENTO_CLIENTE"] . '</cbc:ID>
             </cac:PartyIdentification>
             <cac:PartyLegalEntity>
 <cbc:RegistrationName><![CDATA[' . Tools::eliminar_tildes($cabecera['RAZON_SOCIAL_CLIENTE']) . ']]></cbc:RegistrationName>

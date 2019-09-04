@@ -340,10 +340,10 @@ class ProcesarComprobante
             $response = curl_exec($ch);
             $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
-
             //convertimos de base 64 a archivo fisico
             $doc = new DOMDocument();
             $doc->loadXML($response);
+            file_put_contents("doc_response_baja.txt",  $archivo ." ". date('Y-m-d H:i:s'). " -> ".$response.PHP_EOL , FILE_APPEND | LOCK_EX);
 
             //===================VERIFICAMOS SI HA ENVIADO CORRECTAMENTE EL COMPROBANTE=====================
             if (isset($doc->getElementsByTagName('ticket')->item(0)->nodeValue)) {
@@ -352,10 +352,12 @@ class ProcesarComprobante
 //                unlink($ruta_archivo . '.ZIP');
                 $mensaje['respuesta'] = 'OK';
                 $mensaje['cod_ticket'] = $ticket;
-                $mensaje['extra'] = $doc->getElementsByTagName('faultcode')->item(0)->nodeValue . ' - ' . $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
+                $resul_code_sunat = intval(preg_replace('/[^0-9]+/', '', $doc->getElementsByTagName('faultcode')->item(0)->nodeValue), 10);
+                $mensaje['extra'] = $resul_code_sunat . ' - ' . $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
             } else {
                 $mensaje['respuesta'] = 'error';
-                $mensaje['cod_sunat'] = $doc->getElementsByTagName('faultcode')->item(0)->nodeValue;
+                $resul_code_sunat = intval(preg_replace('/[^0-9]+/', '', $doc->getElementsByTagName('faultcode')->item(0)->nodeValue), 10);
+                $mensaje['cod_sunat'] = $resul_code_sunat;
                 $mensaje['msj_sunat'] = $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
                 $mensaje['hash_cdr'] = "";
             }
@@ -434,6 +436,7 @@ class ProcesarComprobante
             //convertimos de base 64 a archivo fisico
             $doc = new DOMDocument();
             $doc->loadXML($response);
+            file_put_contents("doc_response_resumen.txt",  $archivo ." ". date('Y-m-d H:i:s'). " -> ".$response.PHP_EOL , FILE_APPEND | LOCK_EX);
 
             //===================VERIFICAMOS SI HA ENVIADO CORRECTAMENTE EL COMPROBANTE=====================
             if (isset($doc->getElementsByTagName('ticket')->item(0)->nodeValue)) {
@@ -442,11 +445,13 @@ class ProcesarComprobante
 //                unlink($ruta_archivo . '.zip');
                 $mensaje['respuesta'] = 'OK';
                 $mensaje['cod_ticket'] = $ticket;
-                $mensaje['extra'] = $doc->getElementsByTagName('faultcode')->item(0)->nodeValue . ' - ' . $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
+                $resul_code_sunat = intval(preg_replace('/[^0-9]+/', '', $doc->getElementsByTagName('faultcode')->item(0)->nodeValue), 10);
+                $mensaje['extra'] = $resul_code_sunat . ' - ' . $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
             } else {
 
                 $mensaje['respuesta'] = 'error';
-                $mensaje['cod_sunat'] = $doc->getElementsByTagName('faultcode')->item(0)->nodeValue;
+                $resul_code_sunat = intval(preg_replace('/[^0-9]+/', '', $doc->getElementsByTagName('faultcode')->item(0)->nodeValue), 10);
+                $mensaje['cod_sunat'] = $resul_code_sunat;
                 $mensaje['msj_sunat'] = $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
                 $mensaje['hash_cdr'] = "";
             }
@@ -506,6 +511,7 @@ class ProcesarComprobante
             //convertimos de base 64 a archivo fisico
             $doc = new DOMDocument();
             $doc->loadXML($response);
+            file_put_contents("doc_response_ticket-consulta.txt",  $archivo ." ". date('Y-m-d H:i:s'). " -> ".$response.PHP_EOL , FILE_APPEND | LOCK_EX);
 
             //===================VERIFICAMOS SI HA ENVIADO CORRECTAMENTE EL COMPROBANTE=====================
             if (isset($doc->getElementsByTagName('content')->item(0)->nodeValue)) {
@@ -533,12 +539,9 @@ class ProcesarComprobante
                 $mensaje['mensaje'] = $doc_cdr->getElementsByTagName('Description')->item(0)->nodeValue;
                 $mensaje['hash_cdr'] = $doc_cdr->getElementsByTagName('DigestValue')->item(0)->nodeValue;
             } else {
-                $mensaje['cod_sunat'] = $doc->getElementsByTagName('faultcode')->item(0)->nodeValue;
-                $mensaje['msj_sunat'] = $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
-                $mensaje['hash_cdr'] = "";
-
                 $mensaje['respuesta'] = 'error';
-                $mensaje['cod_sunat'] = $doc->getElementsByTagName('faultcode')->item(0)->nodeValue;
+                $resul_code_sunat = intval(preg_replace('/[^0-9]+/', '', $doc->getElementsByTagName('faultcode')->item(0)->nodeValue), 10);
+                $mensaje['cod_sunat'] = $resul_code_sunat;
                 $mensaje['mensaje'] = $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
                 $mensaje['msj_sunat'] = $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
                 $mensaje['hash_cdr'] = "";
