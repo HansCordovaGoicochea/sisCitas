@@ -110,6 +110,8 @@
 						{$params.sufixAche} {$tr.$key}
 					{elseif isset($params.float)}
 						{$tr.$key}
+					{elseif isset($params.type) && $params.type == 'date12hours'}
+						{$tr.$key|date_format:"%d/%m/%Y %I:%m %p"}
 					{elseif isset($params.type) && $params.type == 'date'}
 						{dateFormat date=$tr.$key full=0}
 					{elseif isset($params.type) && $params.type == 'datetime'}

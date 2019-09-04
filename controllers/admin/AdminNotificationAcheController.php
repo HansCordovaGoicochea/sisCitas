@@ -1,6 +1,6 @@
 <?php
 
-class AdminNotificationAcheController extends AdminController{
+class AdminNotificationAcheControllerCore extends AdminController{
 
     protected $types;
 

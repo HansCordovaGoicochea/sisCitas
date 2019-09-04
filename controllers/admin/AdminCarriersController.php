@@ -492,7 +492,8 @@ class AdminCarriersControllerCore extends AdminController
             parent::postProcess();
         } elseif (isset($_GET['isFree'.$this->table])) {
             $this->processIsFree();
-        } else {
+        }
+        else {
             // if deletion : removes the carrier from the warehouse/carrier association
             if (Tools::isSubmit('delete'.$this->table)) {
                 $id = (int)Tools::getValue('id_'.$this->table);
