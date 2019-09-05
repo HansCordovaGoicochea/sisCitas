@@ -308,6 +308,8 @@ class PSCleaner extends Module
                 $db->execute('UPDATE `'._DB_PREFIX_.'employee` SET `id_last_order` = 0,`id_last_customer_message` = 0,`id_last_customer` = 0');
                 $db->execute('UPDATE `'._DB_PREFIX_.'numeracion_documentos` SET `correlativo` = 0');
 
+                $db->execute('UPDATE `'._DB_PREFIX_.'pos_caja` SET `estado_apertura` = 0');
+
                 //CREAR CLIENTE PUBLICO GENERAL
                 $customer = new Customer();
                 $customer->id_shop_group = Context::getContext()->shop->id_shop_group;
@@ -835,9 +837,9 @@ class PSCleaner extends Module
             // yo
             'pos_ordercomprobantes',
             'pos_arqueoscaja',
-            'pos_caja',
             'pos_arqueocaja',
             'reservar_cita',
+            'pos_gastos',
         );
     }
 }

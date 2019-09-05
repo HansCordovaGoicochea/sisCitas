@@ -334,7 +334,7 @@
                   </div>
                 </div>
               </div>
-              <div class="col-lg-6 col-xs-12">
+              <div class="col-lg-6 col-xs-12" >
                 <div class="form-group">
                   <label for="txtNumeroDocumento" class="control-label required"><span class="label-tooltip" data-toggle="tooltip" title="" data-original-title="Número de documento">Número Doc.:</span></label>
                   <div class="">
@@ -673,49 +673,15 @@
             div#formAddPaymentPanel td.actions{
               text-align: left!important;
             }
-            {if isset($shop->estilos_grandes) && $shop->estilos_grandes == 1}
-            span.title_box{
-              font-size: 14px!important;
-            }
-            div#div-mensajesalert{
-              display: none!important;
-            }
-            div#formAddPaymentPanel td.actions #btnPagosYO{
-              background-color: #5cb85c!important;
-              border-color: #4cae4c!important;
-              padding: 10px 16px!important;
-              font-size: 15px!important;
-              line-height: 1.33!important;
-              border-radius: 3px!important;
-            }
-
-            div#formAddPaymentPanel td.actions #btnPagosYO{
-              background-color: #5cb85c!important;
-              border-color: #4cae4c!important;
-              padding: 10px 16px!important;
-              font-size: 15px!important;
-              line-height: 1.33!important;
-              border-radius: 3px!important;
-            }
-
-            div#formAddPaymentPanel td.actions #btnPagosYO:hover{
-              background-color: #438643 !important;
-              border-color: #438643!important;
-            }
-
-            div#start_products #total_order td{
-              font-size: 15px!important;
-              /*text-shadow: 0 0 2px #00aff0;*/
-            }
-            {/if}
           </style>
 
           <div class="table-responsive" >
             <table class="table" id="orderProducts">
               <thead>
               <tr>
-                {*<th></th>*}
                 <th><span class="title_box ">{l s='Product' d='Admin.Global'}</span></th>
+                <th><span class="title_box ">Colaborador</span></th>
+
                 <th>
                   <span class="title_box ">{l s='Precio Uni.' d='Admin.Advparameters.Feature'}</span>
                   <small class="text-muted">{$smarty.capture.TaxMethod}</small>
@@ -1614,6 +1580,9 @@
       });
     });
 
+    $('select.chosen').each(function(k, item){
+      $(item).chosen({ search_contains: true, width: '100%', });
+    });
 
   </script>
 {/block}

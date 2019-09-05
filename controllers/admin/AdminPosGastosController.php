@@ -42,7 +42,7 @@ class AdminPosGastosControllerCore extends AdminController
 //            'id_pos_arqueoscaja' => array('title' => $this->l('ID'), 'align' => 'center', 'class' => 'fixed-width-xs'),
             'descripcion' => array('title' => $this->l('Descripción'),  'type' => 'text',),
             'monto' => array('title' => $this->l('Monto'),  'havingFilter' => true, 'type' => 'price',),
-            'fecha' => array('title' => $this->l('Fecha'),  'type' => 'date12hours'),
+            'fecha' => array('title' => $this->l('Fecha'),  'type' => 'datetime'),
             'empleado' => array('title' => $this->l('Usuario'),  'type' => 'text',  'havingFilter' => true),
 //            'estado_caja' => array('title' => $this->l('Estado'), 'align' => 'center', 'class' => 'fixed-width-sm', ),
 

@@ -668,10 +668,12 @@ class AdminOrdersControllerCore extends AdminController
 //        d($id);
         $factura = new Order((int)$id);
         $btn_icon = '';
-        if (!empty($factura->ruta_xml))
+        $doc = PosOrdercomprobantes::getComprobantesByOrderLimit($factura->id);
+
+        if (!empty($doc))
             $btn_icon = '<span class="btn-group-action">
                                 <span class="btn-group">
-                                        <a class="btn btn-default" download href="'.$factura->ruta_xml.'">
+                                        <a class="btn btn-default" download href="'.$doc['ruta_xml'].'">
                                         <i class="icon-file-text"></i>
                                     </a>
                                     
@@ -685,10 +687,12 @@ class AdminOrdersControllerCore extends AdminController
 //        d($id);
         $factura = new Order((int)$id);
         $btn_icon = '';
-        if (!empty($factura->ruta_cdr))
+        $doc = PosOrdercomprobantes::getComprobantesByOrderLimit($factura->id);
+
+        if (!empty($doc))
             $btn_icon = '<span class="btn-group-action">
                             <span class="btn-group">
-                                    <a class="btn btn-default" download href="'.$factura->ruta_cdr.'">
+                                    <a class="btn btn-default" download href="'.$doc['ruta_cdr'].'">
                                     <i class="icon-file-text"></i>
                                 </a>
                                 
@@ -2081,8 +2085,6 @@ class AdminOrdersControllerCore extends AdminController
                             $obj_caja->update();
                         }
 
-
-
                         if (!$order->id_employee){
                             $order->id_employee = $this->context->employee->id;
                         }
@@ -2115,6 +2117,17 @@ class AdminOrdersControllerCore extends AdminController
                                             }
                                         }
                                     }
+                                }
+                            }
+
+                            $productos = OrderDetail::getList($order->id);
+                            foreach ($productos as $product) {
+                                if ((int)$product['es_servicio'] == 1 && $order->id_customer != 1){
+                                    $objProducto = new Product((int)$product['product_id']);
+                                    $customer = new Customer((int)$order->id_customer);
+                                    $puntos_tmp = (int)$customer->puntos_acumulados;
+                                    $customer->puntos_acumulados = $puntos_tmp + (int)$objProducto->cantidad_puntos;
+                                    $customer->update();
                                 }
                             }
                         }
@@ -2872,15 +2885,17 @@ class AdminOrdersControllerCore extends AdminController
 
         $certificado = Certificadofe::getByAllShop();
         $doc = PosOrdercomprobantes::getComprobantesByOrderLimit($order->id);
+        $objComprobantes = null;
         if (!empty($doc)){
             $objComprobantes = new PosOrdercomprobantes($doc['id_pos_ordercomprobantes']);
         }
 
         $cajas = PosArqueoscaja::cajasAbiertasJoinEmpleado();
 
-
+        $colaboradores = Employee::getColaboradores();
         // Smarty assign
         $this->tpl_view_vars = array(
+            'colaboradores' => $colaboradores,
             'metodo_pago' => $metodo_pago,
             'perfil_empleado' => $this->nombre_access['name'],
             'existeCajasAbiertas' => $this->existeCajasAbiertas,
@@ -3085,7 +3100,7 @@ class AdminOrdersControllerCore extends AdminController
     public function ajaxProcessAddProductOnOrder()
     {
 
-
+//        d(Tools::getAllValues());
         // Load object
         $order = new Order((int)Tools::getValue('id_order'));
         if (!Validate::isLoadedObject($order)) {
@@ -3288,7 +3303,7 @@ class AdminOrdersControllerCore extends AdminController
 
         // Create Order detail information
         $order_detail = new OrderDetail();
-        $order_detail->createList($order, $cart, $order->getCurrentOrderState(), $cart->getProducts(), (isset($order_invoice) ? $order_invoice->id : 0), $use_taxes, (int)Tools::getValue('add_product_warehouse'));
+        $order_detail->createList($order, $cart, $order->getCurrentOrderState(), $cart->getProducts(), (isset($order_invoice) ? $order_invoice->id : 0), $use_taxes, (int)Tools::getValue('add_product_warehouse'), (int)$product_informations['id_colaborador']);
 
         // update totals amount of order
         $order->total_products += (float)$cart->getOrderTotal(false, Cart::ONLY_PRODUCTS);

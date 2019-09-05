@@ -462,6 +462,12 @@ function init()
 			else
 			{
 				$('tr#new_product input, tr#new_product select, tr#new_product button').removeAttr('disabled');
+
+				if (parseInt(data.is_virtual) === 0){
+					$('tr#new_product #add_product_id_colaborador').attr('disabled', true).trigger("chosen:updated");
+				}else{
+                    $('tr#new_product #add_product_id_colaborador').removeAttr('disabled').trigger("chosen:updated");
+                }
 				// Keep product variable
 				current_product = data;
 				$('#add_product_product_id').val(data.id_product);
@@ -469,8 +475,12 @@ function init()
 				$('#add_product_product_price_tax_incl').val(data.price_tax_incl).select();
 				$('#add_product_product_price_tax_excl').val(data.price_tax_excl);
 				addProductRefreshTotal();
-				if (stock_management)
-					$('#add_product_product_stock').html(data.stock[0]);
+				if (stock_management && parseInt(data.is_virtual) === 0){
+                    $('#add_product_product_stock').html(data.stock[0]);
+                }else{
+                    $('#add_product_product_stock').html("--");
+                }
+
 
 				if (current_product.combinations.length !== 0)
 				{
@@ -573,6 +583,7 @@ function init()
 			{
 				var query = 'ajax=1&token='+token+'&action=addProductOnOrder&id_order='+id_order+'&';
 
+				query += $('#add_product_id_colaborador :selected').serialize()+'&';
 				query += $('#add_product_warehouse').serialize()+'&';
 				query += $('tr#new_product select, tr#new_product input').serialize();
 				if ($('select#add_product_product_invoice').val() == 0)

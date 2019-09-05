@@ -24,7 +24,7 @@
  *}
 {assign var="currencySymbolBeforeAmount" value=$currency->format[0] === '¤'}
 <tr id="new_product" style="display:none">
-	<td style="display:none;" colspan="2">
+	<td style="display:none;">
 		<input type="hidden" id="add_product_product_id" name="add_product[product_id]" value="0" />
 
 		<div class="form-group">
@@ -48,6 +48,25 @@
 		</div>
 	</td>
 
+	<td style="display:none;" >
+{*		<input type="hidden" id="add_id_colaborador" name="add_colaborador[id_colaborador]" value="0" />*}
+
+		<div class="form-group">
+			<label>{l s='Colaborador' d='Admin.Global'}</label>
+			<div class="input-group fixed-width-xl">
+{*				<input type="text" id="add_product_id_colaborador" value="" disabled="disabled"/>*}
+{*				<div class="input-group-addon">*}
+{*					<i class="icon-search"></i>*}
+{*				</div>*}
+				<select class="form-control chosen" name="add_product[id_colaborador]" id="add_product_id_colaborador" disabled="disabled">
+					<option value="0">- Seleccionar Colaborador -</option>
+					{foreach $colaboradores as $key => $colaborador}
+						<option value="{$colaborador.id_employee}">{$colaborador.name_employee}</option>
+					{/foreach}
+				</select>
+			</div>
+		</div>
+	</td>
 	<td style="display:none;">
 		<div class="row hide">
 			<div class="input-group fixed-width-xl">
@@ -58,8 +77,8 @@
 		</div>
 		<br/>
 		<div class="row">
-			<div class="input-group fixed-width-xl">
-				<div class="input-group-addon">{$currency->sign} {l s='tax incl.' d='Admin.Global'}</div>
+			<div class="input-group ">
+				<div class="input-group-addon">{$currency->sign}</div>
 				<input type="text" name="add_product[product_price_tax_incl]" id="add_product_product_price_tax_incl" value="" disabled="disabled" />
 			</div>
 		</div>

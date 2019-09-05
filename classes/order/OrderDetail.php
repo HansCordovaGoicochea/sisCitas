@@ -653,7 +653,7 @@ class OrderDetailCore extends ObjectModel
      * @param int $id_order_invoice
      * @param bool $use_taxes set to false if you don't want to use taxes
      */
-    protected function create(Order $order, Cart $cart, $product, $id_order_state, $id_order_invoice, $use_taxes = true, $id_warehouse = 0)
+    protected function create(Order $order, Cart $cart, $product, $id_order_state, $id_order_invoice, $use_taxes = true, $id_warehouse = 0, $id_colaborador = 0)
     {
         if ($use_taxes) {
             $this->tax_calculator = new TaxCalculator();
@@ -680,6 +680,11 @@ class OrderDetailCore extends ObjectModel
         $product_quantity = (int)Product::getQuantity($this->product_id, $this->product_attribute_id, null, $cart);
         $this->product_quantity_in_stock = ($product_quantity - (int)$product['cart_quantity'] < 0) ?
             $product_quantity : (int)$product['cart_quantity'];
+
+        $this->id_colaborador = $id_colaborador;
+        $objColabordaor = new Employee((int)$id_colaborador);
+        $this->colaborador_name = $objColabordaor->firstname.' '.$objColabordaor->lastname;
+        $this->es_servicio = $id_colaborador && $id_colaborador > 0 ? 1 : 0;
 
         $this->setVirtualProductInformation($product);
         $this->checkProductStock($product, $id_order_state);
@@ -713,7 +718,7 @@ class OrderDetailCore extends ObjectModel
      * @param int $id_order_invoice
      * @param bool $use_taxes set to false if you don't want to use taxes
     */
-    public function createList(Order $order, Cart $cart, $id_order_state, $product_list, $id_order_invoice = 0, $use_taxes = true, $id_warehouse = 0)
+    public function createList(Order $order, Cart $cart, $id_order_state, $product_list, $id_order_invoice = 0, $use_taxes = true, $id_warehouse = 0, $id_colaborador = 0)
     {
         $this->vat_address = new Address((int)$order->{Configuration::get('PS_TAX_ADDRESS_TYPE')});
         $this->customer = new Customer((int)$order->id_customer);
@@ -722,7 +727,7 @@ class OrderDetailCore extends ObjectModel
         $this->outOfStock = false;
 
         foreach ($product_list as $product) {
-            $this->create($order, $cart, $product, $id_order_state, $id_order_invoice, $use_taxes, $id_warehouse);
+            $this->create($order, $cart, $product, $id_order_state, $id_order_invoice, $use_taxes, $id_warehouse, $id_colaborador);
         }
 
         unset($this->vat_address);

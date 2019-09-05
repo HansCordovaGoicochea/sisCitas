@@ -464,7 +464,7 @@ class AdminVenderControllerCore extends AdminController {
                 $order->id_employee = $this->context->employee->id;
                 $order->update();
 
-                $ordeD = OrderDetailCore::getList($order->id);
+                $ordeD = OrderDetail::getList($order->id);
                 foreach ($ordeD as $k => $val) {
                     foreach(Tools::getValue('productos') as $key=>$product) {
                         $oderDetalle = new OrderDetail((int)$val['id_order_detail']);

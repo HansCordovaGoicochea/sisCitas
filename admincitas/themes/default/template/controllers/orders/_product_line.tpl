@@ -32,7 +32,6 @@
 
 {if ($product['product_quantity'] > $product['customized_product_quantity'])}
 <tr class="product-line-row">
-	{*<td>{if isset($product.image) && $product.image->id}{$product.image_tag}{/if}</td>*}
 	<td>
 		<a href="{$link->getAdminLink('AdminProducts', true, ['id_product' => $product['product_id']|intval, 'updateproduct' => '1'])|escape:'html':'UTF-8'}">
 			<span class="productName">{$product['product_name']}</span><br />
@@ -49,6 +48,7 @@
 			</div>
 		</div>
 	</td>
+	<td>{if $product.colaborador_name}{$product.colaborador_name}{else}--{/if}</td>
 	<td>
 		<span class="product_price_show">{displayPrice price=$product_price currency=$currency->id}</span>
 		{if $can_edit}
