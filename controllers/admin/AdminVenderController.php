@@ -247,96 +247,101 @@ class AdminVenderControllerCore extends AdminController {
         if ($pedido['success'] == 'ok'){
             $order = new Order((int)$pedido['order']->id);
 
-            if ($tipo_venta == 1){
-                //crear orden sin pago
-                $rsp['reload'] = 'ok';
-            }
-            elseif ($tipo_venta == 2 || $tipo_venta == 3){
+
+            if ($tipo_venta == 1 || $tipo_venta == 2 || $tipo_venta == 3){
+
                 //pagar la orden creada
-                foreach ($array_pagos as $array_pago) {
-                    $amount = str_replace(',', '.', $array_pago['monto']);
+                $sum_p_array = array_sum(array_column($array_pagos, 'monto'));
+                if ($sum_p_array > 0){
+                    foreach ($array_pagos as $array_pago) {
+                        $amount = str_replace(',', '.', $array_pago['monto']);
 
-                    $vuelto_pago = 0;
-                    $ultimopago = 0;
-                    foreach ($order->getOrderPaymentCollection() as $payment){
-                        $ultimopago += $payment->amount;
-                    }
-
-                    if ($amount > $order->total_paid){
-                        $vuelto_pago = $amount - $order->total_paid;
-                        $amount = $order->total_paid;
-                    } else {
-                        $ultimopago_final = $order->total_paid - $ultimopago ;
-                        if($amount > $ultimopago_final){
-                            $vuelto_pago = $amount - $ultimopago_final;
-                            $amount = $ultimopago_final;
+                        $vuelto_pago = 0;
+                        $ultimopago = 0;
+                        foreach ($order->getOrderPaymentCollection() as $payment){
+                            $ultimopago += $payment->amount;
                         }
-                    }
 
-                    $currency = new Currency($order->id_currency);
-                    $order_invoice = null;
-
-                    if (!Validate::isLoadedObject($order)) {
-                        $this->errors[] = $this->trans('The order cannot be found', array(), 'Admin.Orderscustomers.Notification');
-                    } elseif (!Validate::isNegativePrice($amount) || !(float)$amount) {
-                        $this->errors[] = $this->trans('The amount is invalid.', array(), 'Admin.Orderscustomers.Notification');
-                    } elseif (!Validate::isLoadedObject($currency)) {
-                        $this->errors[] = $this->trans('The selected currency is invalid.', array(), 'Admin.Orderscustomers.Notification');
-                    } elseif (!Validate::isDate($array_pago['fecha'])) {
-                        $this->errors[] = $this->trans('The date is invalid', array(), 'Admin.Orderscustomers.Notification');
-                    } else {
-                        if (!$order->addOrderPayment($amount, $array_pago['name_pay'], null, $currency, $array_pago['fecha'], $order_invoice, $vuelto_pago, $array_pago['id_metodo_pago'], null, $this->context->employee->id)) {
-                            $this->errors[] = $this->trans('An error occurred during payment.', array(), 'Admin.Orderscustomers.Notification');
-
+                        if ($amount > $order->total_paid){
+                            $vuelto_pago = $amount - $order->total_paid;
+                            $amount = $order->total_paid;
                         } else {
-                            $suma_pagos = 0;
-
-                            foreach ($order->getOrderPaymentCollection() as $payment) {
-                                $suma_pagos += $payment->amount;
+                            $ultimopago_final = $order->total_paid - $ultimopago ;
+                            if($amount > $ultimopago_final){
+                                $vuelto_pago = $amount - $ultimopago_final;
+                                $amount = $ultimopago_final;
                             }
+                        }
 
-                            if ($suma_pagos >= $order->total_paid_tax_incl){
-                                //pago correcto
-                                $order_state = new OrderState((int)ConfigurationCore::get('PS_OS_PAYMENT'), (int)$this->context->language->id);
-                                $current_order_state = $order->getCurrentOrderState();
+                        $currency = new Currency($order->id_currency);
+                        $order_invoice = null;
 
-                                if ($current_order_state->id != $order_state->id) {
-                                    // Create new OrderHistory
-                                    $history = new OrderHistory();
-                                    $history->id_order = $order->id;
-                                    $history->id_employee = (int)$this->context->employee->id;
+                        if (!Validate::isLoadedObject($order)) {
+                            $this->errors[] = $this->trans('The order cannot be found', array(), 'Admin.Orderscustomers.Notification');
+                        } elseif (!Validate::isNegativePrice($amount) || !(float)$amount) {
+                            $this->errors[] = $this->trans('The amount is invalid.', array(), 'Admin.Orderscustomers.Notification');
+                        } elseif (!Validate::isLoadedObject($currency)) {
+                            $this->errors[] = $this->trans('The selected currency is invalid.', array(), 'Admin.Orderscustomers.Notification');
+                        } elseif (!Validate::isDate($array_pago['fecha'])) {
+                            $this->errors[] = $this->trans('The date is invalid', array(), 'Admin.Orderscustomers.Notification');
+                        } else {
+                            if (!$order->addOrderPayment($amount, $array_pago['name_pay'], null, $currency, $array_pago['fecha'], $order_invoice, $vuelto_pago, $array_pago['id_metodo_pago'], null, $this->context->employee->id)) {
+                                $this->errors[] = $this->trans('An error occurred during payment.', array(), 'Admin.Orderscustomers.Notification');
 
-                                    $use_existings_payment = false;
-                                    if (!$order->hasInvoice()) {
-                                        $use_existings_payment = true;
-                                    }
-                                    $history->changeIdOrderState((int)$order_state->id, $order, $use_existings_payment);
+                            } else {
+                                $suma_pagos = 0;
 
-                                    // Save all changes
-                                    if ($history->addWithemail(true)) {
-                                        // synchronizes quantities if needed..
-                                        if (Configuration::get('PS_ADVANCED_STOCK_MANAGEMENT')) {
-                                            foreach ($order->getProducts() as $product) {
-                                                if (StockAvailable::dependsOnStock($product['product_id'])) {
-                                                    StockAvailable::synchronize($product['product_id'], (int)$product['id_shop']);
+                                foreach ($order->getOrderPaymentCollection() as $payment) {
+                                    $suma_pagos += $payment->amount;
+                                }
+
+                                if ($suma_pagos >= $order->total_paid_tax_incl){
+                                    //pago correcto
+                                    $order_state = new OrderState((int)ConfigurationCore::get('PS_OS_PAYMENT'), (int)$this->context->language->id);
+                                    $current_order_state = $order->getCurrentOrderState();
+
+                                    if ($current_order_state->id != $order_state->id) {
+                                        // Create new OrderHistory
+                                        $history = new OrderHistory();
+                                        $history->id_order = $order->id;
+                                        $history->id_employee = (int)$this->context->employee->id;
+
+                                        $use_existings_payment = false;
+                                        if (!$order->hasInvoice()) {
+                                            $use_existings_payment = true;
+                                        }
+                                        $history->changeIdOrderState((int)$order_state->id, $order, $use_existings_payment);
+
+                                        // Save all changes
+                                        if ($history->addWithemail(true)) {
+                                            // synchronizes quantities if needed..
+                                            if (Configuration::get('PS_ADVANCED_STOCK_MANAGEMENT')) {
+                                                foreach ($order->getProducts() as $product) {
+                                                    if (StockAvailable::dependsOnStock($product['product_id'])) {
+                                                        StockAvailable::synchronize($product['product_id'], (int)$product['id_shop']);
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
-                            }
 
-                            if ($array_pago['tipo'] == 'efectivo'){
-                                $obj_caja = new PosArqueoscaja((int)$last_caja['id_pos_arqueoscaja']);
-                                $monto_temp = $obj_caja->monto_operaciones;
-                                $obj_caja->monto_operaciones = $monto_temp + $amount;
-                                $obj_caja->update();
-                            }
+                                if ($array_pago['tipo'] == 'efectivo'){
+                                    $obj_caja = new PosArqueoscaja((int)$last_caja['id_pos_arqueoscaja']);
+                                    $monto_temp = $obj_caja->monto_operaciones;
+                                    $obj_caja->monto_operaciones = $monto_temp + $amount;
+                                    $obj_caja->update();
+                                }
 
+                            }
                         }
                     }
                 }
 
+                if ($tipo_venta == 1){
+                    //crear orden sin pago
+                    $rsp['reload'] = 'ok';
+                }
                 if ($tipo_venta == 2){
                     //no actualizar la pagina y verificar si selecciono algun comprobante
                     $rsp['reload'] = 'ko';
@@ -457,9 +462,48 @@ class AdminVenderControllerCore extends AdminController {
             )) {
 
                 $result['orderid'] = (string)$cashondelivery->currentOrder;
-
                 $last_caja = PosArqueoscaja::getCajaLast($this->context->shop->id);
                 $order = new Order((int)$result['orderid']);
+
+                if ($total == 0){
+                    //pago correcto
+                    $order_state = new OrderState((int)ConfigurationCore::get('PS_OS_PAYMENT'), (int)$this->context->language->id);
+                    $current_order_state = $order->getCurrentOrderState();
+
+                    if ($current_order_state->id != $order_state->id) {
+                        // Create new OrderHistory
+                        $history = new OrderHistory();
+                        $history->id_order = $order->id;
+                        $history->id_employee = (int)$this->context->employee->id;
+
+                        $use_existings_payment = false;
+                        if (!$order->hasInvoice()) {
+                            $use_existings_payment = true;
+                        }
+                        $history->changeIdOrderState((int)$order_state->id, $order, $use_existings_payment);
+
+                        // Save all changes
+                        if ($history->addWithemail(true)) {
+                            // synchronizes quantities if needed..
+                            if (Configuration::get('PS_ADVANCED_STOCK_MANAGEMENT')) {
+                                foreach ($order->getProducts() as $product) {
+                                    if (StockAvailable::dependsOnStock($product['product_id'])) {
+                                        StockAvailable::synchronize($product['product_id'], (int)$product['id_shop']);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (Tools::getValue('puntos_cliente') && (int)Tools::getValue('puntos_cliente') >= 6){
+                        $customer = new Customer((int)$order->id_customer);
+                        $puntos_tmp = (int)$customer->puntos_acumulados;
+                        $customer->puntos_acumulados = $puntos_tmp - 6;
+                        $customer->update();
+                    }
+                }
+
+
                 $order->id_pos_caja = $last_caja['id_pos_caja'];
                 $order->id_employee = $this->context->employee->id;
                 $order->update();

@@ -557,7 +557,7 @@ var app_vender = new Vue({
             }
             // alert(this.total);
             this.total = ps_round(total_temporal, 2);
-            this.pagos[0].monto = ps_round(this.total, 2);
+            // this.pagos[0].monto = ps_round(this.total, 2);
 
 
         },
@@ -598,7 +598,7 @@ var app_vender = new Vue({
                     $.growl.notice({ title: 'Prod. Agregado!', message: '', duration: 1000, location: 'br' });
                     this.limpiarDatosAdd();
                     //actualizar monto de pago
-                    this.pagos[0].monto = ps_round(this.total, 2);
+                    // this.pagos[0].monto = ps_round(this.total, 2);
 
                     // }else{
                     //     $.growl.error({ title: 'Alerta!', message: 'No hay stock', location: 'br' });
@@ -706,6 +706,7 @@ var app_vender = new Vue({
                                 numero_doc: self.numero_doc,
                                 direccion_cliente: self.direccion_cliente,
                                 array_pagos: self.pagos,
+                                puntos_cliente: self.puntos_cliente,
                             },
                             beforeSend: function(){
                                 self.guardandoEnviar = true;

@@ -58,7 +58,7 @@
                                                     <div v-for="(val, index) in msg_success" v-html="val.msg"></div>
                                                 </div>
                                                 <div>
-                                                    <div class="row" v-if="!hasComprobante && cart.length">
+                                                    <div class="row" v-if="!hasComprobante && total > 0">
                                                         <div class="col-xs-6 col-lg-6 col-xl-6 text-center mb-3">
                                                             <a href="javascript:void(0)" class="card-link" @click="activarComprobante('Boleta')">
                                                                 <i class="fa fa-file fa-lg"></i>&nbsp;&nbsp;Boleta
@@ -138,7 +138,7 @@
                                                     </div>
                                                     </p>
                                                     <hr>
-                                                    <div class="card-text">
+                                                    <div class="card-text" v-if="total > 0">
                                                         <div>
                                                             <div class="d-inline-block pull-left">
                                                                 <strong>Pagos</strong>&nbsp;&nbsp;
@@ -300,18 +300,18 @@
                             <i class="icon-cart-plus" v-else></i> Nueva Venta
                         </button>
                     </div>
-                    <div class="col-md-4 mb-2 col-lg-4 col-xl-4 col-sm-12" v-if="!order.id && !hasComprobante">
+                    <div class="col-md-4 mb-2 col-lg-4 col-xl-4 col-sm-12" v-if="!order.id && !hasComprobante && total > 0">
                         <button type="button" class="btn w-100 btn-primary btn-sm" :disabled="guardandoEnviar || cart.length  == 0  || bloquear_error" @click="agregarVenta(2)" style="text-transform: none;">
                             <i class="fa fa-spinner fa-spin fa-lg" v-if="guardandoEnviar"></i>
                             <i class="fa fa-file" v-else></i>
-                            Guardar y Pagar
+                            Realizar venta
                         </button>
                     </div>
                     <div v-else>
-                        <div class="col-md-4 mb-2 col-lg-4 col-xl-4 col-sm-12" v-if="!order.id" >
+                        <div class="col-md-4 mb-2 col-lg-4 col-xl-4 col-sm-12" v-if="!order.id  && total > 0" >
                             <button type="button" class="btn w-100 btn-info btn-sm" :disabled="guardandoEnviar || cart.length  == 0  || bloquear_error" @click="agregarVenta(2)" style="text-transform: none;">
                                 <i class="fa fa-spinner fa-spin fa-lg" v-if="guardandoEnviar"></i>
-                                <img src="{$img_dir}sunat.png" style="width: 14px; height: auto;" alt="" v-else> Guardar y Enviar
+                                <img src="{$img_dir}sunat.png" style="width: 14px; height: auto;" alt="" v-else> Vender y Enviar
                             </button>
                         </div>
                     </div>
@@ -325,13 +325,19 @@
                                 </button>
                             </div>
                         </div>
-
                     {/if}
-                    <div class="col-md-4 mb-2 col-lg-4 col-xl-4 col-sm-12" v-if="!hasComprobante">
+                    <div class="col-md-4 mb-2 col-lg-4 col-xl-4 col-sm-12 hide" v-if="!hasComprobante">
                         <button type="button" class="btn btn-sm btn-success" style="width: 100%;" :disabled="guardandoEnviar || cart.length  == 0" @click="agregarVenta(1)" v-if="!order.id">
                             <i class="fa fa-spinner fa-spin fa-lg" v-if="guardandoEnviar"></i>
                             <i class="icon-save" v-else></i>
                             Guardar Sin Pagar
+                        </button>
+                    </div>
+                    <div class="col-md-4 mb-2 col-lg-4 col-xl-4 col-sm-12" v-if="total == 0 && cart.length && id_customer != 1 && puntos_cliente >= 6">
+                        <button type="button" class="btn btn-sm btn-success" style="width: 100%;" :disabled="guardandoEnviar || cart.length  == 0" @click="agregarVenta(99)" v-if="!order.id">
+                            <i class="fa fa-spinner fa-spin fa-lg" v-if="guardandoEnviar"></i>
+                            <i class="icon-save" v-else></i>
+                            Venta por puntos
                         </button>
                     </div>
                 </div>

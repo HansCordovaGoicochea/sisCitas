@@ -104,11 +104,11 @@
                 </a>
 
                   {if !empty($certificado) && (bool)$certificado['active'] && $order->current_state == 2}
-                    <button type="button" class="btn {if $objComprobantes->tipo_documento_electronico == "Boleta"}btn-primary{else}btn-default{/if}" id="abrirCliente" data-value="Boleta">
+                    <button type="button" class="btn {if $objComprobantes->tipo_documento_electronico == "Boleta"}btn-primary{else}btn-default{/if} {if $order->total_paid_tax_incl == 0}hide{/if}" id="abrirCliente" data-value="Boleta">
                       <i class="icon-file"></i>
                       {l s='Boleta Elect.' d='Admin.Orderscustomers.Feature'}
                     </button>
-                    <button type="button" class="btn {if $objComprobantes->tipo_documento_electronico == "Factura"}btn-primary{else}btn-default{/if}" id="abrirEmpresa" data-value="Factura">
+                    <button type="button" class="btn {if $objComprobantes->tipo_documento_electronico == "Factura"}btn-primary{else}btn-default{/if} {if $order->total_paid_tax_incl == 0}hide{/if}" id="abrirEmpresa" data-value="Factura">
                       <i class="icon-file"></i>
                       {l s='Factura Elect.' d='Admin.Orderscustomers.Feature'}
                     </button>
@@ -321,7 +321,7 @@
             {*          {if !$objComprobantes->ruta_pdf_a4}*}
             <!-- CLIENTE -->
             {*            <div class="col-xs-12" {if $order->valid == 0}style="display: none;" {/if} {if $objComprobantes->numero_comprobante != "" && $objComprobantes->cod_sunat == 0}style="display: none;" {/if}>*}
-            <div class="col-xs-12" {if $objComprobantes->numero_comprobante != "" && $objComprobantes->cod_sunat == 0}style="display: none;" {/if}>
+            <div class="col-xs-12 {if $order->total_paid_tax_incl == 0}hide{/if} " {if $objComprobantes->numero_comprobante != "" && $objComprobantes->cod_sunat == 0}style="display: none;" {/if}>
               <div class="col-lg-6 col-xs-12">
                 <div class="form-group">
                   <label for="cb_tipo_documento" class="control-label required"><span class="label-tooltip" data-toggle="tooltip" title="" data-original-title="Tipo de documento">Tipo Doc.:</span></label>
@@ -1059,7 +1059,7 @@
     $(document).ready(function() {
 
 
-      window.addEventListener("keyup", function(e){ if(e.keyCode == 27) window.location.href ="{$link->getAdminLink('AdminOrders')}" }, false);
+      {*window.addEventListener("keyup", function(e){ if(e.keyCode == 27) window.location.href ="{$link->getAdminLink('AdminOrders')}" }, false);*}
 
 
       $('#txtNumeroDocumento').select();
