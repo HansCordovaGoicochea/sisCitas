@@ -1250,7 +1250,7 @@
               let text = res.responseText.split('<!');
               var returnedData = JSON.parse(text[0]);
               console.log(returnedData);
-              window.open(returnedData.ruta_ticket, '_blank' );
+              // window.open(returnedData.ruta_ticket, '_blank' );
               // location.reload();
             }else{
               $('#mensaje_sunat').html('<div class="alert alert-danger col-xs-12" id="mensaje_rapex" style="font-weight: bold">'+res.responseJSON.msg[0]+'</div>');
