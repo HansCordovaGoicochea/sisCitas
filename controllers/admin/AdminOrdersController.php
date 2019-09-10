@@ -38,10 +38,20 @@ class AdminOrdersControllerCore extends AdminController
         $this->deleted = false;
         $this->context = Context::getContext();
         $this->addRowAction('pagar_order');
-//        $this->addRowAction('borrar_devolver_caja');
+
+        //botones cuando existe comprobante
+//        $this->addRowAction('enviar_mail');
+        $this->addRowAction('descargar_xml');
+        $this->addRowAction('descargar_cdr');
+        $this->addRowAction('descargar_pdf');
+        $this->addRowAction('generar_nota_credito');
+//        $this->addRowAction('generar_nota_debito');
+        $this->addRowAction('anular_comunicacion_baja');
+//        $this->addRowAction('consultar_cdr');
+        ////////////////////////
         $this->addRowAction('anular_venta');
 //        $this->addRowAction('comunicacion_baja');
-//        $this->addRowAction('consultar_cdr');
+
         parent::__construct();
 
         $this->existeCajasAbiertas = PosArqueoscaja::existenCajasAbiertas();
@@ -110,7 +120,7 @@ class AdminOrdersControllerCore extends AdminController
             ),
             'date_add' => array(
                 'title' => $this->trans('Fecha de Creación', array(), 'Admin.Global'),
-                'align' => 'text-right',
+//                'align' => 'text-right',
                 'type' => 'datetime',
                 'filter_key' => 'a!date_add'
             ),
@@ -182,30 +192,30 @@ class AdminOrdersControllerCore extends AdminController
         ));
 
         $this->fields_list = array_merge($this->fields_list, array(
-            'id_pdf2' => array(
-                'title' => $this->trans('PDF Fac.', array(), 'Admin.Global'),
-                'align' => 'text-center',
-                'callback' => 'printPDF2Icons',
-                'orderby' => false,
-                'search' => false,
-                'remove_onclick' => true
-            ),
-            'id_xml' => array(
-                'title' => $this->trans('XML', array(), 'Admin.Global'),
-                'align' => 'text-center',
-                'callback' => 'printXMLIcons',
-                'orderby' => false,
-                'search' => false,
-                'remove_onclick' => true
-            ),
-            'id_cdrxml' => array(
-                'title' => $this->trans('CDR', array(), 'Admin.Global'),
-                'align' => 'text-center',
-                'callback' => 'printCDRIcons',
-                'orderby' => false,
-                'search' => false,
-                'remove_onclick' => true
-            )
+//            'id_pdf2' => array(
+//                'title' => $this->trans('PDF Fac.', array(), 'Admin.Global'),
+//                'align' => 'text-center',
+//                'callback' => 'printPDF2Icons',
+//                'orderby' => false,
+//                'search' => false,
+//                'remove_onclick' => true
+//            ),
+//            'id_xml' => array(
+//                'title' => $this->trans('XML', array(), 'Admin.Global'),
+//                'align' => 'text-center',
+//                'callback' => 'printXMLIcons',
+//                'orderby' => false,
+//                'search' => false,
+//                'remove_onclick' => true
+//            ),
+//            'id_cdrxml' => array(
+//                'title' => $this->trans('CDR', array(), 'Admin.Global'),
+//                'align' => 'text-center',
+//                'callback' => 'printCDRIcons',
+//                'orderby' => false,
+//                'search' => false,
+//                'remove_onclick' => true
+//            )
         ));
 
         $this->_where = Shop::addSqlRestriction(false, 'a');
@@ -217,9 +227,77 @@ class AdminOrdersControllerCore extends AdminController
             $this->context->customer = new Customer($order->id_customer);
         }
 
-        $this->bulk_actions = array(
-            'updateOrderStatus' => array('text' => $this->trans('Change Order Status', array(), 'Admin.Orderscustomers.Feature'), 'icon' => 'icon-refresh')
-        );
+//        $this->bulk_actions = array(
+//            'updateOrderStatus' => array('text' => $this->trans('Change Order Status', array(), 'Admin.Orderscustomers.Feature'), 'icon' => 'icon-refresh')
+//        );
+    }
+
+    public function displayDescargar_xmlLink($token = null, $id)
+    {
+        //        d($id);
+        $factura = new Order((int)$id);
+        $btn_icon = '';
+        $doc = PosOrdercomprobantes::getComprobantesByOrderLimit($factura->id);
+
+        if (!empty($doc))
+            return $btn_icon = '<a class="edit btn-default pointer descargar_xml" download href="' . $doc['ruta_xml'] . '"><i class="fa fa-file-code-o"></i>&nbsp; Descargar XML</a>';
+
+        return false;
+    }
+
+    public function displayDescargar_cdrLink($token = null, $id)
+    {
+        //        d($id);
+        $factura = new Order((int)$id);
+        $btn_icon = '';
+        $doc = PosOrdercomprobantes::getComprobantesByOrderLimit($factura->id);
+
+        if (!empty($doc))
+            return $btn_icon = '<a class="edit btn-default pointer descargar_xml" download href="' . $doc['ruta_cdr'] . '"><i class="fa fa-file-archive-o"></i>&nbsp; Descargar CDR</a>';
+
+        return false;
+    }
+
+    public function displayDescargar_pdfLink($token = null, $id)
+    {
+        //        d($id);
+        $factura = new Order((int)$id);
+        $btn_icon = '';
+        $doc = PosOrdercomprobantes::getComprobantesByOrderLimit($factura->id);
+
+        if (!empty($doc))
+            return $btn_icon = '<a class="edit btn-default pointer descargar_xml" download href="' . $doc['ruta_pdf_a4'] . '"><i class="fa fa-file-pdf-o"></i>&nbsp; Descargar PDF</a>';
+
+        return false;
+    }
+
+    public function displayAnular_ventaLink($token = null, $id)
+    {
+        $orden = new Order((int)$id);
+
+        $doc = PosOrdercomprobantes::getComprobantesByOrderLimit($orden->id);
+        $tipo_comprobante = "";
+        if (!empty($doc)) {
+            $objComprobantes = new PosOrdercomprobantes($doc['id_pos_ordercomprobantes']);
+            $tipo_comprobante = $objComprobantes->tipo_documento_electronico;
+            return false;
+        }
+        if ($orden->current_state == 6){
+            return false;
+        }
+        if (!$this->existeCajasAbiertas){
+            return false;
+        }
+        if (!$this->existeCajasAbiertas){
+            return false;
+        }
+        $this->context->smarty->assign(array(
+            "estado" => $orden->current_state,
+            "id_order" => $orden->id,
+            "tipo_comprobante" => $tipo_comprobante,
+        ));
+//
+        return $this->context->smarty->fetch('controllers/orders/list_action_anular.tpl');
     }
 
     public function getList($id_lang, $orderBy = null, $orderWay = null, $start = 0, $limit = null, $id_lang_shop = null)
@@ -239,15 +317,17 @@ class AdminOrdersControllerCore extends AdminController
         }
     }
 
-    public function displayAnular_ventaLink($token = null, $id)
+    public function displayGenerar_nota_creditoLink($token = null, $id)
     {
         $orden = new Order((int)$id);
 
         $doc = PosOrdercomprobantes::getComprobantesByOrderLimit($orden->id);
         $tipo_comprobante = "";
+        $html = false;
         if (!empty($doc)) {
             $objComprobantes = new PosOrdercomprobantes($doc['id_pos_ordercomprobantes']);
             $tipo_comprobante = $objComprobantes->tipo_documento_electronico;
+            $html = $this->context->smarty->fetch('controllers/orders/list_action_anularnota_credito.tpl');
         }
         if ($orden->current_state == 6){
             return false;
@@ -264,9 +344,41 @@ class AdminOrdersControllerCore extends AdminController
             "tipo_comprobante" => $tipo_comprobante,
         ));
 //
-        return $this->context->smarty->fetch('controllers/orders/list_action_anular.tpl');
+        return $html;
     }
 
+    public function displayAnular_comunicacion_bajaLink($token = null, $id)
+    {
+        $orden = new Order((int)$id);
+
+        $doc = PosOrdercomprobantes::getComprobantesByOrderLimit($orden->id);
+        $tipo_comprobante = "";
+        $html = false;
+        if (!empty($doc)) {
+            $objComprobantes = new PosOrdercomprobantes($doc['id_pos_ordercomprobantes']);
+            $tipo_comprobante = $objComprobantes->tipo_documento_electronico;
+            $html = $this->context->smarty->fetch('controllers/orders/list_action_anular_baja.tpl');
+            if ($tipo_comprobante != "Factura" && $tipo_comprobante != "NotaCredito"){
+                return false;
+            }
+        }
+        if ($orden->current_state == 6){
+            return false;
+        }
+        if (!$this->existeCajasAbiertas){
+            return false;
+        }
+        if (!$this->existeCajasAbiertas){
+             return false;
+        }
+        $this->context->smarty->assign(array(
+            "estado" => $orden->current_state,
+            "id_order" => $orden->id,
+            "tipo_comprobante" => $tipo_comprobante,
+        ));
+//
+        return $html;
+    }
 
     public function processExport($text_delimiter = '"')
     {
@@ -619,49 +731,6 @@ class AdminOrdersControllerCore extends AdminController
 
     }
 
-    public function printPDF2Iconsboleta($id)
-    {
-//        d($id);
-        $factura = new Order((int)$id);
-        $btn_icon = '';
-        if($factura->tipo_documento_electronico == 'Boleta'){
-            if (!empty($factura->ruta_pdf_a4))
-                $btn_icon = '<span class="btn-group-action">
-                                <span class="btn-group">
-                                        <a class="btn btn-default" download href="'.$factura->ruta_pdf_a4.'">
-                                        <i class="icon-file-text"></i>
-                                    </a>
-                                    </span>
-                            </span>
-                            <script>
-	
-	        function getRandValue22(id){
-                $.ajax({
-                    type:"POST",
-                    url: "'.$this->context->link->getAdminLink('AdminOrders').'",
-                    async: true,
-                    dataType: "json",
-                    data : {
-                        ajax: "1",
-                        token: "'.Tools::getAdminTokenLite('AdminOrders').'",
-                        tab: "AdminOrders",
-                        action: "PDF",
-                        id_order: id,
-                    },
-                    success : function(res)
-                    {
-				
-                    },
-                });
-	        }
-
-           
-</script>
-                            
-                            ';
-        }
-        return $btn_icon;
-    }
 
     public function printXMLIcons($id)
     {
@@ -733,11 +802,7 @@ class AdminOrdersControllerCore extends AdminController
             $order_invoice = null;
         }
 
-        if($this->nombre_access['name'] == 'Administrador' || $this->nombre_access['name'] == 'SuperAdmin'){
-            $last_caja = PosArqueoscaja::cajaAbierta(Tools::getValue('id_caja'));
-        }else{
-            $last_caja = PosArqueoscaja::getCajaLast($this->context->shop->id);
-        }
+        $last_caja = PosArqueoscaja::getCajaLast($this->context->shop->id);
 
         if (!$order->addOrderPayment($amount, "Pago en Efectivo", "", $currency, date('Y-m-d H:i:s'), $order_invoice, 0, 1, $last_caja['id_pos_arqueoscaja'], $this->context->employee->id)) {
             $this->errors[] = $this->trans('An error occurred during payment.', array(), 'Admin.Orderscustomers.Notification');
@@ -750,15 +815,7 @@ class AdminOrdersControllerCore extends AdminController
             $objcajanew->monto_operaciones = $montofinal;
             $objcajanew->update();
 
-//            if (!$order->id_empleado_caja) {
-            if ($this->nombre_access['name'] == 'Cajero') {
-                $order->id_empleado_caja = $this->context->employee->id;
-            }
-            if ($this->nombre_access['name'] == 'Administrador' || $this->nombre_access['name'] == 'SuperAdmin') {
-//                    $last_caja = PosArqueoscaja::cajaAbierta($this->context->cookie->admin_caja);
-                $order->id_empleado_caja = $last_caja['id_employee_apertura'];
-            }
-//            }
+            $order->id_pos_caja = $last_caja['id_pos_caja'];///////////////////
 
             $order_state = new OrderState((int)ConfigurationCore::get('PS_OS_PAYMENT'), (int)$this->context->language->id);
             $current_order_state = $order->getCurrentOrderState();
@@ -798,6 +855,22 @@ class AdminOrdersControllerCore extends AdminController
     //fu cion ajax solo dando click en el boton de la lista de ver pdf
     public function ajaxProcessEliminarPedido()
     {
+//        No puede anular un documento con fecha anterior a 2019-09-02
+        if (!empty($doc)){
+            $objComprobantes = new PosOrdercomprobantes($doc['id_pos_ordercomprobantes']);
+
+            $date1 = new DateTime(date('Y-m-d', $objComprobantes->date_add));
+            $date2 = new DateTime(date('Y-m-d'));
+            $diff = $date1->diff($date2);
+            if ($diff <= 7){
+                if ($objComprobantes->tipo_documento_electronico == 'Factura'){
+                    $this->declararBajaComprobante($objComprobantes);
+                }
+            }else {
+                return die(Tools::jsonEncode(array('respuesta' => 'error', 'msg' => "No puede anular un documento que ya pasaron 7 días a partir de su emisión.")));
+            }
+        }
+
 //        d(Tools::getAllValues());
         $order = new Order((int)Tools::getValue('id_order'));
         $doc = PosOrdercomprobantes::getComprobantesByOrderLimit($order->id);
@@ -927,53 +1000,13 @@ class AdminOrdersControllerCore extends AdminController
         $order->motivo_anulacion = Tools::getValue('motivo_anulacion');
         $order->update();
 
-        if (!empty($doc)){
-            $objComprobantes = new PosOrdercomprobantes($doc['id_pos_ordercomprobantes']);
-            if ($objComprobantes->tipo_documento_electronico == 'Factura_fisica'){
-
-                $correlativo = NumeracionDocumento::getNumTipoDoc('NotaCredito_fisica');
-                if (empty($correlativo)){
-                    $objNC = new NumeracionDocumento();
-                    $objNC->serie = '';
-                    $objNC->correlativo = 0;
-                    $objNC->nombre = 'NotaCredito_fisica';
-                    $objNC->id_shop = Context::getContext()->shop->id;
-                    $objNC->add();
-                    $correlativo = NumeracionDocumento::getNumTipoDoc('NotaCredito_fisica');
-                }else{
-                    $correlativo = NumeracionDocumento::getNumTipoDoc('NotaCredito_fisica');
-                }
-
-                $objNu2 = new NumeracionDocumento((int)$correlativo['id_numeracion_documentos']);
-                $objNu2->correlativo = ($correlativo['correlativo']+1);
-                $objNu2->update();
-                $correlativo_comanda = NumeracionDocumento::getNumTipoDoc('NotaCredito_fisica');
-                $serie_comprobante = $objComprobantes->numero_comprobante;
-                $serie = explode("-", $serie_comprobante);
-                $numeracion = Tools::zero_fill($correlativo_comanda['correlativo'],8);
-                $numero_comprobante = $serie[0].'-'.$numeracion;
-                $nombre_xml_comprobante = PS_SHOP_RUC.'-07-'.$numero_comprobante;
-
-                $ruta = 'documentos_pdf_a4/fisico/notas/'.$this->context->shop->virtual_uri;
-                $monbre_archivo= 'NOTACREDITO_fisica_'.$nombre_xml_comprobante.'.pdf';
-                if (!file_exists($ruta)) {
-                    mkdir($ruta, 0777, true);
-                }
-
-                $objComprobantes->nota_baja = 'NotaCredito_fisica';
-                $objComprobantes->numeracion_nota_baja = $numero_comprobante;
-                $objComprobantes->code_motivo_nota_credito = Tools::getValue('code_nota_credito');
-                $objComprobantes->ruta_pdf_a4nota = $ruta.$monbre_archivo;
-                $objComprobantes->update();
-
-                $pdf = new PDF($objComprobantes, ucfirst('ComprobanteFisicoNotaCredito'), Context::getContext()->smarty,'P');
-                $pdf->GuardarComprobanteFisico($objComprobantes, $monbre_archivo);
-            }
-        }
-
-
 
         return die(Tools::jsonEncode(array('errors' => true, 'estado' => 'disponible')));
+
+    }
+
+    protected function declararBajaComprobante($objComprobantes){
+
 
     }
 

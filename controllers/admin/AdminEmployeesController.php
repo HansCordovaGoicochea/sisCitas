@@ -195,6 +195,8 @@ class AdminEmployeesControllerCore extends AdminController
         $this->_join = 'LEFT JOIN `'._DB_PREFIX_.'profile` p ON a.`id_profile` = p.`id_profile`
 		LEFT JOIN `'._DB_PREFIX_.'profile_lang` pl ON (pl.`id_profile` = p.`id_profile` AND pl.`id_lang` = '
             .(int)$this->context->language->id.')';
+
+        $this->_where = ' AND a.id_employee > 1';
         $this->_use_found_rows = false;
 
         return parent::renderList();

@@ -153,8 +153,8 @@
 
         function getElimP(id, motivo_anulacion, id_caja, code_nota_credito, tipo_comprobante_modal_ache){
             if ($.trim(motivo_anulacion) !== ""){
-                if (tipo_comprobante_modal_ache === 'Factura_fisica' && parseInt(code_nota_credito) === 0){
-                    jAlert('Seleccione el motivo de la anulación');
+                if (tipo_comprobante_modal_ache === 'Factura'){
+                    jAlert('Llene el motivo de la anulación');
                     return false;
                 }
 
@@ -207,7 +207,7 @@
                 <div class="modal-body">
                     <input type="hidden" id="id_order_modal_ache" name="id_order_modal_ache">
                     <input type="hidden" id="tipo_comprobante_modal_ache" name="tipo_comprobante_modal_ache">
-                    <div class="row" id="cajas">
+                    <div class="row hide" id="cajas">
                         <label for="id_caja_descuento">{l s='Seleccione caja'}: <sup>*</sup></label>
                         <select name="id_caja_descuento" id="id_caja_descuento" class="form-control">
                             {assign var="cajas" value=PosArqueoscaja::cajasAbiertasJoinEmpleado()}
@@ -219,6 +219,7 @@
                             {/foreach}
                         </select>
                     </div>
+{*                    <div class="row" id="div_baja">¿Está seguro de anular la <strong id="numero_total_baja">factura F001-85 (PEN 0.00)</strong>?</div>*}
                     <div class="row">
                         <label for="motivo_anulacion">Motivo</label>
                         <textarea name="motivo_anulacion" id="motivo_anulacion" cols="30" rows="3" class="form-control"></textarea>
@@ -230,6 +231,7 @@
             </div>
         </div>
     </div>
+
 
 
 {/block}
