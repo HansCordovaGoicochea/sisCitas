@@ -138,25 +138,27 @@
             let estado = parseInt($(this).data('estado'));
             let id_order = parseInt($(this).data('id_order'));
             let tipocomprobante = $(this).data('tipocomprobante');
-            $('#id_order_modal_ache').val(id_order);
-            $('#tipo_comprobante_modal_ache').val(tipocomprobante);
+            let numerocomprobante = $(this).data('numerocomprobante');
+            let montototal = $(this).data('montototal');
+            $('#modal_anular #id_order_modal_ache').val(id_order);
+            $('#modal_anular #tipo_comprobante_modal_ache').val(tipocomprobante);
             $('#modal_anular').modal('show');
-            if (estado === 1){
-                $('#cajas').hide();
-            }
-            if (estado === 2){
-                $('#cajas').show();
+            // if (estado === 1){
+            //     $('#cajas').hide();
+            // }
+            // if (estado === 2){
+            //     $('#cajas').show();
+            // }
+
+            if (tipocomprobante === 'Factura'){
+                $('#modal_anular .modal-body').prepend('<div class="row" id="div_baja">¿Está seguro de anular la <strong>Factura '+numerocomprobante+' (S/ '+montototal+')</strong>?</div>')
             }
 
         });
 
 
-        function getElimP(id, motivo_anulacion, id_caja, code_nota_credito, tipo_comprobante_modal_ache){
+        function getElimP(id, motivo_anulacion, id_caja, tipo_comprobante_modal_ache){
             if ($.trim(motivo_anulacion) !== ""){
-                if (tipo_comprobante_modal_ache === 'Factura'){
-                    jAlert('Llene el motivo de la anulación');
-                    return false;
-                }
 
                 $('body').waitMe({
                     effect: 'bounce',
@@ -186,7 +188,7 @@
                     },
                     success : function(res)
                     {
-                        location.reload();
+                        // location.reload();
                     },
                 });
             }else{
@@ -226,12 +228,119 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <a onclick="getElimP($('#id_order_modal_ache').val(), $('#motivo_anulacion').val(), $('#id_caja_descuento').val())" class="btn btn-danger" title="Anular"><i class="icon-trash"></i> Anular</a>
+                    <a onclick="getElimP($('#modal_anular #id_order_modal_ache').val(), $('#modal_anular #motivo_anulacion').val(), $('#modal_anular #id_caja_descuento').val(), $('#modal_anular #tipo_comprobante_modal_ache').val())" class="btn btn-danger" title="Anular"><i class="icon-trash"></i> Anular</a>
                 </div>
             </div>
         </div>
     </div>
 
+{*    nota de credito*}
+    <script>
+        $('.anular_venta_notacredito').click(function () {
+            let estado = parseInt($(this).data('estado'));
+            let id_order = parseInt($(this).data('id_order'));
+            let tipocomprobante = $(this).data('tipocomprobante');
+            let numerocomprobante = $(this).data('numerocomprobante');
+            let montototal = $(this).data('montototal');
+            $('#modal_anular_notacredito #id_order_modal_ache').val(id_order);
+            $('#modal_anular_notacredito #tipo_comprobante_modal_ache').val(tipocomprobante);
+            $('#modal_anular_notacredito').modal('show');
+            // if (estado === 1){
+            //     $('#cajas').hide();
+            // }
+            // if (estado === 2){
+            //     $('#cajas').show();
+            // }
+            if (tipocomprobante === 'Factura'){
+                $('#modal_anular_notacredito .modal-body').prepend('<div class="row" id="div_baja">¿Está seguro de generar Nota de Crédito a la <strong>Factura '+numerocomprobante+' (S/ '+montototal+')</strong>?</div>')
+            }
+        });
+
+        function generarNotaCredito(id, motivo_anulacion, code_nota_credito, tipo_comprobante_modal_ache, id_caja){
+            if ($.trim(motivo_anulacion) !== ""){
+
+                $('body').waitMe({
+                    effect: 'bounce',
+                    text: 'Guardando...',
+                    //    bg : rgba(255,255,255,0.7),
+                    color: '#000',
+                    maxSize: '',
+                    textPos: 'vertical',
+                    fontSize: '',
+                    source: ''
+                });
+                $.ajax({
+                    type:"POST",
+                    url: "{$link->getAdminLink('AdminOrders')}",
+                    async: true,
+                    dataType: "json",
+                    data : {
+                        ajax: "1",
+                        token: "{Tools::getAdminTokenLite('AdminOrders')}",
+                        tab: "AdminOrders",
+                        action: "eliminarPedidoNotaCredito",
+                        id_order: id,
+                        id_caja: id_caja,
+                        motivo_anulacion: motivo_anulacion,
+                        code_motivo_nota_credito: code_nota_credito,
+                        tipo_comprobante_modal_ache: tipo_comprobante_modal_ache,
+                    },
+                    success : function(res)
+                    {
+                        // location.reload();
+                    },
+                });
+            }else{
+                jAlert('Llenar el motivo de la anulación');
+            }
+
+        }
+    </script>
+
+    <div class="modal fade" id="modal_anular_notacredito"  data-backdrop="static">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <label for="">{l s='Anular venta con Nota de crédito'}</label>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="id_order_modal_ache" name="id_order_modal_ache">
+                    <input type="hidden" id="tipo_comprobante_modal_ache" name="tipo_comprobante_modal_ache">
+                    <div class="row hide" id="cajas">
+                        <label for="id_caja_descuento">{l s='Seleccione caja'}: <sup>*</sup></label>
+                        <select name="id_caja_descuento" id="id_caja_descuento" class="form-control">
+                            {assign var="cajas" value=PosArqueoscaja::cajasAbiertasJoinEmpleado()}
+                            {foreach from=$cajas item=caja}
+                                <option data-montoinicial="{$caja.monto_operaciones}" value="{$caja.id_pos_arqueoscaja}">Caja de {$caja.empleado}</option>
+                                {if $caja@last}
+                                    <option value="0">- No descontar de caja -</option>
+                                {/if}
+                            {/foreach}
+                        </select>
+                    </div>
+                    <div class="row" id="div_selec_nc">
+                        <div class="form-group">
+                            <label for="id_code_nota_credito">Tipo de motivo:</label>
+                            <select name="id_code_nota_credito" id="id_code_nota_credito" class="">
+                                <option value="0">- Seleccione Motivo de NC -</option>
+                                <option value="01">Anulación de la operación</option>
+                                <option value="02">Anulación por error en el RUC</option>
+                                <option value="06">Devolución total</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <label for="motivo_anulacion">Descripción:</label>
+                        <textarea name="motivo_anulacion" id="motivo_anulacion" cols="30" rows="3" class="form-control"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a onclick="generarNotaCredito($('#modal_anular_notacredito #id_order_modal_ache').val(), $('#modal_anular_notacredito #motivo_anulacion').val(), $('#modal_anular_notacredito #id_code_nota_credito :selected').val(), $('#modal_anular_notacredito #tipo_comprobante_modal_ache').val(), $('#modal_anular_notacredito #id_caja_descuento').val())" class="btn btn-danger" title="Anular"><i class="icon-trash"></i> Generar</a>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
 {/block}

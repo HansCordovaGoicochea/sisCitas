@@ -37,6 +37,9 @@ class PosOrdercomprobantesCore extends ObjectModel
     public $date_add;
     public $date_upd;
     public $estado_envio_sunat;
+    public $cod_sunat_otro;
+    public $ruta_xml_otro;
+    public $ruta_cdr_otro;
 
     /**
      * @see ObjectModel::$definition
@@ -55,6 +58,7 @@ class PosOrdercomprobantesCore extends ObjectModel
             'hash_cdr' => array('type' => self::TYPE_STRING),
             'ruta_cdr' => array('type' => self::TYPE_STRING),
             'cod_sunat' => array('type' => self::TYPE_INT),
+
             'msj_sunat' => array('type' => self::TYPE_STRING),
             'ruta_ticket' => array('type' => self::TYPE_STRING),
             'ruta_pdf_a4' => array('type' => self::TYPE_STRING),
@@ -78,6 +82,10 @@ class PosOrdercomprobantesCore extends ObjectModel
             'date_add' => array('type' => self::TYPE_DATE),
             'date_upd' => array('type' => self::TYPE_DATE),
             'estado_envio_sunat' => array('type' => self::TYPE_BOOL), //1 enviado 0 NO enviado
+
+            'cod_sunat_otro' => array('type' => self::TYPE_INT),
+            'ruta_xml_otro' => array('type' => self::TYPE_STRING),
+            'ruta_cdr_otro' => array('type' => self::TYPE_STRING),
         ),
     );
 

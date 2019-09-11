@@ -16,12 +16,18 @@ class ProcesarComprobante
         $resp = Apisunat_2_1::crear_xml_factura_boleta($data_comprobante, json_decode(json_encode($order_detail)), $rutas["ruta_xml"]);
 
         if ($resp['result'] == "error"){
+            $objComprobantes->cod_sunat =  99999;
+            $objComprobantes->msj_sunat =  $resp["msj_error"];
+            $objComprobantes->update();
             return die(json_encode($resp));
         }
 
         $resp_firma = FirmarDocumento::firmar_xml($data_comprobante, $rutas["ruta_xml"], $rutas["ruta_firma"], $rutas["pass_firma"], $rutas["nombre_archivo"]);
 
         if ($resp_firma['result'] == "error"){
+            $objComprobantes->cod_sunat =  99999;
+            $objComprobantes->msj_sunat =  $resp_firma["msj_error"];
+            $objComprobantes->update();
             return die(json_encode($resp_firma));
         }
 
@@ -56,6 +62,7 @@ class ProcesarComprobante
         return $resp;
 
     }
+
     public static function procesar_boleta($data_comprobante, $objComprobantes, $rutas){
 
         $order_detail = OrderDetail::getList($objComprobantes->id_order);
@@ -250,29 +257,34 @@ class ProcesarComprobante
         return $resp;
     }
 
-    public static function procesar_baja_sunat($data_comprobante, $order, $rutas) {
-        $order_obj = new Order((int)$order->id);
-        $order_detail = OrderDetail::getList($order->id);
+    public static function procesar_baja_sunat($data_comprobante, $objComprobantes, $rutas) {
+
+        $order_detail = OrderDetail::getList($objComprobantes->id_order);
 
         $resp = Apisunat_2_1::crear_xml_baja_sunat($data_comprobante, json_decode(json_encode($order_detail)), $rutas["ruta_xml"]);
 
         $resp_firma = FirmarDocumento::firmar_xml($data_comprobante, $rutas["ruta_xml"], $rutas["ruta_firma"], $rutas["pass_firma"], $rutas["nombre_archivo"]);
 
         if ($resp_firma['result'] == "error"){
-            return die(json_encode($resp_firma));
+            $objComprobantes->cod_sunat =  99999;
+            $objComprobantes->msj_sunat =  $resp_firma["msj_error"];
+            $objComprobantes->update();
+            return $resp_firma;
         }
 
         $resp_envio = self::enviar_documento_para_baja($data_comprobante['EMISOR_RUC'], $data_comprobante['EMISOR_USUARIO_SOL'], $data_comprobante['EMISOR_PASS_SOL'],  $rutas["ruta_xml"], $rutas["ruta_cdr"], $rutas['nombre_archivo'], $rutas['ruta_ws']);
 
+        $objComprobantes->cod_sunat_otro =  $resp_envio["cod_sunat"];
+        $objComprobantes->mensaje_cdr =  $resp_envio["msj_sunat"];
         if ($resp_envio['result'] == 'error') {
+            $objComprobantes->update();
             return $resp_envio;
         }
-
+        $resp["msg"][] = $resp_envio["msj_sunat"];
+        $objComprobantes->identificador_comunicacion =  $resp_envio["cod_ticket"];
+        $objComprobantes->ruta_xml_otro = $rutas["ruta_xml"].".zip";
         $resp['result'] = 'OK';
-        $resp['hash_cpe'] = $resp_firma['hash_cpe'];
-        $resp['hash_cdr'] = $resp_envio['hash_cdr'];
-        $resp['cod_sunat'] = $resp_envio['cod_sunat'];
-        $resp['msj_sunat'] = $resp_envio['msj_sunat'];
+        $objComprobantes->update();
         return $resp;
 
     }
@@ -353,19 +365,17 @@ class ProcesarComprobante
                 $mensaje['respuesta'] = 'OK';
                 $mensaje['cod_ticket'] = $ticket;
                 $resul_code_sunat = intval(preg_replace('/[^0-9]+/', '', $doc->getElementsByTagName('faultcode')->item(0)->nodeValue), 10);
-                $mensaje['extra'] = $resul_code_sunat . ' - ' . $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
+                $mensaje['msj_sunat'] = $resul_code_sunat . ' - ' . $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
             } else {
                 $mensaje['respuesta'] = 'error';
                 $resul_code_sunat = intval(preg_replace('/[^0-9]+/', '', $doc->getElementsByTagName('faultcode')->item(0)->nodeValue), 10);
                 $mensaje['cod_sunat'] = $resul_code_sunat;
                 $mensaje['msj_sunat'] = $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
-                $mensaje['hash_cdr'] = "";
             }
         } catch (Exception $e) {
             $mensaje['respuesta'] = 'error';
-            $mensaje['cod_sunat'] = "0000";
+            $mensaje['cod_sunat'] = "99999";
             $mensaje['msj_sunat'] = "SUNAT ESTA FUERA SERVICIO: " . $e->getMessage();
-            $mensaje['hash_cdr'] = "";
         }
         return $mensaje;
     }
@@ -537,14 +547,15 @@ class ProcesarComprobante
                 $mensaje['cod_sunat'] = $doc_cdr->getElementsByTagName('ResponseCode')->item(0)->nodeValue;
                 $mensaje['msj_sunat'] = $doc_cdr->getElementsByTagName('Description')->item(0)->nodeValue;
                 $mensaje['mensaje'] = $doc_cdr->getElementsByTagName('Description')->item(0)->nodeValue;
-                $mensaje['hash_cdr'] = $doc_cdr->getElementsByTagName('DigestValue')->item(0)->nodeValue;
+                $mensaje['ruta_cdr'] = $ruta_archivo_cdr . 'R-' . $archivo . '.zip';
+//                $mensaje['hash_cdr'] = $doc_cdr->getElementsByTagName('DigestValue')->item(0)->nodeValue;
             } else {
                 $mensaje['respuesta'] = 'error';
                 $resul_code_sunat = intval(preg_replace('/[^0-9]+/', '', $doc->getElementsByTagName('faultcode')->item(0)->nodeValue), 10);
                 $mensaje['cod_sunat'] = $resul_code_sunat;
                 $mensaje['mensaje'] = $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
                 $mensaje['msj_sunat'] = $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
-                $mensaje['hash_cdr'] = "";
+//                $mensaje['hash_cdr'] = "";
             }
         } else {
             //echo "no responde web";

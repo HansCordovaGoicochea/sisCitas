@@ -329,6 +329,9 @@ class AdminOrdersControllerCore extends AdminController
             $tipo_comprobante = $objComprobantes->tipo_documento_electronico;
             $html = $this->context->smarty->fetch('controllers/orders/list_action_anularnota_credito.tpl');
         }
+        if ($orden->current_state == 15){
+            return false;
+        }
         if ($orden->current_state == 6){
             return false;
         }
@@ -357,10 +360,22 @@ class AdminOrdersControllerCore extends AdminController
         if (!empty($doc)) {
             $objComprobantes = new PosOrdercomprobantes($doc['id_pos_ordercomprobantes']);
             $tipo_comprobante = $objComprobantes->tipo_documento_electronico;
+
+            $this->context->smarty->assign(array(
+                "estado" => $orden->current_state,
+                "id_order" => $orden->id,
+                "tipo_comprobante" => $tipo_comprobante,
+                "numerocomprobante" => $objComprobantes->numero_comprobante,
+                "montototal" => $objComprobantes->total,
+            ));
+
             $html = $this->context->smarty->fetch('controllers/orders/list_action_anular_baja.tpl');
             if ($tipo_comprobante != "Factura" && $tipo_comprobante != "NotaCredito"){
                 return false;
             }
+        }
+        if ($orden->current_state == 14){
+            return false;
         }
         if ($orden->current_state == 6){
             return false;
@@ -371,11 +386,7 @@ class AdminOrdersControllerCore extends AdminController
         if (!$this->existeCajasAbiertas){
              return false;
         }
-        $this->context->smarty->assign(array(
-            "estado" => $orden->current_state,
-            "id_order" => $orden->id,
-            "tipo_comprobante" => $tipo_comprobante,
-        ));
+
 //
         return $html;
     }
@@ -855,25 +866,28 @@ class AdminOrdersControllerCore extends AdminController
     //fu cion ajax solo dando click en el boton de la lista de ver pdf
     public function ajaxProcessEliminarPedido()
     {
+        //        d(Tools::getAllValues());
+        $order = new Order((int)Tools::getValue('id_order'));
+        $doc = PosOrdercomprobantes::getComprobantesByOrderLimit($order->id);
+
 //        No puede anular un documento con fecha anterior a 2019-09-02
         if (!empty($doc)){
             $objComprobantes = new PosOrdercomprobantes($doc['id_pos_ordercomprobantes']);
+            if ($objComprobantes->tipo_documento_electronico == 'Factura') {
+                $date1 = new DateTime(date('Y-m-d', $objComprobantes->date_add));
+                $date2 = new DateTime(date('Y-m-d'));
+                $diff = $date1->diff($date2);
+                if ($diff <= 7) {
 
-            $date1 = new DateTime(date('Y-m-d', $objComprobantes->date_add));
-            $date2 = new DateTime(date('Y-m-d'));
-            $diff = $date1->diff($date2);
-            if ($diff <= 7){
-                if ($objComprobantes->tipo_documento_electronico == 'Factura'){
-                    $this->declararBajaComprobante($objComprobantes);
+                    $this->declararBajaComprobante($objComprobantes, $order);
+
+                } else {
+                    return die(Tools::jsonEncode(array('respuesta' => 'error', 'msg' => "No puede anular un documento que ya pasaron 7 días a partir de su emisión.")));
                 }
-            }else {
-                return die(Tools::jsonEncode(array('respuesta' => 'error', 'msg' => "No puede anular un documento que ya pasaron 7 días a partir de su emisión.")));
             }
-        }
+        }else{
 
-//        d(Tools::getAllValues());
-        $order = new Order((int)Tools::getValue('id_order'));
-        $doc = PosOrdercomprobantes::getComprobantesByOrderLimit($order->id);
+        }
 
         //si solo si esta pagado
         $new_os = new OrderState((int)Configuration::get('PS_OS_CANCELED'), $order->id_lang);
@@ -889,26 +903,11 @@ class AdminOrdersControllerCore extends AdminController
                 }
             }
 
-            $order->id_empleado_caja = $objCaja->id_employee_apertura;
-            if ((bool)$order->estado_transferencia){
-                $order->estado_transferencia = 2;
-            }
-            $order->update();
-
-
             if (!empty($doc)) {
-                $objComprobantes = new PosOrdercomprobantes($doc['id_pos_ordercomprobantes']);
+                $objComprobantes = new PosOrdercomprobantes((int)$doc['id_pos_ordercomprobantes']);
                 $objComprobantes->devolver_monto_caja = 1;
                 $objComprobantes->update();
             }
-        }
-        else{
-            $order->id_empleado_caja = 0;
-            if ((bool)$order->estado_transferencia){
-                $order->estado_transferencia = 2;
-            }
-            $order->update();
-
         }
 
         $order->setCurrentState(Configuration::get('PS_OS_CANCELED'), $this->context->employee->id);
@@ -1000,13 +999,178 @@ class AdminOrdersControllerCore extends AdminController
         $order->motivo_anulacion = Tools::getValue('motivo_anulacion');
         $order->update();
 
+        $order->setCurrentState(14, $this->context->employee->id); //estado 14 comunicacion de baja
+        $arr = Certificadofe::getCertificado();
+        $objCerti = new Certificadofe((int)$arr); // buscar el certificado
+        $numero_comprobante = $objComprobantes->numeracion_nota_baja;
+        $nombre_xml_comprobante = PS_SHOP_RUC.'-'.$numero_comprobante;
+        //creamos las RUTAS de los documentos
+        // creamos la carpeta donde se guardara el XML
+        $ruta_general_cdr = "archivos_sunat/baja/".PS_SHOP_RUC."/cdr/";
+        $ruta_cdr = $ruta_general_cdr;
+
+        $resp_cdr = ProcesarComprobante::consultar_envio_ticket($objCerti->user_sunat, $objCerti->pass_sunat,  $objComprobantes->identificador_comunicacion, $nombre_xml_comprobante, $ruta_cdr, $objCerti->web_service_sunat);
+
+        if ($resp_cdr['respuesta'] == 'ok'){
+            $objComprobantes->mensaje_cdr = $resp_cdr['msj_sunat'];
+            $objComprobantes->ruta_cdr_otro = $resp_cdr['ruta_cdr'];
+            $objComprobantes->update();
+        }
+
 
         return die(Tools::jsonEncode(array('errors' => true, 'estado' => 'disponible')));
 
     }
 
-    protected function declararBajaComprobante($objComprobantes){
+    protected function declararBajaComprobante($objComprobantes, $order){
+        $tienda_actual = new Shop((int)$this->context->shop->id); //
+        $nombre_virtual_uri = $tienda_actual->virtual_uri;
+        $tipo_comprobante = $objComprobantes->tipo_documento_electronico;
+        $arr = Certificadofe::getCertificado();
+        if ($arr && (int)$arr > 0){
+            $objCerti = new Certificadofe((int)$arr); // buscar el certificado
+            if (!(bool)$objCerti->active){
+                $this->errors[] = "La ".$tipo_comprobante." no se pudo enviar: No hay un certificado valido";
+                return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+            }
+        }else{
+            $this->errors[] = "La ".$tipo_comprobante." no se pudo enviar: No hay un certificado valido";
+            return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+        }
 
+        if (!$objComprobantes->numeracion_nota_baja && $objComprobantes->numeracion_nota_baja == ""){
+            $correlativo_comanda1 = NumeracionDocumento::getNumTipoDoc('ComunicacionBaja');
+            if (empty($correlativo_comanda1)){
+                $this->errors[] = "No existe numeración cree una <a href='index.php?controller=AdminNumeracionDocumentos&addnumeracion_documentos&token=".Tools::getAdminTokenLite("AdminNumeracionDocumentos")."&nombre=".$objComprobantes->tipo_documento_electronico."' target='_blank'>&nbsp; -> Crear Numeración para los Comprobantes Electrónicos</a>";
+                return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+            }
+            else{
+                $objNu2 = new NumeracionDocumento((int)$correlativo_comanda1['id_numeracion_documentos']);
+
+                $objNu2->correlativo = ($correlativo_comanda1['correlativo']+1);
+                $objNu2->update();
+
+                $serie_baja = $objNu2->serie;
+                $numeracion_baja = $objNu2->correlativo;
+                $date = date('Ymd');
+                $numero_comprobante = $serie_baja.'-'.$date.'-'.$numeracion_baja;
+                $objComprobantes->nota_baja = "ComunicacionBaja";
+                $objComprobantes->numeracion_nota_baja = $numero_comprobante;
+                $objComprobantes->motivo_baja = Tools::getValue('motivo_anulacion');
+                $nombre_xml_comprobante = PS_SHOP_RUC.'-'.$numero_comprobante;
+
+            }
+        }
+        else{
+            // hacer que se consulta a la sunat el comprobante
+            $numero_comprobante = $objComprobantes->numeracion_nota_baja;
+            $nombre_xml_comprobante = PS_SHOP_RUC.'-'.$numero_comprobante;
+        }
+
+        $CLIENTE = new Customer((int)$order->id_customer);
+        $nro_documento_cliente = $CLIENTE->num_document; // numero de documento del cliente
+        $razon_social_nombre_cliente = $CLIENTE->firstname; // razon_social o nombre del cliente
+        $direccion_cliente = $CLIENTE->direccion;
+
+        if ($tipo_comprobante == "Factura"){
+            $archivo = $nombre_xml_comprobante;  // nombre del archivo  del comprobante
+            $tipo_documento = "Baja"; //cod de comprobante electronico
+            $tipo_code_doc_cliente = "6"; // codigo de documento de identidad
+        }
+        else{
+            $this->errors[] = $this->trans('Error: Tipo de comprobante no válido!!', array(), 'Admin.Orderscustomers.Notification');
+            return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+        }
+
+        //creamos las RUTAS de los documentos
+        // creamos la carpeta donde se guardara el XML
+        $ruta_general_xml = "archivos_sunat/baja/".PS_SHOP_RUC."/xml/";
+        if (!file_exists($ruta_general_xml)) {
+            mkdir($ruta_general_xml, 0777, true);
+        }
+        $ruta_general_cdr = "archivos_sunat/baja/".PS_SHOP_RUC."/cdr/";
+        if (!file_exists($ruta_general_cdr)) {
+            mkdir($ruta_general_cdr, 0777, true);
+        }
+
+        $ruta_xml = $ruta_general_xml.$archivo;
+        $ruta_cdr = $ruta_general_cdr;
+
+
+        //d($razon_social_nombre_cliente);
+        if (trim($tipo_code_doc_cliente) != "" &&
+            trim($nro_documento_cliente) != "" &&
+            trim($razon_social_nombre_cliente) != ""){
+            $receptor = array();
+            $receptor['TIPO_DOCUMENTO_CLIENTE'] = $tipo_code_doc_cliente;
+            $receptor['NRO_DOCUMENTO_CLIENTE'] = $nro_documento_cliente;
+            $receptor['RAZON_SOCIAL_CLIENTE'] = $razon_social_nombre_cliente;
+            $receptor['DIRECCION_CLIENTE'] = $direccion_cliente;
+        }else{
+
+            $objComprobantes->cod_sunat = 9999;
+
+            $this->errors[] = $this->trans('Error algunos campos del cliente estan vacios!!', array(), 'Admin.Orderscustomers.Notification');
+            return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+        }
+
+        if (trim(PS_SHOP_RUC) != "" &&
+            trim(PS_SHOP_NAME) != "" &&
+            trim(PS_SHOP_RAZON_SOCIAL) != "" &&
+            trim($objCerti->user_sunat) != "" &&
+            trim($objCerti->pass_sunat) != ""){
+            $emisor = array();
+            $emisor['ruc'] = PS_SHOP_RUC;
+            $emisor['tipo_doc'] = "6";
+            $emisor['nom_comercial'] = Tools::eliminar_tildes(PS_SHOP_NAME);
+            $emisor['razon_social'] = Tools::eliminar_tildes(PS_SHOP_RAZON_SOCIAL);
+            $emisor['codigo_ubigeo'] = "060101";
+            $emisor['direccion'] = Configuration::get('PS_SHOP_ADDR1', $this->context->language->id, null, $tienda_actual->id,'NO DEFINIDO');
+            $emisor['direccion_departamento'] = "CAJAMARCA";
+            $emisor['direccion_provincia'] = "CAJAMARCA";
+            $emisor['direccion_distrito'] = "CAJAMARCA";
+            $emisor['direccion_codigo_pais'] = "PE";
+            $emisor['usuario_sol'] = $objCerti->user_sunat;
+            $emisor['clave_sol'] = $objCerti->pass_sunat;
+//                $emisor['tipo_proceso'] = $tipo_proceso;
+        }else{
+
+            $objComprobantes->cod_sunat = 9999;
+            $this->errors[] = $this->trans('Error algunos campos del Emisor estan vacios!!', array(), 'Admin.Orderscustomers.Notification');
+            return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+        }
+
+        if (trim($archivo) != "" &&
+            trim($ruta_xml) != "" &&
+            trim($ruta_cdr) != "" &&
+            trim($objCerti->archivo) != "" &&
+            trim($objCerti->clave_certificado) != "" &&
+            trim($objCerti->web_service_sunat) != ""){
+            $rutas = array();
+            $rutas['ruta_comprobantes'] = $archivo;
+            $rutas['nombre_archivo'] = $archivo;
+            $rutas['ruta_xml'] = $ruta_xml;
+            $rutas['ruta_cdr'] = $ruta_cdr;
+            $rutas['ruta_firma'] = $objCerti->archivo;
+            $rutas['pass_firma'] = $objCerti->clave_certificado;
+            $rutas['ruta_ws'] = $objCerti->web_service_sunat;
+        }else{
+            $objComprobantes->cod_sunat = 9999;
+            $this->errors[] = $this->trans('Error algunos campos de las rutas estan vacios!!', array(), 'Admin.Orderscustomers.Notification');
+            return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+        }
+
+        $objComprobantes->update();
+
+
+        $datos_comprobante = Apisunat_2_1::crear_cabecera($emisor, $order, $objComprobantes, $tipo_documento, $receptor);
+
+        $resp = ProcesarComprobante::procesar_baja_sunat($datos_comprobante, $objComprobantes, $rutas);
+
+        if ($resp['result'] == 'error') {
+            $this->errors[] = $resp["cod_sunat"].' - '.$resp['msj_sunat'];
+            return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+        }
 
     }
 

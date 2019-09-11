@@ -44,6 +44,14 @@ class Apisunat_2_1
             }else if($tipo_comprobante == "08"){ //NOTA DE DEBITO
                 $codigo_modifica = $objComprobantes->notadebito_motivo_id;
                 $descripcion_motivo_modifica =$notadebito_descripcion[$objComprobantes->notadebito_motivo_id];
+            }else if($tipo_comprobante == "Baja"){ //NOTA DE DEBITO
+                $codigo_motivo_modifica = "";
+                $descripcion_motivo_modifica = "";
+                $numero_comprobante = $objComprobantes->numeracion_nota_baja;
+                $serie_comprobante = $objComprobantes->numero_comprobante;
+                $serie = explode("-", $serie_comprobante);
+                $objComprobantes->serie = $serie;
+                $objComprobantes->numero = $serie[1];
             }else{
                 $codigo_motivo_modifica = "";
                 $descripcion_motivo_modifica = "";
@@ -82,7 +90,7 @@ class Apisunat_2_1
             'COD_TIPO_MOTIVO' => $codigo_motivo_modifica,
             'DESCRIPCION_MOTIVO' => $descripcion_motivo_modifica,
             //=================== BAJA ===========
-            'FECHA_REFERENCIA' => $order->date_add,
+            'FECHA_REFERENCIA' => $objComprobantes->date_add,
             'FECHA_BAJA' => date('Y-m-d'),
             'SERIE' => $objComprobantes->serie,
             'NUMERO' => $objComprobantes->numero,
@@ -697,9 +705,13 @@ class Apisunat_2_1
     </VoidedDocuments>';
 
         $doc->loadXML($xmlCPE);
-        $doc->save($ruta . '.xml');
+        $xml_doc =  $doc->saveXML();
+        $fp = fopen($ruta,"wb");
+        fwrite($fp, $xml_doc);
+        fclose($fp);
         $resp['respuesta'] = 'OK';
-        $resp['url_xml'] = $ruta . '.xml';
+        $resp['url_xml'] = $ruta;
+
         return $resp;
     }
 
