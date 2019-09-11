@@ -310,14 +310,361 @@ class AdminOrdersControllerCore extends AdminController
         if (!$this->existeCajasAbiertas){
              return false;
         }
-        $this->context->smarty->assign(array(
-            "estado" => $orden->current_state,
-            "id_order" => $orden->id,
-            "tipo_comprobante" => $tipo_comprobante,
-        ));
-//
+
         return $html;
     }
+    //fu cion ajax solo dando click en el boton de la lista de ver pdf
+    public function ajaxProcessEliminarPedidoNotaCredito()
+    {
+        //        d(Tools::getAllValues());
+        $order = new Order((int)Tools::getValue('id_order'));
+        $doc = PosOrdercomprobantes::getFacturaByOrderLimit($order->id);
+
+
+        if (!empty($doc)){
+            $objComprobantes = new PosOrdercomprobantes($doc['id_pos_ordercomprobantes']);
+            if ($objComprobantes->tipo_documento_electronico == 'Factura') {
+                $date1 = new DateTime(date('Y-m-d', $objComprobantes->date_add));
+                $date2 = new DateTime(date('Y-m-d'));
+                $diff = $date1->diff($date2);
+                $fecha_actual = date("d-m-Y");
+                $dias_posteriores = date("d-m-Y",strtotime($fecha_actual."- 13 days"));
+//                d($diff);
+                if ($diff->d <= 13) {
+
+                    $this->generarNotaCredito($objComprobantes, $order);
+
+                } else {
+                    $this->errors[] = "No puede generar una Nota de Crédito a un documento con fecha anterior a ".$dias_posteriores;
+
+                    return die(Tools::jsonEncode(array('respuesta' => 'error', 'msg' =>  $this->errors)));
+                }
+            }
+        }else{
+            $this->errors[] = "No existe un comprobante valido para generar la Nota de Crédito";
+
+            return die(Tools::jsonEncode(array('respuesta' => 'error', 'msg' =>  $this->errors)));
+        }
+
+        //si solo si esta pagado
+        $new_os = new OrderState((int)Configuration::get('PS_OS_CANCELED'), $order->id_lang);
+        $old_os = $order->getCurrentOrderState();
+
+        if (Tools::getValue('id_caja') && (int)Tools::getValue('id_caja') > 0){
+            $objCaja = new PosArqueoscaja((int)Tools::getValue('id_caja'));
+            foreach ($order->getOrderPaymentCollection() as $payment){
+                if ((int)$payment->es_cuenta == 1) { // 1 es caja
+                    $monto_inicial = $objCaja->monto_operaciones;
+                    $objCaja->monto_operaciones = (float)$monto_inicial - (float)$payment->amount;
+                    $objCaja->update();
+                }
+            }
+
+            if (!empty($doc)) {
+                $objComprobantes = new PosOrdercomprobantes((int)$doc['id_pos_ordercomprobantes']);
+                $objComprobantes->devolver_monto_caja = 1;
+                $objComprobantes->update();
+            }
+        }
+
+        $order->setCurrentState(Configuration::get('PS_OS_CANCELED'), $this->context->employee->id);
+
+        PrestaShopLogger::addLog($this->trans('Venta anulada NOTACREDITO / IP: %ip%', array('%ip%' => Tools::getRemoteAddr()), 'Admin.Advparameters.Feature'), 1, null, 'Order', $order->id, true, (int)$this->context->employee->id);
+
+        if ($old_os->id == 2){
+            // @since 1.5.0 : gets the stock manager
+            $manager = null;
+            if (Configuration::get('PS_ADVANCED_STOCK_MANAGEMENT')) {
+                $manager = StockManagerFactory::getManager();
+            }
+//            d($manager);
+            $employee = $order->id_employee;
+
+            // foreach products of the order
+            foreach ($order->getProductsDetail() as $product) {
+
+                // @since.1.5.0 : if the order was shipped, and is not anymore, we need to restock products
+
+                // if the product is a pack, we restock every products in the pack using the last negative stock mvts
+                if (Pack::isPack($product['product_id'])) {
+                    $pack_products = Pack::getItems($product['product_id'], Configuration::get('PS_LANG_DEFAULT', null, null, $order->id_shop));
+                    foreach ($pack_products as $pack_product) {
+
+                        $mvts = StockMvt::getNegativeStockMvts($order->id, $pack_product->id, 0, $pack_product->pack_quantity * $product['product_quantity']);
+                        foreach ($mvts as $mvt) {
+                            $manager->addProduct(
+                                $pack_product->id,
+                                0,
+                                new Warehouse($mvt['id_warehouse']),
+                                $mvt['physical_quantity'],
+                                null,
+                                $mvt['price_te'],
+                                true,
+                                null,
+                                $employee
+                            );
+                        }
+                        if (!StockAvailable::dependsOnStock($product['id_product'])) {
+                            StockAvailable::updateQuantity($pack_product->id, 0, (float)$pack_product->pack_quantity * $product['product_quantity'], $order->id_shop);
+                        }
+
+                    }
+                } else {
+                    // else, it's not a pack, re-stock using the last negative stock mvts
+
+                    $mvts = StockMvt::getNegativeStockMvts(
+                        $order->id,
+                        $product['product_id'],
+                        $product['product_attribute_id'],
+                        ($product['product_quantity'] - $product['product_quantity_refunded'] - $product['product_quantity_return'])
+                    );
+
+                    foreach ($mvts as $mvt) {
+                        $manager->addProduct(
+                            $product['product_id'],
+                            $product['product_attribute_id'],
+                            new Warehouse($mvt['id_warehouse']),
+                            $mvt['physical_quantity'],
+                            null,
+                            $mvt['price_te'],
+                            true
+                        );
+                    }
+                }
+            }
+            // Save movement if :
+            // not Configuration::get('PS_ADVANCED_STOCK_MANAGEMENT')
+            // new_os->shipped != old_os->shipped
+            if (Validate::isLoadedObject($old_os) && Validate::isLoadedObject($new_os) && $new_os->shipped != $old_os->shipped && !Configuration::get('PS_ADVANCED_STOCK_MANAGEMENT')) {
+                $product_quantity = (float) ($product['product_quantity'] - $product['product_quantity_refunded'] - $product['product_quantity_return']);
+
+                if ($product_quantity > 0) {
+                    (new StockManagerAche)->saveMovement(
+                        (int)$product['product_id'],
+                        (int)$product['product_attribute_id'],
+                        (float)$product_quantity * ($new_os->shipped == 1 ? -1 : 1),
+                        array(
+                            'id_order' => $order->id,
+                            'id_stock_mvt_reason' => ($new_os->shipped == 1 ? Configuration::get('PS_STOCK_CUSTOMER_ORDER_REASON') : Configuration::get('PS_STOCK_CUSTOMER_ORDER_CANCEL_REASON'))
+                        )
+                    );
+                }
+            }
+
+        }
+
+        $order->motivo_anulacion = Tools::getValue('motivo_anulacion');
+        $order->update();
+
+        $order->setCurrentState(15, $this->context->employee->id); //estado 15 NOTA CREDITO
+
+        return die(Tools::jsonEncode(array('errors' => true, 'estado' => 'disponible')));
+
+    }
+
+    protected function generarNotaCredito($objComprobantes, $order){
+        $doc_notacredito= PosOrdercomprobantes::getNotaCreditoByOrderLimit($order->id);
+        if (!empty($doc_notacredito)){
+            $objComprobanteNotaCredito = new PosOrdercomprobantes($doc_notacredito['id_pos_ordercomprobantes']);
+        }else{
+            $objComprobanteNotaCredito = new PosOrdercomprobantes();
+        }
+
+        $tienda_actual = new Shop((int)$this->context->shop->id); //
+        $nombre_virtual_uri = $tienda_actual->virtual_uri;
+        $tipo_comprobante = "NotaCredito";
+        $arr = Certificadofe::getCertificado();
+        if ($arr && (int)$arr > 0){
+            $objCerti = new Certificadofe((int)$arr); // buscar el certificado
+            if (!(bool)$objCerti->active){
+                $this->errors[] = "La Nota de Crédito no se pudo enviar: No hay un certificado valido";
+                return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+            }
+        }else{
+            $this->errors[] = "La  Nota de Crédito no se pudo enviar: No hay un certificado valido";
+            return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+        }
+
+        // comprobanr si ya existe una numeracion para el comprobante
+        if (!$objComprobanteNotaCredito->numero_comprobante && $objComprobanteNotaCredito->numero_comprobante == ""){
+
+            $objComprobanteNotaCredito->id_order = $order->id;
+            $objComprobanteNotaCredito->tipo_documento_electronico = $tipo_comprobante;
+            $objComprobanteNotaCredito->sub_total = $order->total_paid_tax_excl;
+            $objComprobanteNotaCredito->impuesto = (float)($order->total_paid_tax_incl - $order->total_paid_tax_excl);
+            $objComprobanteNotaCredito->total = $order->total_paid_tax_incl;
+
+            //creamos la numeracion
+            $numeracion_documento = NumeracionDocumento::getNumTipoDoc($tipo_comprobante);
+            if (empty($numeracion_documento)){
+                $this->errors[] = "No existe numeración cree una <a href='index.php?controller=AdminNumeracionDocumentos&addnumeracion_documentos&token=".Tools::getAdminTokenLite("AdminNumeracionDocumentos")."&nombre=".$tipo_comprobante."' target='_blank'>&nbsp; -> Crear Numeración para los Comprobantes Electrónicos</a>";
+                return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+            }
+            else{
+                $objNu2 = new NumeracionDocumento((int)$numeracion_documento["id_numeracion_documentos"]);
+                $objNu2->correlativo = ($numeracion_documento["correlativo"]+1);
+                $objNu2->update();
+            }
+
+            $serie = $objNu2->serie;
+            $numeracion = $objNu2->correlativo;
+            $numero_comprobante = $serie."-".$numeracion;
+
+            $objComprobanteNotaCredito->numero_comprobante = $numero_comprobante;
+
+        }
+        else{
+            // hacer que se consulta a la sunat el comprobante
+            $numero_comprobante = $objComprobanteNotaCredito->numero_comprobante;
+            $array_num = explode("-", $numero_comprobante);
+            $serie = $array_num[0];
+            $numeracion = $array_num[1];
+            $numero_comprobante = $serie."-".$numeracion;
+        }
+
+        $CLIENTE = new Customer((int)$order->id_customer);
+        $nro_documento_cliente = $CLIENTE->num_document; // numero de documento del cliente
+        $razon_social_nombre_cliente = $CLIENTE->firstname; // razon_social o nombre del cliente
+        $direccion_cliente = $CLIENTE->direccion;
+
+        if ($tipo_comprobante == "Factura"){
+            $archivo = PS_SHOP_RUC . "-07-" . $numero_comprobante; // nombre del archivo  del comprobante
+            $tipo_documento = "07"; //cod de comprobante electronico
+            $tipo_code_doc_cliente = "6"; // codigo de documento de identidad
+        }
+        else{
+            $this->errors[] = $this->trans('Error: Tipo de comprobante no válido!!', array(), 'Admin.Orderscustomers.Notification');
+            return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+        }
+
+        $monbre_archivo = $objComprobanteNotaCredito->tipo_documento_electronico.'_'.PS_SHOP_RUC.'-'.$tipo_documento.'-'.$objComprobanteNotaCredito->numero_comprobante.'.pdf';
+
+        $tax_amount_total = number_format((float)$order->total_paid_tax_incl - (float)$order->total_paid_tax_excl, 2, '.', '');
+
+        $hoy = getdate();
+        $f = $hoy['year'].'-'.$hoy['mon'].'-'.$hoy['mday'];
+        $valor_qr = PS_SHOP_RUC.' | NOTA DE CREDITO | '.$serie.' | '.$numeracion.' | '.$tax_amount_total.' | '.$order->total_paid_tax_incl.' | '.$f.' | '.$tipo_code_doc_cliente.' | '.$nro_documento_cliente.' | ';
+
+
+        //creamos las RUTAS de los documentos
+        // creamos la carpeta donde se guardara el XML
+        $ruta_general_xml = "archivos_sunat/notacredito/".PS_SHOP_RUC."/xml/";
+        if (!file_exists($ruta_general_xml)) {
+            mkdir($ruta_general_xml, 0777, true);
+        }
+        $ruta_general_cdr = "archivos_sunat/notacredito/".PS_SHOP_RUC."/cdr/";
+        if (!file_exists($ruta_general_cdr)) {
+            mkdir($ruta_general_cdr, 0777, true);
+        }
+
+        $ruta_xml = $ruta_general_xml.$archivo;
+        $ruta_cdr = $ruta_general_cdr;
+
+
+        //d($razon_social_nombre_cliente);
+        if (trim($tipo_code_doc_cliente) != "" &&
+            trim($nro_documento_cliente) != "" &&
+            trim($razon_social_nombre_cliente) != ""){
+            $receptor = array();
+            $receptor['TIPO_DOCUMENTO_CLIENTE'] = $tipo_code_doc_cliente;
+            $receptor['NRO_DOCUMENTO_CLIENTE'] = $nro_documento_cliente;
+            $receptor['RAZON_SOCIAL_CLIENTE'] = $razon_social_nombre_cliente;
+            $receptor['DIRECCION_CLIENTE'] = $direccion_cliente;
+        }else{
+
+            $objComprobanteNotaCredito->cod_sunat = 9999;
+
+            $this->errors[] = $this->trans('Error algunos campos del cliente estan vacios!!', array(), 'Admin.Orderscustomers.Notification');
+            return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+        }
+
+        if (trim(PS_SHOP_RUC) != "" &&
+            trim(PS_SHOP_NAME) != "" &&
+            trim(PS_SHOP_RAZON_SOCIAL) != "" &&
+            trim($objCerti->user_sunat) != "" &&
+            trim($objCerti->pass_sunat) != ""){
+            $emisor = array();
+            $emisor['ruc'] = PS_SHOP_RUC;
+            $emisor['tipo_doc'] = "6";
+            $emisor['nom_comercial'] = Tools::eliminar_tildes(PS_SHOP_NAME);
+            $emisor['razon_social'] = Tools::eliminar_tildes(PS_SHOP_RAZON_SOCIAL);
+            $emisor['codigo_ubigeo'] = "060101";
+            $emisor['direccion'] = Configuration::get('PS_SHOP_ADDR1', $this->context->language->id, null, $tienda_actual->id,'NO DEFINIDO');
+            $emisor['direccion_departamento'] = "CAJAMARCA";
+            $emisor['direccion_provincia'] = "CAJAMARCA";
+            $emisor['direccion_distrito'] = "CAJAMARCA";
+            $emisor['direccion_codigo_pais'] = "PE";
+            $emisor['usuario_sol'] = $objCerti->user_sunat;
+            $emisor['clave_sol'] = $objCerti->pass_sunat;
+//                $emisor['tipo_proceso'] = $tipo_proceso;
+        }else{
+
+            $objComprobanteNotaCredito->cod_sunat = 9999;
+            $this->errors[] = $this->trans('Error algunos campos del Emisor estan vacios!!', array(), 'Admin.Orderscustomers.Notification');
+            return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+        }
+
+        if (trim($archivo) != "" &&
+            trim($ruta_xml) != "" &&
+            trim($ruta_cdr) != "" &&
+            trim($objCerti->archivo) != "" &&
+            trim($objCerti->clave_certificado) != "" &&
+            trim($objCerti->web_service_sunat) != ""){
+            $rutas = array();
+            $rutas['ruta_comprobantes'] = $archivo;
+            $rutas['nombre_archivo'] = $archivo;
+            $rutas['ruta_xml'] = $ruta_xml;
+            $rutas['ruta_cdr'] = $ruta_cdr;
+            $rutas['ruta_firma'] = $objCerti->archivo;
+            $rutas['pass_firma'] = $objCerti->clave_certificado;
+            $rutas['ruta_ws'] = $objCerti->web_service_sunat;
+        }else{
+            $objComprobanteNotaCredito->cod_sunat = 9999;
+            $this->errors[] = $this->trans('Error algunos campos de las rutas estan vacios!!', array(), 'Admin.Orderscustomers.Notification');
+            return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+        }
+
+        if (!empty($doc_notacredito)){
+            $objComprobanteNotaCredito->update();
+        }else{
+            $objComprobanteNotaCredito->add();
+        }
+
+
+        $datos_comprobante = Apisunat_2_1::crear_cabecera($emisor, $order, $objComprobanteNotaCredito, $tipo_documento, $receptor);
+
+        $ruta = 'documentos_pdf/notas/'.$tienda_actual->virtual_uri;
+        $ruta_a4 = 'documentos_pdf_a4/notas/'.$tienda_actual->virtual_uri;
+        if (!file_exists($ruta)) {
+            mkdir($ruta, 0777, true);
+        }
+        if (!file_exists($ruta_a4)) {
+            mkdir($ruta_a4, 0777, true);
+        }
+
+        $pdf_ticket = new PDF($objComprobanteNotaCredito, ucfirst('ComprobanteElectronico'), Context::getContext()->smarty,'P');
+        $pdf_ticket->Guardar("Ticket-".$monbre_archivo, $valor_qr, 'ticket', $objComprobanteNotaCredito->hash_cpe);
+
+        $pdf = new PDF($objComprobanteNotaCredito, ucfirst('ComprobanteElectronicopdfa4'), Context::getContext()->smarty,'P');
+        $pdf->Guardar("A4-".$monbre_archivo, $valor_qr, 'a4');
+
+        $resp["ruta_ticket"] = $ruta."Ticket-".$monbre_archivo;
+        $resp["ruta_pdf_a4"] = $ruta_a4."A4-".$monbre_archivo;
+        $resp["numero_comprobante"] = $objComprobanteNotaCredito->numero_comprobante;
+
+        $objComprobanteNotaCredito->ruta_ticket =  $ruta."Ticket-".$monbre_archivo;
+        $objComprobanteNotaCredito->ruta_pdf_a4 =  $ruta_a4."A4-".$monbre_archivo;
+        $objComprobanteNotaCredito->update();
+
+        $resp = ProcesarComprobante::procesar_baja_sunat($datos_comprobante, $objComprobantes, $rutas);
+
+        if ($resp['result'] == 'error') {
+            $this->errors[] = $resp["cod_sunat"].' - '.$resp['msj_sunat'];
+            return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
+        }
+
+    }
+
 
     public function displayAnular_ventaLink($token = null, $id)
     {
@@ -1056,7 +1403,6 @@ class AdminOrdersControllerCore extends AdminController
         die(Tools::jsonEncode(array('errors' => true, 'estado' => 'disponible')));
 
     }
-
 
     public function printXMLIcons($id)
     {

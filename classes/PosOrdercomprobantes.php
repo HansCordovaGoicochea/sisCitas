@@ -112,5 +112,49 @@ class PosOrdercomprobantesCore extends ObjectModel
 		');
 
     }
+    public static function getComprobantesByOrderAndFB($id_order)
+    {
+
+        return Db::getInstance()->getRow('
+			SELECT *
+			FROM `'._DB_PREFIX_.'pos_ordercomprobantes`
+			WHERE `id_order` = '.$id_order.' AND `tipo_documento_electronico` in ("Factura", "Boleta")
+			ORDER BY 1 DESC
+		');
+
+    }
+    public static function getFacturaByOrderLimit($id_order)
+    {
+
+        return Db::getInstance()->getRow('
+			SELECT *
+			FROM `'._DB_PREFIX_.'pos_ordercomprobantes`
+			WHERE `id_order` = '.$id_order.' AND `tipo_documento_electronico` = "Factura"
+			ORDER BY 1 DESC
+		');
+
+    }
+    public static function getBoletaByOrderLimit($id_order)
+    {
+
+        return Db::getInstance()->getRow('
+			SELECT *
+			FROM `'._DB_PREFIX_.'pos_ordercomprobantes`
+			WHERE `id_order` = '.$id_order.' AND `tipo_documento_electronico` = "Boleta"
+			ORDER BY 1 DESC
+		');
+
+    }
+    public static function getNotaCreditoByOrderLimit($id_order)
+    {
+
+        return Db::getInstance()->getRow('
+			SELECT *
+			FROM `'._DB_PREFIX_.'pos_ordercomprobantes`
+			WHERE `id_order` = '.$id_order.' AND `tipo_documento_electronico` = "NotaCredito"
+			ORDER BY 1 DESC
+		');
+
+    }
 
 }
