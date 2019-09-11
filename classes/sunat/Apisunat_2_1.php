@@ -50,7 +50,7 @@ class Apisunat_2_1
                 $numero_comprobante = $objComprobantes->numeracion_nota_baja;
                 $serie_comprobante = $objComprobantes->numero_comprobante;
                 $serie = explode("-", $serie_comprobante);
-                $objComprobantes->serie = $serie;
+                $objComprobantes->serie = $serie[0];
                 $objComprobantes->numero = $serie[1];
             }else{
                 $codigo_motivo_modifica = "";
@@ -660,10 +660,10 @@ class Apisunat_2_1
         $doc->encoding = 'ISO-8859-1';
         $xmlCPE = '<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?><VoidedDocuments xmlns="urn:sunat:names:specification:ubl:peru:schema:xsd:VoidedDocuments-1" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2" xmlns:sac="urn:sunat:names:specification:ubl:peru:schema:xsd:SunatAggregateComponents-1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <ext:UBLExtensions>
-    <ext:UBLExtension>
-    <ext:ExtensionContent>
-    </ext:ExtensionContent>
-    </ext:UBLExtension>
+        <ext:UBLExtension>
+            <ext:ExtensionContent>
+            </ext:ExtensionContent>
+        </ext:UBLExtension>
     </ext:UBLExtensions>
     <cbc:UBLVersionID>2.0</cbc:UBLVersionID>
     <cbc:CustomizationID>1.0</cbc:CustomizationID>
@@ -674,7 +674,7 @@ class Apisunat_2_1
     <cbc:ID>IDSignKG</cbc:ID>
     <cac:SignatoryParty>
     <cac:PartyIdentification>
-    <cbc:ID>' . $cabecera["NRO_DOCUMENTO_EMPRESA"] . '</cbc:ID>
+    <cbc:ID>' . $cabecera["NUM_DOCUMENTO_EMPRESA"] . '</cbc:ID>
     </cac:PartyIdentification>
     <cac:PartyName>
     <cbc:Name>' . Tools::eliminar_tildes($cabecera["RAZON_SOCIAL_EMPRESA"]) . '</cbc:Name>
@@ -687,7 +687,7 @@ class Apisunat_2_1
     </cac:DigitalSignatureAttachment>
     </cac:Signature>
     <cac:AccountingSupplierParty>
-    <cbc:CustomerAssignedAccountID>' . $cabecera["NRO_DOCUMENTO_EMPRESA"] . '</cbc:CustomerAssignedAccountID>
+    <cbc:CustomerAssignedAccountID>' . $cabecera["NUM_DOCUMENTO_EMPRESA"] . '</cbc:CustomerAssignedAccountID>
     <cbc:AdditionalAccountID>' . $cabecera["TIPO_DOCUMENTO_EMPRESA"] . '</cbc:AdditionalAccountID>
     <cac:Party>
     <cac:PartyLegalEntity>

@@ -151,7 +151,8 @@
             // }
 
             if (tipocomprobante === 'Factura'){
-                $('#modal_anular .modal-body').prepend('<div class="row" id="div_baja">¿Está seguro de anular la <strong>Factura '+numerocomprobante+' (S/ '+montototal+')</strong>?</div>')
+                $('#div_baja').remove();
+                $('#modal_anular .modal-body').prepend('<div class="row" id="div_baja">¿Está seguro de anular la <strong>Factura '+numerocomprobante+' (S/ '+ps_round(montototal, 2)+')</strong>?</div>')
             }
 
         });
@@ -162,7 +163,7 @@
 
                 $('body').waitMe({
                     effect: 'bounce',
-                    text: 'Guardando...',
+                    text: 'Anulando comprobante...',
                     //    bg : rgba(255,255,255,0.7),
                     color: '#000',
                     maxSize: '',
@@ -183,12 +184,18 @@
                         id_order: id,
                         motivo_anulacion: motivo_anulacion,
                         id_caja: id_caja,
-                        code_nota_credito: code_nota_credito,
                         tipo_comprobante_modal_ache: tipo_comprobante_modal_ache,
                     },
                     success : function(res)
                     {
                         // location.reload();
+                        if (res.respuesta === 'error'){
+                            $.each(res.msg, function (i, value) {
+                                $.growl.error({ title:'', message: value })
+                            })
+                        }
+
+                        $('body').waitMe('hide');
                     },
                 });
             }else{
@@ -252,7 +259,8 @@
             //     $('#cajas').show();
             // }
             if (tipocomprobante === 'Factura'){
-                $('#modal_anular_notacredito .modal-body').prepend('<div class="row" id="div_baja">¿Está seguro de generar Nota de Crédito a la <strong>Factura '+numerocomprobante+' (S/ '+montototal+')</strong>?</div>')
+                $('#div_nota').remove();
+                $('#modal_anular_notacredito .modal-body').prepend('<div class="row" id="div_nota">¿Está seguro de generar Nota de Crédito a la <strong>Factura '+numerocomprobante+' (S/ '+montototal+')</strong>?</div>')
             }
         });
 

@@ -272,7 +272,7 @@ class ProcesarComprobante
             return $resp_firma;
         }
 
-        $resp_envio = self::enviar_documento_para_baja($data_comprobante['EMISOR_RUC'], $data_comprobante['EMISOR_USUARIO_SOL'], $data_comprobante['EMISOR_PASS_SOL'],  $rutas["ruta_xml"], $rutas["ruta_cdr"], $rutas['nombre_archivo'], $rutas['ruta_ws']);
+        $resp_envio = self::enviar_documento_para_baja($data_comprobante['EMISOR_USUARIO_SOL'], $data_comprobante['EMISOR_PASS_SOL'],  $rutas["ruta_xml"],  $rutas['nombre_archivo'], $rutas['ruta_ws']);
 
         $objComprobantes->cod_sunat_otro =  $resp_envio["cod_sunat"];
         $objComprobantes->mensaje_cdr =  $resp_envio["msj_sunat"];
@@ -289,7 +289,7 @@ class ProcesarComprobante
 
     }
 
-    public static function enviar_documento_para_baja($usuario_sol, $pass_sol, $ruta_archivo, $archivo, $ruta_ws) {
+    public static function enviar_documento_para_baja( $usuario_sol, $pass_sol, $ruta_archivo, $archivo, $ruta_ws) {
         try {
             //=================ZIPEAR ================
             $zip = new ZipArchive();
@@ -351,6 +351,7 @@ class ProcesarComprobante
             // converting
             $response = curl_exec($ch);
             $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
             curl_close($ch);
             //convertimos de base 64 a archivo fisico
             $doc = new DOMDocument();
