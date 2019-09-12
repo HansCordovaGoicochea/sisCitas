@@ -155,6 +155,11 @@
                 $('#modal_anular .modal-body').prepend('<div class="row" id="div_baja">¿Está seguro de anular la <strong>Factura '+numerocomprobante+' (S/ '+ps_round(montototal, 2)+')</strong>?</div>')
             }
 
+            if (tipocomprobante === 'NotaCredito'){
+                $('#div_baja').remove();
+                $('#modal_anular .modal-body').prepend('<div class="row" id="div_baja">¿Está seguro de anular la <strong>Nota de crédito '+numerocomprobante+' (S/ '+ps_round(montototal, 2)+')</strong>?</div>')
+            }
+
         });
 
 
@@ -260,12 +265,17 @@
             // }
             if (tipocomprobante === 'Factura'){
                 $('#div_nota').remove();
-                $('#modal_anular_notacredito .modal-body').prepend('<div class="row" id="div_nota">¿Está seguro de generar Nota de Crédito a la <strong>Factura '+numerocomprobante+' (S/ '+montototal+')</strong>?</div>')
+                $('#modal_anular_notacredito .modal-body').prepend('<div class="row" id="div_nota">¿Está seguro de generar Nota de Crédito a la <strong>Factura '+numerocomprobante+' (S/ '+ps_round(montototal, 2)+')</strong>?</div>')
             }
         });
 
         function generarNotaCredito(id, motivo_anulacion, code_nota_credito, tipo_comprobante_modal_ache, id_caja){
             if ($.trim(motivo_anulacion) !== ""){
+
+                if (tipo_comprobante_modal_ache === 'Factura' && parseInt(code_nota_credito) === 0){
+                    jAlert('Seleccione el motivo de la anulación');
+                    return false;
+                }
 
                 $('body').waitMe({
                     effect: 'bounce',

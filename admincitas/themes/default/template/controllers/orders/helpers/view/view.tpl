@@ -1000,10 +1000,14 @@
 
   </div>
   <div id="overlay"></div>
-  {if $order->current_state == 6}
+  {if $order->current_state == 6 || $order->current_state == 14 || $order->current_state == 15 || $order->current_state == 16}
     <style>
       #overlay:after {
+        {if $order->current_state == 6 || $order->current_state == 14 || $order->current_state == 15}
         content: "ANULADO";
+        {elseif $order->current_state == 16}
+        content: "RECHAZADO";
+        {/if}
         font-size: 15em;
         color: rgba(52, 166, 214, 0.17);
         z-index: 9999;
@@ -1033,7 +1037,7 @@
       #overlay {
         background-color: rgba(0, 0, 0, 0.01);
         z-index: 123;
-        position: absolute;
+        /*position: absolute;*/
         left: 0;
         top: 0;
         width: 100%;

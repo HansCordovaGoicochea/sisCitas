@@ -31,11 +31,12 @@
                 <tr>
 
                     <td style="text-align: center">
+                        <h1>{$PS_SHOP_RAZON_SOCIAL}</h1>
                         {*<div style="border: 1px solid #ddd; ">*}
                         <h1 style="color: #428bca;;">
-                            <span>RUC: {$tienda->ruc}</span>
+                            <span>RUC: {$PS_SHOP_RUC}</span>
                             <br>
-                            <span>NOTA DE CREDITO</span>
+                            <span>NOTA DE CREDITO <br> ELECTRONICA</span>
                             <br>
                             <span>{$comprobante->numeracion_nota_baja}</span>
                         </h1>
@@ -49,58 +50,40 @@
         <td colspan="2">
             <table style="font-size: 9px;">
                 <tr>
-                    <td><strong>Fecha de Emisión:</strong></td>
-                    <td colspan="3">
-                        {$comprobante->date_upd|date_format:"%d /%m /%Y %I:%M:%S"}
-                    </td>
-                </tr>
-                <tr>
-                    <td><strong>Fecha de Vencimiento:</strong></td>
-                    <td colspan="3">
-                        {$comprobante->date_upd|date_format:"%d /%m /%Y %I:%M:%S"}
-                    </td>
-                </tr>
-                <tr>
-                    <td><strong>Señor(es): </strong></td>
-                    <td colspan="3">
+                    <td colspan="2"><strong>Señor(es): </strong>
                         {if $customer->id == 1}
                             <span></span>
                         {else}
                             <span>{$customer->firstname}</span>
                         {/if}
                     </td>
-                </tr>
-                <tr>
+
                     {assign var="tipo_documento_identidad" value=Tipodocumentolegal::getById($customer->id_document)}
-                    <td><strong>{if $customer->id_document != 0}{$tipo_documento_identidad['nombre']|strtoupper}{else}DNI{/if}:</strong></td>
-                    <td colspan="3">
+                    <td colspan="2"><strong>{if $customer->id_document != 0}{$tipo_documento_identidad['nombre']|strtoupper}{else}DNI{/if}:</strong>
                         {if $customer->id == 1}
                             <span></span>
                         {else}
                             <span>{$customer->num_document}</span>
-                        {/if}
-                    </td>
+                        {/if}</td>
+
                 </tr>
                 <tr>
-                    <td><strong>Dirección del Cliente:</strong></td>
-                    <td colspan="3">
-                        {if $customer->id == 1}
-                            <span></span>
-                        {else}
-                            <span>{$customer->direccion}</span>
-                        {/if}
-                    </td>
-                </tr>
-                <tr>
+                    <td colspan="2"><strong>Fecha de Emisión:</strong> {$comprobante->date_add|date_format:"%d /%m /%Y"}</td>
                     {if $order->id_currency==1}
                         {assign var='moneda' value='SOLES'}
                     {else}
                         {assign var='moneda' value='DOLARES'}
                     {/if}
-                    <td><strong>Moneda:</strong></td>
-                    <td colspan="3">
-                        {$moneda}
-                    </td>
+                    <td colspan="2"><strong>Moneda:</strong> {$moneda}</td>
+                </tr>
+                <tr>
+                    <td colspan="2"><strong>Fecha de Vencimiento:</strong>  {$comprobante->date_add|date_format:"%d /%m /%Y"}</td>
+                    <td colspan="2"><strong>Dirección del Cliente:</strong>
+                        {if $customer->id == 1}
+                            <span></span>
+                        {else}
+                            <span>{$customer->direccion}</span>
+                        {/if}</td>
                 </tr>
             </table>
         </td>
@@ -111,7 +94,7 @@
     <tr>
         <td COLSPAN="2">
             <table style="font-size: 9px;" width="100%">
-                <tr style="background-color: #009035; color: #fff;">
+                <tr style="background-color: #428bca; color: #fff;">
                     <th style="text-align: center;  border-top: 1px solid black;border-bottom: 1px solid black;" width="9%"><strong>CANT.</strong></th>
                     <th style="text-align: center;  border-top: 1px solid black;border-bottom: 1px solid black;" width="18%"><strong>UNIDAD DE MEDIDA</strong></th>
                     <th style="text-align: left;  border-top: 1px solid black;border-bottom: 1px solid black;" width="45%"><strong>DESC.</strong></th>
@@ -180,7 +163,7 @@
         <td>
             <table width="100%" border="1" cellpadding="1" cellspacing="0">
                 <tbody>
-                <tr style="background-color: #009035; color: #fff;">
+                <tr style="background-color: #428bca; color: #fff;">
                     <td  style="font-size: 8px!important;">Doc. Referencia</td>
                     <td  style="font-size: 8px!important;">Tipo</td>
                     <td  style="font-size: 8px!important;">Serie</td>
@@ -198,14 +181,22 @@
                 </tr>
                 <tr>
                     <td style="font-size: 8px!important;">SUSTENTO</td>
-                    <td style="font-size: 8px!important;" COLSPAN="4">DEVOLUCION TOTAL</td>
+                    {if $comprobante->code_motivo_nota_credito == 1}
+                        <td style="font-size: 8px!important;" COLSPAN="4">ANULACION DE LA OPERACION</td>
+                    {elseif $comprobante->code_motivo_nota_credito == 1}
+                        <td style="font-size: 8px!important;" COLSPAN="4">ANULACION POR ERROR EN EL RUCL</td>
+                    {elseif $comprobante->code_motivo_nota_credito == 6}
+                        <td style="font-size: 8px!important;" COLSPAN="4">DEVOLUCION TOTAL</td>
+                    {/if}
                 </tr>
                 </tbody>
             </table>
         </td>
     </tr>
     <tr>
-        <td colspan="2" STYLE="text-align: center;">Nota de crédito electronica</td>
+    <tr>
+        <td colspan="2" STYLE="text-align: center;">{$comprobante->tipo_documento_electronico|cat:' Electronica'|upper}</td>
+    </tr>
     </tr>
 
 </table>

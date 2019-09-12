@@ -303,13 +303,11 @@ class PDFCore
                     );
 
 
-                    if ($object->nota_baja != ''){
-                        if ($object->nota_baja == 'NotaCredito') {
-                            // QRCODE,Q : QR-CODE Better error correction
-                            $this->pdf_renderer->write2DBarcode((string)$valor_qr, 'QRCODE,Q', 160, ($this->pdf_renderer->GetY() - 10), 30, 30, $style, 'RTL');
+                    if ($object->tipo_documento_electronico == 'NotaCredito') {
+                        // QRCODE,Q : QR-CODE Better error correction
+                        $this->pdf_renderer->write2DBarcode((string)$valor_qr, 'QRCODE,Q', 160, ($this->pdf_renderer->GetY() - 10), 30, 30, $style, 'RTL');
 //                            $this->pdf_renderer->writeHTMLCell(100, 10, 55, ($this->pdf_renderer->GetY()), '<table><tr><td colspan="6" style="font-size: 8px;">Representación impresa de la NOTA DE CREDITO ELECTRONICA puede ser consultado en ' . $url_website . '</td></tr></table>', 0, 2, false, true, 'J', true);
-                            $this->pdf_renderer->writeHTMLCell(100, 10, 80, ($this->pdf_renderer->GetY() + 18), '<table><tr><td colspan="6" style="font-size: 8px;">¡GRACIAS POR SU PREFERENCIA!</td></tr></table>', 0, 2, false, true, 'J', true);
-                        }
+                        $this->pdf_renderer->writeHTMLCell(100, 10, 80, ($this->pdf_renderer->GetY() + 18), '<table><tr><td colspan="6" style="font-size: 8px;">¡GRACIAS POR SU PREFERENCIA!</td></tr></table>', 0, 2, false, true, 'J', true);
                     }
                     else{
                         // QRCODE,Q : QR-CODE Better error correction
@@ -333,20 +331,20 @@ class PDFCore
 
 
                 $this->filename = $nombre;
-                if ($object->nota_baja != '') {
-                    if ($object->nota_baja == 'NotaCredito') {
 
-                        unset($template);
-                        if ($render) {
-                            $display = 'F';
-                            // clean the output buffer
-                            if (ob_get_level() && ob_get_length() > 0)
-                                ob_clean();
-                            $this->pdf_renderer->render($ruta_nota . $this->filename, $display);
+                if ($object->tipo_documento_electronico == 'NotaCredito') {
 
-                        }
+                    unset($template);
+                    if ($render) {
+                        $display = 'F';
+                        // clean the output buffer
+                        if (ob_get_level() && ob_get_length() > 0)
+                            ob_clean();
+                        $this->pdf_renderer->render($ruta_nota . $this->filename, $display);
+
                     }
                 }
+
                 else{
 
                     unset($template);
@@ -368,7 +366,7 @@ class PDFCore
                 $template->assignHookData($object);
                 $this->pdf_renderer->createFooter($template->getFooter());
                 $this->pdf_renderer->createContent($template->getContent());
-                $this->pdf_renderer->writePage('fisico');
+                $this->pdf_renderer->writePage();
 
                 $this->filename = $nombre;
 

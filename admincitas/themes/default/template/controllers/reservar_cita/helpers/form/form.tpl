@@ -94,9 +94,11 @@
     <div class="panel">
         <div class="panel-heading">
             <i class="icon-table"></i>&nbsp;Cita
-            <a class="btn badge pull-right" style="{if $cita->id_order} display: none; {/if} background-color: #72c279; color: #fff" id="pasarVenta">
-                <i class="icon-money"></i>  Pasar a Venta
-            </a>
+            {if $cita->id}
+                <a class="btn badge pull-right" style="{if $cita->id_order} display: none; {/if} background-color: #72c279; color: #fff" id="pasarVenta">
+                    <i class="icon-money"></i>  Pasar a Venta
+                </a>
+            {/if}
         </div>
         <div  {if $cita->id_order}style="pointer-events: none"{/if} class="panel-body">
             <div class="row">
@@ -133,7 +135,7 @@
                         <label for="product_id" class="control-label">Observación:</label>
                         <textarea name="observacion" id="observacion" rows="2">{$cita->observacion}</textarea>
                     </div>
-                    <div class="form-group col-lg-4">
+                    <div class="form-group col-lg-4 hide">
                         <label for="tipo_doc">Estado Actual:</label>
                         <select name="estado_actual" id="estado_actual" class="chosen">
                             <option value="0" {if $cita->estado_actual == 0}selected{/if}>Pendiente</option>

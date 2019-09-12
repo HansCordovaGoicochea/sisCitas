@@ -220,6 +220,9 @@
 					}
 				});
 				//]]>
+
+
+
 			</script>
 		{/if}
 {elseif $simple_header}
@@ -244,7 +247,7 @@
 	</style>
 
 	{block name="preTable"}{/block}
-	<div class="table-responsive-row clearfix{if isset($use_overflow) && $use_overflow} overflow-y{/if}" style="overflow: auto;">
+	<div class="table-responsive-row clearfix{if isset($use_overflow) && $use_overflow} overflow-y{/if}" style="overflow: auto">
 		<table id="table-{if $table_id}{$table_id}{elseif $table}{$table}{/if}" class="table{if $table_dnd} tableDnD{/if} {$table}" >
 			<thead>
 				<tr class="nodrag nodrop">
@@ -393,3 +396,21 @@
 				</tr>
 			{/if}
 			</thead>
+			<style>
+				.ache_scroll{
+					overflow: inherit!important;
+				}
+			</style>
+			<script>
+
+					// $('button.dropdown-toggle').click(function () {
+					// 	$('.table-responsive-row').toggleClass( "ache_scroll" );
+					// })
+					//
+					// $(document).click(function (event) {
+					// 	//hide all our dropdowns
+					// 	$('.table-responsive-row').css( "overflow", "inherit" );
+					//
+					// });
+
+			</script>

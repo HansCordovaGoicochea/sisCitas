@@ -253,9 +253,9 @@ class PDFGeneratorCore extends TCPDF
         }
 
         else{
-            $margen = 5;
-            $this->SetHeaderMargin(5);
-            $this->SetFooterMargin(21);
+            $margen = 2;
+            $this->SetHeaderMargin(2);
+            $this->SetFooterMargin(0);
             $this->setMargins(10, $margen, 10);
             $this->AddPage();
         }

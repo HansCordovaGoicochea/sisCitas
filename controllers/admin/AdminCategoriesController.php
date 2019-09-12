@@ -70,17 +70,17 @@ class AdminCategoriesControllerCore extends AdminController
             'name' => array(
                 'title' => $this->trans('Name', array(), 'Admin.Global')
             ),
-            'description' => array(
-                'title' => $this->trans('Description', array(), 'Admin.Global'),
-                'callback' => 'getDescriptionClean',
-                'orderby' => false
-            ),
-            'position' => array(
-                'title' => $this->trans('Position', array(), 'Admin.Global'),
-                'filter_key' => 'sa!position',
-                'position' => 'position',
-                'align' => 'center'
-            ),
+//            'description' => array(
+//                'title' => $this->trans('Description', array(), 'Admin.Global'),
+//                'callback' => 'getDescriptionClean',
+//                'orderby' => false
+//            ),
+//            'position' => array(
+//                'title' => $this->trans('Position', array(), 'Admin.Global'),
+//                'filter_key' => 'sa!position',
+//                'position' => 'position',
+//                'align' => 'center'
+//            ),
             'active' => array(
                 'title' => $this->trans('Displayed', array(), 'Admin.Global'),
                 'active' => 'status',
@@ -519,6 +519,7 @@ class AdminCategoriesControllerCore extends AdminController
                     'hint' => $this->trans('Invalid characters:', array(), 'Admin.Notifications.Info').' <>;=#{}',
                 ),
                 array(
+                    'form_group_class' => 'hide',
                     'type' => 'switch',
                     'label' => $this->trans('Displayed', array(), 'Admin.Global'),
                     'name' => 'active',
@@ -550,6 +551,7 @@ class AdminCategoriesControllerCore extends AdminController
                     )
                 ),
                 array(
+                    'form_group_class' => 'hide',
                     'type' => 'textarea',
                     'label' => $this->trans('Description', array(), 'Admin.Global'),
                     'name' => 'description',
@@ -569,6 +571,7 @@ class AdminCategoriesControllerCore extends AdminController
                    'format' => $format['category']
                 ),
                 array(
+                    'form_group_class' => 'hide',
                     'type' => 'file',
                     'label' => $this->trans('Category thumbnail', array(), 'Admin.Catalog.Feature'),
                     'name' => 'thumb',
@@ -579,6 +582,7 @@ class AdminCategoriesControllerCore extends AdminController
                     'hint' => $this->trans('Displays a small image in the parent category\'s page, if the theme allows it.', array(), 'Admin.Catalog.Help'),
                 ),
                 array(
+                    'form_group_class' => 'hide',
                     'type' => 'file',
                     'label' => $this->trans('Menu thumbnails', array(), 'Admin.Catalog.Feature'),
                     'name' => 'thumbnail',
@@ -590,6 +594,7 @@ class AdminCategoriesControllerCore extends AdminController
                     'hint' => $this->trans('The category thumbnail appears in the menu as a small image representing the category, if the theme allows it.', array(), 'Admin.Catalog.Help'),
                 ),
                 array(
+                    'form_group_class' => 'hide',
                     'type' => 'text',
                     'label' => $this->trans('Meta title', array(), 'Admin.Global'),
                     'name' => 'meta_title',
@@ -601,6 +606,7 @@ class AdminCategoriesControllerCore extends AdminController
                     'hint' => $this->trans('Forbidden characters:', array(), 'Admin.Notifications.Info').' <>;=#{}'
                 ),
                 array(
+                    'form_group_class' => 'hide',
                     'type' => 'textarea',
                     'label' => $this->trans('Meta description', array(), 'Admin.Global'),
                     'name' => 'meta_description',
@@ -612,6 +618,7 @@ class AdminCategoriesControllerCore extends AdminController
                     'hint' => $this->trans('Forbidden characters:', array(), 'Admin.Notifications.Info').' <>;=#{}'
                 ),
                 array(
+                    'form_group_class' => 'hide',
                     'type' => 'tags',
                     'label' => $this->trans('Meta keywords', array(), 'Admin.Global'),
                     'name' => 'meta_keywords',
@@ -619,6 +626,7 @@ class AdminCategoriesControllerCore extends AdminController
                     'hint' => $this->trans('To add "tags," click in the field, write something, and then press "Enter."', array(), 'Admin.Catalog.Help').'&nbsp;'.$this->trans('Forbidden characters:', array(), 'Admin.Notifications.Info').' <>;=#{}'
                 ),
                 array(
+                    'form_group_class' => 'hide',
                     'type' => 'text',
                     'label' => $this->trans('Friendly URL', array(), 'Admin.Global'),
                     'name' => 'link_rewrite',
@@ -627,6 +635,7 @@ class AdminCategoriesControllerCore extends AdminController
                     'hint' => $this->trans('Only letters, numbers, underscore (_) and the minus (-) character are allowed.', array(), 'Admin.Catalog.Help')
                 ),
                 array(
+                    'form_group_class' => 'hide',
                     'type' => 'group',
                     'label' => $this->trans('Group access', array(), 'Admin.Catalog.Feature'),
                     'name' => 'groupBox',

@@ -1,11 +1,11 @@
 $(function () {
     $('.page-head').remove();
 
-    if (perfil_empleado === 'Vendedor'){
-        $('body').addClass('page-sidebar-closed');
-        $('body').find('li').removeClass('ul-open');
-        $('body').find('li').removeClass('open');
-    }
+    // if (perfil_empleado === 'Vendedor'){
+    //     $('body').addClass('page-sidebar-closed');
+    //     $('body').find('li').removeClass('ul-open');
+    //     $('body').find('li').removeClass('open');
+    // }
 
     if (perfil_empleado === 'Administrador' || perfil_empleado === 'SuperAdmin'){
         $('#cambiarCaja').click(function() {

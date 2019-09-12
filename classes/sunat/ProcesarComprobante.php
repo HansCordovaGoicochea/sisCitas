@@ -35,9 +35,6 @@ class ProcesarComprobante
 
         if ($resp_envio['result'] == "error"){
 
-//            $resp_envio["ruta_ticket"] = $objComprobantes->ruta_ticket;
-//            $resp_envio["ruta_pdf_a4"] = $objComprobantes->ruta_pdf_a4;
-
             $resp_envio["msg"][] = $resp_envio["msj_sunat"];
 
             $objComprobantes->cod_sunat =  $resp_envio["cod_sunat"];
@@ -45,9 +42,6 @@ class ProcesarComprobante
             $objComprobantes->update();
             return die(json_encode($resp_envio));
         }
-
-//        $resp["ruta_ticket"] = $objComprobantes->ruta_ticket;
-//        $resp["ruta_pdf_a4"] = $objComprobantes->ruta_pdf_a4;
 
         $resp["ruta_xml"] = $rutas["ruta_xml"].".zip";
         $resp["ruta_cdr"] = $rutas["ruta_cdr"].'R-'. $rutas['nombre_archivo'].".zip";
@@ -110,10 +104,9 @@ class ProcesarComprobante
 
     }
 
-    public static function procesar_nota_de_credito($data_comprobante, $order, $rutas) {
+    public static function procesar_nota_de_credito($data_comprobante, $objComprobantes, $rutas) {
 
-        $order_obj = new Order((int)$order->id);
-        $order_detail = OrderDetail::getList($order->id);
+        $order_detail = OrderDetail::getList($objComprobantes->id_order);
 
         $resp = Apisunat_2_1::crear_xml_nota_credito($data_comprobante, json_decode(json_encode($order_detail)), $rutas["ruta_xml"]);
 
@@ -126,15 +119,23 @@ class ProcesarComprobante
         $resp_envio = self::enviar_documento($data_comprobante['EMISOR_RUC'], $data_comprobante['EMISOR_USUARIO_SOL'], $data_comprobante['EMISOR_PASS_SOL'],  $rutas["ruta_xml"], $rutas["ruta_cdr"], $rutas['nombre_archivo'], $rutas['ruta_ws']);
 
         if ($resp_envio['respuesta'] == 'error') {
+            $resp_envio["msg"][] = $resp_envio["msj_sunat"];
+
+            $objComprobantes->cod_sunat =  $resp_envio["cod_sunat"];
+            $objComprobantes->msj_sunat =  $resp_envio["msj_sunat"];
+            $objComprobantes->update();
             return $resp_envio;
         }
 
-        $resp['respuesta'] = 'OK';
-        $resp['hash_cpe'] = $resp_firma['hash_cpe'];
-        $resp['hash_cdr'] = $resp_envio['hash_cdr'];
-        $resp['cod_sunat'] = $resp_envio['cod_sunat'];
-        $resp['msj_sunat'] = $resp_envio['msj_sunat'];
+        $resp["ruta_xml"] = $rutas["ruta_xml"].".zip";
+        $resp["ruta_cdr"] = $rutas["ruta_cdr"].'R-'. $rutas['nombre_archivo'].".zip";
+        $resp["result"] = "ok";
+        $resp["hash_cpe"] = $resp_firma["hash_cpe"];
+        $resp["hash_cdr"] = $resp_envio['hash_cdr'];
+        $resp["cod_sunat"] = $resp_envio['cod_sunat'];
+        $resp["msj_sunat"] = $resp_envio['msj_sunat'];
         $resp["msg"][] = $resp_envio["msj_sunat"];
+        $resp["estado_envio_sunat"][] = $resp_envio["estado_envio_sunat"];
 
         return $resp;
     }
