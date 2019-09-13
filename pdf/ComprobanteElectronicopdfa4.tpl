@@ -64,7 +64,7 @@
 
                 </tr>
                 <tr>
-                    <td colspan="2"><strong>Fecha de Emisión:</strong> {$order->date_add|date_format:"%d /%m /%Y"}</td>
+                    <td colspan="2"><strong>Fecha de Emisión:</strong> {$comprobante->fecha_envio_comprobante|date_format:"%d /%m /%Y"}</td>
                     {if $order->id_currency==1}
                         {assign var='moneda' value='SOLES'}
                     {else}
@@ -73,7 +73,7 @@
                     <td colspan="2"><strong>Moneda:</strong> {$moneda}</td>
                 </tr>
                 <tr>
-                    <td colspan="2"><strong>Fecha de Vencimiento:</strong>  {$order->date_add|date_format:"%d /%m /%Y"}</td>
+                    <td colspan="2"><strong>Fecha de Vencimiento:</strong>  {$comprobante->fecha_envio_comprobante|date_format:"%d /%m /%Y"}</td>
                     <td colspan="2"><strong>Dirección del Cliente:</strong>
                             {if $customer->id == 1}
                                 <span></span>

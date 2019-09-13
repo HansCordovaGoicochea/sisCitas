@@ -77,10 +77,10 @@
           <span class="badge">N° Pedido: {$order->nro_ticket}</span>
           <div class="panel-heading-action">
             <div class="btn-group">
-              {if $objComprobantes->nota_baja == 'NotaCredito' }<span class="badge">Nota de Credito</span>{elseif $objComprobantes->nota_baja == 'Baja'}<span class="badge">Comunicación de Baja</span>{/if}
+              {if $objComprobantes->tipo_documento_electronico == 'NotaCredito' }<span class="badge">Nota de Credito</span>{elseif $objComprobantes->nota_baja == 'Baja'}<span class="badge">Comunicación de Baja</span>{/if}
               <i class="icon-credit-card hidden-xs"></i>
               <span class="hidden-xs">{l s='Venta' d='Admin.Global'}</span>
-              <span class="badge hidden-xs">{$order->date_add|date_format:"%d/%m/%Y"}</span>
+              <span class="badge hidden-xs">{$objComprobantes->fecha_envio_comprobante|date_format:"%d/%m/%Y"}</span>
               <span class="badge hidden-xs" id="numero_comprobante_return">{if isset($objComprobantes->numero_comprobante) && $objComprobantes->numero_comprobante}{l s="#" d='Admin.Orderscustomers.Feature'}{$objComprobantes->numero_comprobante}{/if}</span>
 
               <a class="btn btn-default{if !$previousOrder} disabled{/if}" href="{strip}{if $smarty.server['HTTPS']=='on'}https://{else}http://{/if}{$smarty.server.HTTP_HOST}{$smarty.server.BASE}/{$currentIndex|escape:'html':'UTF-8'}&token={$smarty.get.token|escape:'html':'UTF-8'}{/strip}&amp;vieworder&amp;id_order={$previousOrder|intval}">

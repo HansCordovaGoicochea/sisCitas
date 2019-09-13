@@ -40,6 +40,7 @@ class PosOrdercomprobantesCore extends ObjectModel
     public $cod_sunat_otro;
     public $ruta_xml_otro;
     public $ruta_cdr_otro;
+    public $fecha_envio_comprobante;
 
     /**
      * @see ObjectModel::$definition
@@ -86,6 +87,7 @@ class PosOrdercomprobantesCore extends ObjectModel
             'cod_sunat_otro' => array('type' => self::TYPE_INT),
             'ruta_xml_otro' => array('type' => self::TYPE_STRING),
             'ruta_cdr_otro' => array('type' => self::TYPE_STRING),
+            'fecha_envio_comprobante' => array('type' => self::TYPE_DATE),
         ),
     );
 
@@ -156,5 +158,23 @@ class PosOrdercomprobantesCore extends ObjectModel
 		');
 
     }
+
+    public static function getOrdersIdInvoiceByDateTipoComp($date_from, $boleta_nota)
+    {
+
+        $sql = 'SELECT po.*
+                FROM `'._DB_PREFIX_.'pos_ordercomprobantes` po INNER JOIN  `'._DB_PREFIX_.'orders` o ON (po.id_order = o.id_order)
+                WHERE DATE(po.fecha_envio_comprobante) = \''.pSQL($date_from).'\'
+                    '.Shop::addSqlRestriction(false, 'o') .' AND tipo_documento_electronico = \''.bqSQL($boleta_nota).'\' ORDER BY po.date_add desc';
+
+        $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
+
+//        $orders = array();
+//        foreach ($result as $order) {
+//            $orders[] = (int)$order['id_order'];
+//        }
+        return $result;
+    }
+
 
 }

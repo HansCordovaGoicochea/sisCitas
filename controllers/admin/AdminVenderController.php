@@ -596,6 +596,7 @@ class AdminVenderControllerCore extends AdminController {
         $objComprobantes->sub_total = $order->total_paid_tax_excl;
         $objComprobantes->impuesto = (float)($order->total_paid_tax_incl - $order->total_paid_tax_excl);
         $objComprobantes->total = $order->total_paid_tax_incl;
+        $objComprobantes->fecha_envio_comprobante = date('Y-m-d');
 
         $prods = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('SELECT * FROM `'._DB_PREFIX_.'order_detail` od WHERE od.`id_order` = '.(int)$order->id);
 
@@ -691,7 +692,7 @@ class AdminVenderControllerCore extends AdminController {
 
             $tax_amount_total = number_format((float)$order->total_paid_tax_incl - (float)$order->total_paid_tax_excl, 2, '.', '');
 
-            $valor_qr = PS_SHOP_RUC.' | '.strtoupper($objComprobantes->tipo_documento_electronico).' | '.$serie.' | '.$numeracion.' | '.$tax_amount_total.' | '.$order->total_paid_tax_incl.' | '.Tools::getFormatFechaGuardar($order->date_add).' | '.$tipo_code_doc_cliente.' | '.$nro_documento_cliente.' | ';
+            $valor_qr = PS_SHOP_RUC.' | '.strtoupper($objComprobantes->tipo_documento_electronico).' | '.$serie.' | '.$numeracion.' | '.$tax_amount_total.' | '.$order->total_paid_tax_incl.' | '.Tools::getFormatFechaGuardar($objComprobantes->fecha_envio_comprobante).' | '.$tipo_code_doc_cliente.' | '.$nro_documento_cliente.' | ';
             ///////////
 
             //creamos las RUTAS de los documentos

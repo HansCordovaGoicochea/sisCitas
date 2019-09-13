@@ -90,15 +90,15 @@ class Apisunat_2_1
             'COD_TIPO_MOTIVO' => $codigo_motivo_modifica,
             'DESCRIPCION_MOTIVO' => $descripcion_motivo_modifica,
             //=================== BAJA ===========
-            'FECHA_REFERENCIA' => $objComprobantes->date_add,
+            'FECHA_REFERENCIA' => $objComprobantes->fecha_envio_comprobante,
             'FECHA_BAJA' => date('Y-m-d'),
             'SERIE' => $objComprobantes->serie,
             'NUMERO' => $objComprobantes->numero,
             'MOTIVO' => $objComprobantes->motivo_baja,
             //==========================================
             "NRO_COMPROBANTE" => $numero_comprobante,
-            "FECHA_DOCUMENTO" => $order->date_add,
-            "FECHA_VTO" => $order->date_add, //PAG. 31
+            "FECHA_DOCUMENTO" => $objComprobantes->fecha_envio_comprobante,
+            "FECHA_VTO" => $objComprobantes->fecha_envio_comprobante, //PAG. 31
             "COD_TIPO_DOCUMENTO" => $tipo_comprobante,
             "COD_MONEDA" => $currency,
             //==========================================
@@ -739,14 +739,15 @@ class Apisunat_2_1
         </ext:UBLExtensions>
         <cbc:UBLVersionID>2.0</cbc:UBLVersionID>
         <cbc:CustomizationID>1.1</cbc:CustomizationID>
+        <!--  Identificador del resumen  -->
         <cbc:ID>' . $cabecera["CODIGO"] . '-' . $cabecera["SERIE"] . '-' . $cabecera["SECUENCIA"] . '</cbc:ID>
         <cbc:ReferenceDate>' . $cabecera["FECHA_REFERENCIA"] . '</cbc:ReferenceDate>
         <cbc:IssueDate>' . $cabecera["FECHA_DOCUMENTO"] . '</cbc:IssueDate>
         <cac:Signature>
-            <cbc:ID>' . $cabecera["CODIGO"] . '-' . $cabecera["SERIE"] . '-' . $cabecera["SECUENCIA"] . '</cbc:ID>
+            <cbc:ID>' . $cabecera["NUM_DOCUMENTO_EMPRESA"] . '</cbc:ID>
             <cac:SignatoryParty>
                 <cac:PartyIdentification>
-                    <cbc:ID>' . $cabecera["NRO_DOCUMENTO_EMPRESA"] . '</cbc:ID>
+                    <cbc:ID>' . $cabecera["NUM_DOCUMENTO_EMPRESA"] . '</cbc:ID>
                 </cac:PartyIdentification>
                 <cac:PartyName>
                     <cbc:Name>' . $cabecera["RAZON_SOCIAL_EMPRESA"] . '</cbc:Name>
@@ -754,15 +755,18 @@ class Apisunat_2_1
             </cac:SignatoryParty>
             <cac:DigitalSignatureAttachment>
                 <cac:ExternalReference>
-                    <cbc:URI>' . $cabecera["CODIGO"] . '-' . $cabecera["SERIE"] . '-' . $cabecera["SECUENCIA"] . '</cbc:URI>
+                    <cbc:URI>' . $cabecera["NUM_DOCUMENTO_EMPRESA"] . '</cbc:URI>
                 </cac:ExternalReference>
             </cac:DigitalSignatureAttachment>
         </cac:Signature>
         <cac:AccountingSupplierParty>
-            <cbc:CustomerAssignedAccountID>' . $cabecera["NRO_DOCUMENTO_EMPRESA"] . '</cbc:CustomerAssignedAccountID>
+            <!--  Numero de RUC  -->
+            <cbc:CustomerAssignedAccountID>' . $cabecera["NUM_DOCUMENTO_EMPRESA"] . '</cbc:CustomerAssignedAccountID>
+            <!--  Tipo de documento de identidad - Catalogo No. 06  -->
             <cbc:AdditionalAccountID>' . $cabecera["TIPO_DOCUMENTO_EMPRESA"] . '</cbc:AdditionalAccountID>
             <cac:Party>
                 <cac:PartyLegalEntity>
+                    <!--  Apellidos y nombres o denominacion o razon social  -->
                     <cbc:RegistrationName>' . $cabecera["RAZON_SOCIAL_EMPRESA"] . '</cbc:RegistrationName>
                 </cac:PartyLegalEntity>
             </cac:Party>
@@ -770,10 +774,14 @@ class Apisunat_2_1
         for ($i = 0; $i < count($detalle); $i++) {
             $xmlCPE = $xmlCPE . '<sac:SummaryDocumentsLine>
             <cbc:LineID>' . $detalle[$i]["ITEM"] . '</cbc:LineID>
+            <!--  Tipo de documento - Catalogo No. 01  -->
             <cbc:DocumentTypeCode>' . $detalle[$i]["TIPO_COMPROBANTE"] . '</cbc:DocumentTypeCode>
+            <!--  Serie y numero de comprobante  -->
             <cbc:ID>' . $detalle[$i]["NRO_COMPROBANTE"] . '</cbc:ID>
             <cac:AccountingCustomerParty>
+                <!--  Numero de documento de identidad  -->
                 <cbc:CustomerAssignedAccountID>' . $detalle[$i]["NRO_DOCUMENTO"] . '</cbc:CustomerAssignedAccountID>
+                <!--  Tipo de documento de identidad - Catalogo No. 06  -->
                 <cbc:AdditionalAccountID>' . $detalle[$i]["TIPO_DOCUMENTO"] . '</cbc:AdditionalAccountID>
             </cac:AccountingCustomerParty>';
             if ($detalle[$i]["TIPO_COMPROBANTE"] == "07" || $detalle[$i]["TIPO_COMPROBANTE"] == "08") {
@@ -784,12 +792,16 @@ class Apisunat_2_1
                 </cac:InvoiceDocumentReference>
             </cac:BillingReference>';
             }
-            $xmlCPE = $xmlCPE . '<cac:Status>
+
+            $xmlCPE = $xmlCPE . '
+            <!--  (Codigo de operacion del item - catalogo No. 19)  -->
+            <cac:Status>
                 <cbc:ConditionCode>' . $detalle[$i]["STATUS"] . '</cbc:ConditionCode>
-            </cac:Status>                
+            </cac:Status>      
+            <!-- Importe total de la venta, sesion en uso o del servicio prestado -->          
             <sac:TotalAmount currencyID="' . $detalle[$i]["COD_MONEDA"] . '">' . $detalle[$i]["TOTAL"] . '</sac:TotalAmount>
-            
-                    <sac:BillingPayment>
+            <!--  Total valor de venta - operaciones gravadas  -->
+            <sac:BillingPayment>
                 <cbc:PaidAmount currencyID="' . $detalle[$i]["COD_MONEDA"] . '">' . $detalle[$i]["GRAVADA"] . '</cbc:PaidAmount>
                 <cbc:InstructionID>01</cbc:InstructionID>
             </sac:BillingPayment>';
@@ -847,7 +859,9 @@ class Apisunat_2_1
                 </cac:TaxSubtotal>
             </cac:TaxTotal>';
             }
-            $xmlCPE = $xmlCPE . '<cac:TaxTotal>
+            $xmlCPE = $xmlCPE . '
+            <!--  Total IGV  -->
+            <cac:TaxTotal>
                 <cbc:TaxAmount currencyID="' . $detalle[$i]["COD_MONEDA"] . '">' . $detalle[$i]["IGV"] . '</cbc:TaxAmount>
                 <cac:TaxSubtotal>
                     <cbc:TaxAmount currencyID="' . $detalle[$i]["COD_MONEDA"] . '">' . $detalle[$i]["IGV"] . '</cbc:TaxAmount>
@@ -880,10 +894,15 @@ class Apisunat_2_1
         }
         $xmlCPE = $xmlCPE . '</SummaryDocuments>';
 
+
         $doc->loadXML($xmlCPE);
-        $doc->save($ruta . '.XML');
+        $xml_doc =  $doc->saveXML();
+        $fp = fopen($ruta,"wb");
+        fwrite($fp, $xml_doc);
+        fclose($fp);
         $resp['respuesta'] = 'OK';
-        $resp['url_xml'] = $ruta . '.XML';
+        $resp['url_xml'] = $ruta;
+
         return $resp;
     }
 

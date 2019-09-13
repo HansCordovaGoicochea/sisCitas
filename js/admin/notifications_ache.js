@@ -74,6 +74,9 @@ function notiInsertOnBackOfficeDOM(json) {
 							No hay próximas citas por ahora. :(<br>
 						</p>
 						<div class="notification-elements"></div>
+<!--						<footer class="panel-footer" id="footer_citas" style="position: absolute; left: 0; bottom: 0; width: 100%; background-color: #bbcdd245; color: white; text-align: center;height: 25px!important; display: flex; align-items: center; justify-content: center;">-->
+<!--                            <a href="http://192.168.0.13:81/prestashop17/admin975tyvkqj/index.php?controller=AdminGamification&amp;token=c02682989f5afe0560a91c0019949478">Ver mi perfil completo <i class="material-icons" style="color: #25b9d7!important;">chevron_right</i></a>-->
+<!--                        </footer>-->
 					</div>
 
 					<div class="tab-pane empty" id="cumples-notifications" role="tabpanel">
@@ -81,6 +84,9 @@ function notiInsertOnBackOfficeDOM(json) {
 							No hay próximos cumpleaños por ahora. :(<br>
 						</p>
 						<div class="notification-elements"></div>
+<!--                        <footer class="panel-footer" id="footer_citas" style=" position: absolute; left: 0; bottom: 0; width: 100%; background-color: #bbcdd245; color: white; text-align: center;height: 25px!important; display: flex; align-items: center; justify-content: center;">-->
+<!--                            <a href="http://192.168.0.13:81/prestashop17/admin975tyvkqj/index.php?controller=AdminGamification&amp;token=c02682989f5afe0560a91c0019949478">Ver mi perfil completo <i class="material-icons" style="color: #25b9d7!important;">chevron_right</i></a>-->
+<!--                        </footer>-->
 					</div>
 
 				</div>
@@ -120,6 +126,9 @@ function notiInsertOnBackOfficeDOM(json) {
 							No hay próximas citas por ahora. :(
 						</p>
 						<div class="notification-elements"></div>
+<!--						<footer class="panel-footer" id="footer_citas" style=" position: fixed; left: 0; bottom: 0; width: 100%; background-color: #bbcdd245; color: white; text-align: center;height: 25px!important; display: flex; align-items: center; justify-content: center;">-->
+<!--                            <a href="http://192.168.0.13:81/prestashop17/admin975tyvkqj/index.php?controller=AdminGamification&amp;token=c02682989f5afe0560a91c0019949478">Ver mi perfil completo <i class="material-icons" style="color: #25b9d7!important;">chevron_right</i></a>-->
+<!--                        </footer>-->
 					</div>
 
 					<div class="tab-pane empty" id="cumples-notifications" role="tabpanel">
@@ -127,6 +136,9 @@ function notiInsertOnBackOfficeDOM(json) {
 							No hay próximos cumpleaños por ahora. :(
 						</p>
 						<div class="notification-elements"></div>
+<!--						<footer class="panel-footer" id="footer_cuples" style=" position: fixed; left: 0; bottom: 0; width: 100%; background-color: #bbcdd245; color: white; text-align: center;height: 25px!important; display: flex; align-items: center; justify-content: center;">-->
+<!--                            <a href="">Lista de clientes <i class="material-icons" style="color: #25b9d7!important;">chevron_right</i></a>-->
+<!--                        </footer>-->
 					</div>
                     
 				</div>

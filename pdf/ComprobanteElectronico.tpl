@@ -14,7 +14,7 @@
         </td>
     </tr>
     <tr>
-        <td style="border-top:1px dashed #000;"><strong>Fecha Emisión:</strong> {$order->date_add|date_format:"%d /%m /%Y"}</td>
+        <td style="border-top:1px dashed #000;"><strong>Fecha Emisión:</strong> {$comprobante->fecha_envio_comprobante|date_format:"%d /%m /%Y"}</td>
     </tr>
     <tr>
         <td><strong>Señor(es): </strong>

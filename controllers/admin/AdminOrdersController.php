@@ -325,7 +325,7 @@ class AdminOrdersControllerCore extends AdminController
         if (!empty($doc)){
             $objComprobantes = new PosOrdercomprobantes($doc['id_pos_ordercomprobantes']);
             if ($objComprobantes->tipo_documento_electronico == 'Factura') {
-                $date1 = new DateTime($objComprobantes->date_add);
+                $date1 = new DateTime($objComprobantes->fecha_envio_comprobante);
                 $date2 = new DateTime(date('Y-m-d'));
                 $diff = $date1->diff($date2);
                 $fecha_actual = date("d-m-Y");
@@ -469,6 +469,7 @@ class AdminOrdersControllerCore extends AdminController
             $objComprobanteNotaCredito = new PosOrdercomprobantes($doc_notacredito['id_pos_ordercomprobantes']);
         }else{
             $objComprobanteNotaCredito = new PosOrdercomprobantes();
+            $objComprobanteNotaCredito->fecha_envio_comprobante = date('Y-m-d');
         }
 
         $tienda_actual = new Shop((int)$this->context->shop->id); //
@@ -760,7 +761,7 @@ class AdminOrdersControllerCore extends AdminController
             $objComprobantes = new PosOrdercomprobantes($doc['id_pos_ordercomprobantes']);
 
             if ($objComprobantes->tipo_documento_electronico == 'Factura' || $objComprobantes->tipo_documento_electronico == 'NotaCredito') {
-                $date1 = new DateTime($objComprobantes->date_add);
+                $date1 = new DateTime($objComprobantes->fecha_envio_comprobante);
                 $date2 = new DateTime(date('Y-m-d'));
                 $diff = $date1->diff($date2);
 
@@ -1389,7 +1390,7 @@ class AdminOrdersControllerCore extends AdminController
             elseif ((int)$status->status->statusCode == 11){// > El comprobante de pago electrónico no existe.
                 $this->errors[] = $objComprobante->numero_comprobante . ' - ' . $status->status->statusCode.' - '.$status->status->statusMessage;
                if ($objComprobante->tipo_documento_electronico == 'Factura' || $objComprobante->tipo_documento_electronico == 'Boleta'){
-                   $inicio = strtotime($objComprobante->date_add);
+                   $inicio = strtotime($objComprobante->fecha_envio_comprobante);
                    $fin = strtotime(date('Y-m-d'));
                    $dif = $fin - $inicio;
                    $diasFalt = (( ( $dif / 60 ) / 60 ) / 24);
@@ -1500,7 +1501,7 @@ class AdminOrdersControllerCore extends AdminController
 
                 $tax_amount_total = number_format((float)$order->total_paid_tax_incl - (float)$order->total_paid_tax_excl, 2, '.', '');
 
-                $valor_qr = PS_SHOP_RUC.' | '.strtoupper($objComprobantes->tipo_documento_electronico).' | '.$serie.' | '.$numeracion.' | '.$tax_amount_total.' | '.$order->total_paid_tax_incl.' | '.Tools::getFormatFechaGuardar($order->date_add).' | '.$tipo_code_doc_cliente.' | '.$nro_documento_cliente.' | ';
+                $valor_qr = PS_SHOP_RUC.' | '.strtoupper($objComprobantes->tipo_documento_electronico).' | '.$serie.' | '.$numeracion.' | '.$tax_amount_total.' | '.$order->total_paid_tax_incl.' | '.Tools::getFormatFechaGuardar($objComprobantes->fecha_envio_comprobante).' | '.$tipo_code_doc_cliente.' | '.$nro_documento_cliente.' | ';
                 ///////////
 
                 //creamos las RUTAS de los documentos
@@ -5000,19 +5001,6 @@ class AdminOrdersControllerCore extends AdminController
         if (($id_order = Tools::getValue("id_order"))){
 
             $order = new Order((int)$id_order);
-
-            $date1 = new DateTime($order->date_add);
-            $date2 = new DateTime(date('Y-m-d'));
-            $diff = $date1->diff($date2);
-
-            $fecha_actual = date("d-m-Y");
-            $dias_posteriores = date("d-m-Y",strtotime($fecha_actual."- 7 days"));
-
-            if ($diff->d > 7) {
-                $this->errors[] = "No puede anular un documento con fecha anterior a ".$dias_posteriores;
-                return die(Tools::jsonEncode(array('respuesta' => 'error', 'msg' =>  $this->errors)));
-            }
-
             $id_cliente = Tools::getValue("id_customer");
 
             if ($cliente = Customer::getCustomerByDocumento(Tools::getValue('nro_documento'))){
@@ -5081,6 +5069,7 @@ class AdminOrdersControllerCore extends AdminController
                     $objComprobantes = new PosOrdercomprobantes($doc['id_pos_ordercomprobantes']);
                 }else{
                     $objComprobantes = new PosOrdercomprobantes();
+                    $objComprobantes->fecha_envio_comprobante = date('Y-m-d');
                 }
 
                 // comprobanr si ya existe una numeracion para el comprobante
@@ -5119,6 +5108,20 @@ class AdminOrdersControllerCore extends AdminController
                     $numeracion = $array_num[1];
                     $numero_comprobante = $serie."-".$numeracion;
                 }
+
+                $date1 = new DateTime($objComprobantes->fecha_envio_comprobante);
+                $date2 = new DateTime(date('Y-m-d'));
+                $diff = $date1->diff($date2);
+
+                $fecha_actual = date("d-m-Y");
+                $dias_posteriores = date("d-m-Y",strtotime($fecha_actual."- 7 days"));
+
+                if ($diff->d > 7) {
+                    $this->errors[] = "No puede enviar un documento con fecha anterior a ".$dias_posteriores;
+                    return die(Tools::jsonEncode(array('respuesta' => 'error', 'msg' =>  $this->errors)));
+                }
+
+
 //            d($numero_comprobante);
 
                 // armamos la numeracion
@@ -5156,7 +5159,7 @@ class AdminOrdersControllerCore extends AdminController
 
                 $tax_amount_total = number_format((float)$order->total_paid_tax_incl - (float)$order->total_paid_tax_excl, 2, '.', '');
 
-                $valor_qr = PS_SHOP_RUC.' | '.strtoupper($objComprobantes->tipo_documento_electronico).' | '.$serie.' | '.$numeracion.' | '.$tax_amount_total.' | '.$order->total_paid_tax_incl.' | '.Tools::getFormatFechaGuardar($order->date_add).' | '.$tipo_code_doc_cliente.' | '.$nro_documento_cliente.' | ';
+                $valor_qr = PS_SHOP_RUC.' | '.strtoupper($objComprobantes->tipo_documento_electronico).' | '.$serie.' | '.$numeracion.' | '.$tax_amount_total.' | '.$order->total_paid_tax_incl.' | '.Tools::getFormatFechaGuardar($objComprobantes->fecha_envio_comprobante).' | '.$tipo_code_doc_cliente.' | '.$nro_documento_cliente.' | ';
                 ///////////
 
                 //creamos las RUTAS de los documentos

@@ -68,7 +68,7 @@
 
                 </tr>
                 <tr>
-                    <td colspan="2"><strong>Fecha de Emisión:</strong> {$comprobante->date_add|date_format:"%d /%m /%Y"}</td>
+                    <td colspan="2"><strong>Fecha de Emisión:</strong> {$comprobante->fecha_envio_comprobante|date_format:"%d /%m /%Y"}</td>
                     {if $order->id_currency==1}
                         {assign var='moneda' value='SOLES'}
                     {else}
@@ -77,7 +77,7 @@
                     <td colspan="2"><strong>Moneda:</strong> {$moneda}</td>
                 </tr>
                 <tr>
-                    <td colspan="2"><strong>Fecha de Vencimiento:</strong>  {$comprobante->date_add|date_format:"%d /%m /%Y"}</td>
+                    <td colspan="2"><strong>Fecha de Vencimiento:</strong>  {$comprobante->fecha_envio_comprobante|date_format:"%d /%m /%Y"}</td>
                     <td colspan="2"><strong>Dirección del Cliente:</strong>
                         {if $customer->id == 1}
                             <span></span>
@@ -174,10 +174,10 @@
 
                     <td  style="font-size: 8px!important;">Documento</td>
                     <td  style="font-size: 8px!important;">FACTURA</td>
-                    {assign var="numeracionsplit" value='-'|explode:$comprobante->numero_comprobante}
+                    {assign var="numeracionsplit" value='-'|explode:$comprobante_relacionado['numero_comprobante']}
                     <td  style="font-size: 8px!important;">{$numeracionsplit[0]}</td>
                     <td  style="font-size: 8px!important;">{$numeracionsplit[1]}</td>
-                    <td  style="font-size: 8px!important;">{$comprobante->date_add|date_format:"%d/%m/%Y"}</td>
+                    <td  style="font-size: 8px!important;">{$comprobante_relacionado['fecha_envio_comprobante']|date_format:"%d/%m/%Y"}</td>
                 </tr>
                 <tr>
                     <td style="font-size: 8px!important;">SUSTENTO</td>

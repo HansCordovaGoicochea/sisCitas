@@ -84,6 +84,7 @@ class FirmarDocumento
             $respuesta["hash_cpe"] = $hash_cpe;
             $respuesta["respuesta"] = "correcto";
         }else{
+            $respuesta["msj_error"] = 99999;
             $respuesta["msj_error"] = "No se firmo el documento";
             $respuesta["respuesta"] = "error";
         }

@@ -455,10 +455,11 @@ class ProcesarComprobante
                 $ticket = $doc->getElementsByTagName('ticket')->item(0)->nodeValue;
 
 //                unlink($ruta_archivo . '.zip');
-                $mensaje['respuesta'] = 'OK';
+                $mensaje['respuesta'] = 'ok';
                 $mensaje['cod_ticket'] = $ticket;
                 $resul_code_sunat = intval(preg_replace('/[^0-9]+/', '', $doc->getElementsByTagName('faultcode')->item(0)->nodeValue), 10);
-                $mensaje['extra'] = $resul_code_sunat . ' - ' . $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
+                $mensaje['cod_sunat'] = $resul_code_sunat;
+                $mensaje['msj_sunat'] = $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
             } else {
 
                 $mensaje['respuesta'] = 'error';
@@ -478,6 +479,9 @@ class ProcesarComprobante
     }
 
     public static function consultar_envio_ticket($usuario_sol, $pass_sol, $ticket, $archivo, $ruta_archivo_cdr, $ruta_ws) {
+
+        $soapUrl = str_replace('?wsdl', '', $ruta_ws);
+
         $xml_post_string = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://service.sunat.gob.pe" xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
         <soapenv:Header>
         <wsse:Security>
@@ -505,7 +509,7 @@ class ProcesarComprobante
         // PHP cURL  for https connection with auth
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 1);
-        curl_setopt($ch, CURLOPT_URL, $ruta_ws);
+        curl_setopt($ch, CURLOPT_URL, $soapUrl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         //curl_setopt($ch, CURLOPT_USERPWD, $soapUser.":".$soapPassword); // username and password - declared at the top of the doc
         curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
@@ -517,12 +521,13 @@ class ProcesarComprobante
         // converting
         $response = curl_exec($ch);
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+
         if ($httpcode == 200) {//======LA PAGINA SI RESPONDE
             //echo $httpcode.'----'.$response;
             //convertimos de base 64 a archivo fisico
             $doc = new DOMDocument();
             $doc->loadXML($response);
+            d($response);
             file_put_contents("doc_response_ticket-consulta.txt",  $archivo ." ". date('Y-m-d H:i:s'). " -> ".$response.PHP_EOL , FILE_APPEND | LOCK_EX);
 
             //===================VERIFICAMOS SI HA ENVIADO CORRECTAMENTE EL COMPROBANTE=====================
@@ -550,7 +555,110 @@ class ProcesarComprobante
                 $mensaje['msj_sunat'] = $doc_cdr->getElementsByTagName('Description')->item(0)->nodeValue;
                 $mensaje['mensaje'] = $doc_cdr->getElementsByTagName('Description')->item(0)->nodeValue;
                 $mensaje['ruta_cdr'] = $ruta_archivo_cdr . 'R-' . $archivo . '.zip';
-//                $mensaje['hash_cdr'] = $doc_cdr->getElementsByTagName('DigestValue')->item(0)->nodeValue;
+                $mensaje['hash_cdr'] = $doc_cdr->getElementsByTagName('DigestValue')->item(0)->nodeValue;
+            } else {
+                $mensaje['respuesta'] = 'error';
+                $resul_code_sunat = intval(preg_replace('/[^0-9]+/', '', $doc->getElementsByTagName('faultcode')->item(0)->nodeValue), 10);
+                $mensaje['cod_sunat'] = $resul_code_sunat;
+                $mensaje['mensaje'] = $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
+                $mensaje['msj_sunat'] = $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
+//                $mensaje['hash_cdr'] = "";
+            }
+        } else {
+            //echo "no responde web";
+            $mensaje['respuesta'] = 'error';
+            $mensaje['cod_sunat'] = "0000";
+            $mensaje['mensaje'] = "SUNAT ESTA FUERA SERVICIO: ";
+            $mensaje['hash_cdr'] = "";
+        }
+        return $mensaje;
+    }
+
+    public static function consultar_envio_ticket_resumen($usuario_sol, $pass_sol, $ticket, $archivo, $ruta_archivo_cdr, $ruta_ws) {
+
+        $soapUrl = str_replace('?wsdl', '', $ruta_ws);
+
+        $xml_post_string = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://service.sunat.gob.pe" xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+        <soapenv:Header>
+        <wsse:Security>
+        <wsse:UsernameToken>
+        <wsse:Username>' . $usuario_sol . '</wsse:Username>
+        <wsse:Password>' . $pass_sol . '</wsse:Password>
+        </wsse:UsernameToken>
+        </wsse:Security>
+        </soapenv:Header>
+        <soapenv:Body>
+        <ser:getStatus>
+        <ticket>' . $ticket . '</ticket>
+        </ser:getStatus>
+        </soapenv:Body>
+        </soapenv:Envelope>';
+
+        $headers = array(
+            "Content-type: text/xml;charset=\"utf-8\"",
+            "Accept: text/xml",
+            "Cache-Control: no-cache",
+            "Pragma: no-cache",
+            "SOAPAction: ",
+            "Content-length: " . strlen($xml_post_string),
+        ); //SOAPAction: your op URL
+        // PHP cURL  for https connection with auth
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 1);
+        curl_setopt($ch, CURLOPT_URL, $soapUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        //curl_setopt($ch, CURLOPT_USERPWD, $soapUser.":".$soapPassword); // username and password - declared at the top of the doc
+        curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $xml_post_string); // the SOAP request
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+        // converting
+        $response = curl_exec($ch);
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        if ($httpcode == 200) {//======LA PAGINA SI RESPONDE
+            //echo $httpcode.'----'.$response;
+            //convertimos de base 64 a archivo fisico
+            $doc = new DOMDocument();
+            $doc->loadXML($response);
+
+            file_put_contents("doc_response_ticket-consulta.txt",  $archivo ." ". date('Y-m-d H:i:s'). " -> ".$response.PHP_EOL , FILE_APPEND | LOCK_EX);
+
+            //===================VERIFICAMOS SI HA ENVIADO CORRECTAMENTE EL COMPROBANTE=====================
+            if (isset($doc->getElementsByTagName('content')->item(0)->nodeValue)) {
+                if (isset($doc->getElementsByTagName('statusCode')->item(0)->nodeValue) && (int)$doc->getElementsByTagName('statusCode')->item(0)->nodeValue == 0){
+                    $xmlCDR = $doc->getElementsByTagName('content')->item(0)->nodeValue;
+                    file_put_contents($ruta_archivo_cdr . 'R-' . $archivo . '.zip', base64_decode($xmlCDR));
+
+                    //extraemos archivo zip a xml
+                    $zip = new ZipArchive;
+                    if ($zip->open($ruta_archivo_cdr . 'R-' . $archivo . '.zip') === TRUE) {
+                        $zip->extractTo($ruta_archivo_cdr, 'R-' . $archivo . '.xml');
+                        $zip->close();
+                    }
+
+                    //eliminamos los archivos Zipeados
+                    //unlink($ruta_archivo . '.ZIP');
+//                unlink($ruta_archivo_cdr . 'R-' . $archivo . '.zip');
+
+                    //=============hash CDR=================
+                    $doc_cdr = new DOMDocument();
+                    $doc_cdr->load(dirname(__FILE__) . '/' . $ruta_archivo_cdr . 'R-' . $archivo . '.xml');
+
+                    $mensaje['respuesta'] = 'OK';
+                    $mensaje['cod_sunat'] = $doc_cdr->getElementsByTagName('ResponseCode')->item(0)->nodeValue;
+                    $mensaje['msj_sunat'] = $doc_cdr->getElementsByTagName('Description')->item(0)->nodeValue;
+                    $mensaje['mensaje'] = $doc_cdr->getElementsByTagName('Description')->item(0)->nodeValue;
+                    $mensaje['ruta_cdr'] = $ruta_archivo_cdr . 'R-' . $archivo . '.zip';
+                    $mensaje['hash_cdr'] = $doc_cdr->getElementsByTagName('DigestValue')->item(0)->nodeValue;
+                }else{
+                    $mensaje['respuesta'] = 'error';
+                    $mensaje['cod_sunat'] = (int)$doc->getElementsByTagName('statusCode')->item(0)->nodeValue;
+                    $mensaje['mensaje'] = $doc->getElementsByTagName('content')->item(0)->nodeValue;
+                    $mensaje['msj_sunat'] = $doc->getElementsByTagName('content')->item(0)->nodeValue;
+                }
             } else {
                 $mensaje['respuesta'] = 'error';
                 $resul_code_sunat = intval(preg_replace('/[^0-9]+/', '', $doc->getElementsByTagName('faultcode')->item(0)->nodeValue), 10);

@@ -154,12 +154,14 @@ class HTMLTemplateComprobanteElectronicopdfa4creditoCore extends HTMLTemplate
         $address_shop->phone = Configuration::get('PS_SHOP_PHONE', null, null, $id_shop);
         $address_shop->id_country = Configuration::get('PS_SHOP_COUNTRY_ID', null, null, $id_shop);
 
+        $com_relacionado = PosOrdercomprobantes::getFacturaByOrderLimit($this->comprobante->id);
         $data = array(
             'PS_SHOP_NAME' => Configuration::get('PS_SHOP_NAME'),
             'PS_SHOP_RAZON_SOCIAL' => Configuration::get('PS_SHOP_RAZON_SOCIAL'),
             'PS_SHOP_RUC' => Configuration::get('PS_SHOP_RUC'),
             'address_shop' => $address_shop,
             'order' => $this->order,
+            'comprobante_relacionado' => $com_relacionado,
             'comprobante' => $this->comprobante,
             'order_order' => $order,
             'orders_total_paid_tax_incl' => $order->getOrdersTotalPaid(),
