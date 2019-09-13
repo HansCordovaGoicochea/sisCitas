@@ -71,6 +71,7 @@
 		var token = '{$token|addslashes}';
 		var token_admin_orders = '{getAdminToken tab='AdminOrders'}';
 		var token_admin_customers = '{getAdminToken tab='AdminCustomers'}';
+		var token_admin_customerscumples = '{getAdminToken tab='AdminCustomersCumples'}';
 		var token_admin_customer_threads = '{getAdminToken tab='AdminCustomerThreads'}';
 		var currentIndex = '{$currentIndex|@addcslashes:'\''}';
 		var employee_token = '{getAdminToken tab='AdminEmployees'}';

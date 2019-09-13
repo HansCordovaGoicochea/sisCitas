@@ -83,6 +83,7 @@
 					altFormat: 'yy-mm-dd'
 				});
 			}
+
 		});
 	</script>
 {/if}

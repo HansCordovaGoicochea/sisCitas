@@ -37,6 +37,8 @@ function initHeaderNotification(json) {
 
 
 function notiInsertOnBackOfficeDOM(json) {
+    var today = new Date();
+    var date_ache = today.getDate()+'/'+(today.getMonth()+1)+'/'+today.getFullYear();
 
     var nbCitasMessages = parseInt(json.citas.total);
     var nbCumples = parseInt(json.cumples.total);
@@ -70,23 +72,24 @@ function notiInsertOnBackOfficeDOM(json) {
 				<div class="tab-content">
 
 					<div class="tab-pane active empty" id="citas-notifications" role="tabpanel">
-						<p class="no-notification">
+						<p class="no-notification" style="bottom: 20px;">
 							No hay próximas citas por ahora. :(<br>
 						</p>
 						<div class="notification-elements"></div>
-<!--						<footer class="panel-footer" id="footer_citas" style="position: absolute; left: 0; bottom: 0; width: 100%; background-color: #bbcdd245; color: white; text-align: center;height: 25px!important; display: flex; align-items: center; justify-content: center;">-->
-<!--                            <a href="http://192.168.0.13:81/prestashop17/admin975tyvkqj/index.php?controller=AdminGamification&amp;token=c02682989f5afe0560a91c0019949478">Ver mi perfil completo <i class="material-icons" style="color: #25b9d7!important;">chevron_right</i></a>-->
-<!--                        </footer>-->
+						<footer class="panel-footer" id="footer_citas" style="position: absolute; left: 0; bottom: 0; width: 100%; background-color: #bbcdd245; color: white; text-align: center;height: 25px!important; display: flex; align-items: center; justify-content: center;">
+                            <a href="` + baseAdminDir + `index.php?tab=AdminReservarCita&token=` + token_admin_citas + `">Ver Reservas <i class="material-icons" style="color: #25b9d7!important;">chevron_right</i></a>
+                        </footer>
 					</div>
 
 					<div class="tab-pane empty" id="cumples-notifications" role="tabpanel">
-						<p class="no-notification">
+						<p class="no-notification" style="bottom: 20px;">
 							No hay próximos cumpleaños por ahora. :(<br>
 						</p>
 						<div class="notification-elements"></div>
-<!--                        <footer class="panel-footer" id="footer_citas" style=" position: absolute; left: 0; bottom: 0; width: 100%; background-color: #bbcdd245; color: white; text-align: center;height: 25px!important; display: flex; align-items: center; justify-content: center;">-->
-<!--                            <a href="http://192.168.0.13:81/prestashop17/admin975tyvkqj/index.php?controller=AdminGamification&amp;token=c02682989f5afe0560a91c0019949478">Ver mi perfil completo <i class="material-icons" style="color: #25b9d7!important;">chevron_right</i></a>-->
-<!--                        </footer>-->
+				
+                        <footer class="panel-footer" id="footer_citas" style=" position: absolute; left: 0; bottom: 0; width: 100%; background-color: #bbcdd245; color: white; text-align: center;height: 25px!important; display: flex; align-items: center; justify-content: center;">
+                            <a href="` + baseAdminDir + `index.php?tab=AdminCustomersCumples&birthday=`+date_ache+`&token=` + token_admin_customerscumples + `">Ver Cumpleaños <i class="material-icons" style="color: #25b9d7!important;">chevron_right</i></a>
+                        </footer>
 					</div>
 
 				</div>
@@ -122,23 +125,24 @@ function notiInsertOnBackOfficeDOM(json) {
 				<div class="tab-content"  style="font-size: 12px!important;">
 				
                     <div class="tab-pane active empty" id="citas-notifications" role="tabpanel">
-						<p class="no-notification">
+						<p class="no-notification" style="bottom: 20px;">
 							No hay próximas citas por ahora. :(
 						</p>
 						<div class="notification-elements"></div>
-<!--						<footer class="panel-footer" id="footer_citas" style=" position: fixed; left: 0; bottom: 0; width: 100%; background-color: #bbcdd245; color: white; text-align: center;height: 25px!important; display: flex; align-items: center; justify-content: center;">-->
-<!--                            <a href="http://192.168.0.13:81/prestashop17/admin975tyvkqj/index.php?controller=AdminGamification&amp;token=c02682989f5afe0560a91c0019949478">Ver mi perfil completo <i class="material-icons" style="color: #25b9d7!important;">chevron_right</i></a>-->
-<!--                        </footer>-->
+						
+						<footer class="panel-footer" id="footer_citas" style=" position: fixed; left: 0; bottom: 0; width: 100%; background-color: #bbcdd245; color: white; text-align: center;height: 25px!important; display: flex; align-items: center; justify-content: center;">
+                            <a href="` + baseAdminDir + `index.php?tab=AdminReservarCita&token=` + token_admin_citas + `">Ver Reservas <i class="material-icons" style="color: #25b9d7!important;">chevron_right</i></a>
+                        </footer>
 					</div>
 
 					<div class="tab-pane empty" id="cumples-notifications" role="tabpanel">
-						<p class="no-notification">
+						<p class="no-notification" style="bottom: 20px;">
 							No hay próximos cumpleaños por ahora. :(
 						</p>
 						<div class="notification-elements"></div>
-<!--						<footer class="panel-footer" id="footer_cuples" style=" position: fixed; left: 0; bottom: 0; width: 100%; background-color: #bbcdd245; color: white; text-align: center;height: 25px!important; display: flex; align-items: center; justify-content: center;">-->
-<!--                            <a href="">Lista de clientes <i class="material-icons" style="color: #25b9d7!important;">chevron_right</i></a>-->
-<!--                        </footer>-->
+						<footer class="panel-footer" id="footer_cuples" style=" position: fixed; left: 0; bottom: 0; width: 100%; background-color: #bbcdd245; color: white; text-align: center;height: 25px!important; display: flex; align-items: center; justify-content: center;">
+                            <a href="` + baseAdminDir + `index.php?tab=AdminCustomersCumples&birthday=`+date_ache+`&token=` + token_admin_customerscumples + `">Ver Cumpleaños <i class="material-icons" style="color: #25b9d7!important;">chevron_right</i></a>
+                        </footer>
 					</div>
                     
 				</div>
@@ -159,7 +163,8 @@ function notiInsertOnBackOfficeDOM(json) {
     // Add orders notifications to the list
     html = "";
     $.each(json.citas.results, function (property, value) {
-        html += "<a class='notif' href='" + baseAdminDir + "index.php?tab=AdminReservarCita&token=" + token_admin_citas + "&updatereservar_cita&id_reservar_cita=" + parseInt(value.id_reservar_cita) + "'>";
+        html += "<a class='notif' href='" + baseAdminDir + "index.php?tab=AdminReservarCita&token=" + token_admin_citas + "'>";
+        // html += "<a class='notif' href='" + baseAdminDir + "index.php?tab=AdminReservarCita&token=" + token_admin_citas + "&updatereservar_cita&id_reservar_cita=" + parseInt(value.id_reservar_cita) + "'>";
         // html += "#" + parseInt(value.id_reservar_cita) + " - ";
         html += "<strong>" + value.customer_name + "</strong>";
         html += "<br><strong >" + value.colaborador + "</strong>";
@@ -180,7 +185,8 @@ function notiInsertOnBackOfficeDOM(json) {
     // Add customers notifications to the list
     html = "";
     $.each(json.cumples.results, function (property, value) {
-        html += "<a class='notif' href='" + baseAdminDir + "index.php?tab=AdminCustomers&token=" + token_admin_customers + "&viewcustomer&id_customer=" + parseInt(value.id_customer) + "'>";
+        html += "<a class='notif' href='" + baseAdminDir + "index.php?tab=AdminCustomersCumples&birthday="+date_ache+"&token=" + token_admin_customerscumples + "'>";
+        // html += "<a class='notif' href='" + baseAdminDir + "index.php?tab=AdminCustomers&token=" + token_admin_customers + "&viewcustomer&id_customer=" + parseInt(value.id_customer) + "'>";
         html += "#" + value.id_customer + " - <strong>" + value.customer_name + "</strong>"
         html += " - " + value.fecha;
         html += "</a>";
