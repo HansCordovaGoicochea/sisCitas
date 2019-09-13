@@ -79,8 +79,9 @@ class AdminOrdersControllerCore extends AdminController
         a.id_order as `id_pdf2Bol`,
         a.id_order as `id_cdrxml`,
         
-        c.`firstname` AS `customer`,
+        
 		c.num_document AS `doc_cliente`,
+		CONCAT(c.`firstname`, " (", c.num_document, ") ") AS `customer`,
 		osl.`name` AS `osname`,
 		os.`color`,
 		country_lang.name as cname,
