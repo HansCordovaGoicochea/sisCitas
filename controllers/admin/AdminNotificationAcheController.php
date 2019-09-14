@@ -11,7 +11,7 @@ class AdminNotificationAcheControllerCore extends AdminController{
         parent::__construct();
 
 
-        $this->types = array('citas', 'cumples');
+        $this->types = array('citas', 'cumples', 'order');
     }
 
     public function setMedia($isNewTheme = false)
@@ -79,6 +79,16 @@ class AdminNotificationAcheControllerCore extends AdminController{
                     Shop::addSqlRestriction(false, 'cli').'
 					ORDER BY `birthday` ASC
 					LIMIT 10';
+                break;
+            case 'order':
+                $sql = '
+					SELECT SQL_CALC_FOUND_ROWS o.`id_order`, o.`id_customer`, o.`total_paid`, o.`id_currency`, o.`date_upd`, c.`firstname` as cliente
+					FROM `'._DB_PREFIX_.'orders` as o
+					LEFT JOIN `'._DB_PREFIX_.'customer` as c ON (c.`id_customer` = o.`id_customer`)
+					WHERE o.current_state in (1)'. Shop::addSqlRestriction(false, 'o').'
+					ORDER BY `id_order` DESC
+					LIMIT 10';
+                break;
 
                 break;
         }
@@ -91,6 +101,8 @@ class AdminNotificationAcheControllerCore extends AdminController{
             $customerName = $value['cliente'];
 
             $json['results'][] = array(
+                'id_order' => ((!empty($value['id_order'])) ? (int) $value['id_order'] : 0),
+                'total_paid' => ((!empty($value['total_paid'])) ? Tools::displayPrice((float) $value['total_paid'], (int) $value['id_currency'], false) : 0),
                 'id_reservar_cita' => ((!empty($value['id_reservar_cita'])) ? (int) $value['id_reservar_cita'] : 0),
                 'id_customer' => ((!empty($value['id_customer'])) ? (int) $value['id_customer'] : 0),
                 'colaborador' => ((!empty($value['colaborador'])) ? Tools::displayDate($value['colaborador']) : 0),

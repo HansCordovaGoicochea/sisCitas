@@ -463,11 +463,11 @@ function init()
 			{
 				$('tr#new_product input, tr#new_product select, tr#new_product button').removeAttr('disabled');
 
-				if (parseInt(data.is_virtual) === 0){
-					$('tr#new_product #add_product_id_colaborador').attr('disabled', true).trigger("chosen:updated");
-				}else{
-                    $('tr#new_product #add_product_id_colaborador').removeAttr('disabled').trigger("chosen:updated");
-                }
+				// if (parseInt(data.is_virtual) === 0){
+				// 	$('tr#new_product #add_product_id_colaborador').attr('disabled', true).trigger("chosen:updated");
+				// }else{
+                //     $('tr#new_product #add_product_id_colaborador').removeAttr('disabled').trigger("chosen:updated");
+                // }
 				// Keep product variable
 				current_product = data;
 				$('#add_product_product_id').val(data.id_product);

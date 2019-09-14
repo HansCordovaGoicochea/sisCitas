@@ -2617,14 +2617,18 @@ class AdminControllerCore extends Controller
 
     public function setMedia($isNewTheme = false)
     {
-
+        $nombre_access = Profile::getProfile(Context::getContext()->employee->id_profile);
 
         if ($isNewTheme) {
             $this->addCSS(__PS_BASE_URI__.$this->admin_webpath.'/themes/new-theme/public/theme.css', 'all', 1);
             $this->addJS(__PS_BASE_URI__.$this->admin_webpath.'/themes/new-theme/public/main.bundle.js');
             $this->addjQueryPlugin(array('chosen'));
 
-            $this->addJS(_PS_JS_DIR_.'admin/notifications_ache.js');
+
+            if ($nombre_access['name'] != 'Colaborador'){
+                $this->addJS(_PS_JS_DIR_.'admin/notifications_ache.js');
+            }
+
         } else {
 
             //Bootstrap
@@ -2654,7 +2658,12 @@ class AdminControllerCore extends Controller
                 if (Configuration::get('PS_SHOW_NEW_ORDERS') || Configuration::get('PS_SHOW_NEW_CUSTOMERS') || Configuration::get('PS_SHOW_NEW_MESSAGES')){
                     $this->addJS(_PS_JS_DIR_.'admin/notifications.js');
                 }
-                $this->addJS(_PS_JS_DIR_.'admin/notifications_ache.js');
+
+
+                if ($nombre_access['name'] != 'Colaborador'){
+                    $this->addJS(_PS_JS_DIR_.'admin/notifications_ache.js');
+                }
+
             }
 
             if (defined('_PS_HOST_MODE_') && _PS_HOST_MODE_) {

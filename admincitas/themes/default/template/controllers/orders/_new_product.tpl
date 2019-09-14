@@ -61,7 +61,7 @@
 				<select class="form-control chosen" name="add_product[id_colaborador]" id="add_product_id_colaborador" disabled="disabled">
 					<option value="0">- Seleccionar Colaborador -</option>
 					{foreach $colaboradores as $key => $colaborador}
-						<option value="{$colaborador.id_employee}">{$colaborador.name_employee}</option>
+						<option value="{$colaborador.id_employee}" {if $order->id_colaborador == $colaborador.id_employee} selected {/if}>{$colaborador.name_employee}</option>
 					{/foreach}
 				</select>
 			</div>

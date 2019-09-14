@@ -7,7 +7,7 @@
 </head>
 <body>
 
-<table style="width: 6.9cm; font-size: 8px;  color: #000;" cellpadding="1" cellspacing="1">
+<table style="width: 7.5cm; font-size: 8px;  color: #000;" cellpadding="1" cellspacing="1">
     {*<table style="width: 11%; font-size: 8px; color: #000;" cellpadding="1" cellspacing="1">*}
     {*se agrego un maximo numero de caracteres al numero del ticket*}
     {assign var="caracteres" value=$order->id|@count}
@@ -75,15 +75,18 @@
     <tr>
         {assign var="ultimopago" value=0}
         {assign var="vuelto" value=0}
+        {assign var="acumuladopago" value = 0}
         {foreach from=$order->getOrderPaymentCollection() item=payment}
+            {assign var="acumuladopago" value=$acumuladopago + $payment->amount}
             {assign var="ultimopago" value=$payment->amount}
             {assign var="vuelto" value=$payment->vuelto}
         {/foreach}
 
         {assign var="ultimopago" value=$ultimopago}
         <td colspan="4" style="border-top: 1px dashed black;">
-            &nbsp;<br>Pago: {displayPrice price=($ultimopago + $vuelto) currency=$order->id_currency}
-            &nbsp;&nbsp;Deuda: {displayPrice currency=$order->id_currency price=round($footer.total_paid_tax_incl - ($ultimopago + $vuelto),2)}
+            &nbsp;<br>Últ.Pagó: {displayPrice price=($ultimopago + $vuelto) currency=$order->id_currency}
+            &nbsp;&nbsp;Deuda: {displayPrice currency=$order->id_currency price=round($footer.total_paid_tax_incl - ($acumuladopago + $vuelto),2)}
+            &nbsp;Pagado: {displayPrice currency=$order->id_currency price=round(($acumuladopago + $vuelto),2)}
         </td>
 
     </tr>

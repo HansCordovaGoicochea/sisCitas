@@ -837,7 +837,6 @@ class PSCleaner extends Module
             // yo
             'pos_ordercomprobantes',
             'pos_arqueoscaja',
-            'pos_arqueocaja',
             'reservar_cita',
             'pos_gastos',
         );

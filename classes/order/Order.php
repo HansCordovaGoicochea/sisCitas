@@ -178,6 +178,8 @@ class OrderCore extends ObjectModel
     public $nro_ticket;
     public $ruta_ticket_normal;
     public $motivo_anulacion;
+    public $id_colaborador;
+    public $colaborador_name;
 
     /**
      * @see ObjectModel::$definition
@@ -237,6 +239,8 @@ class OrderCore extends ObjectModel
             'nro_ticket' =>                    array('type' => self::TYPE_INT),
             'ruta_ticket_normal' =>                    array('type' => self::TYPE_STRING),
             'motivo_anulacion' =>                    array('type' => self::TYPE_STRING),
+            'id_colaborador' =>                    array('type' => self::TYPE_INT),
+            'colaborador_name' =>                    array('type' => self::TYPE_STRING),
         ),
     );
 

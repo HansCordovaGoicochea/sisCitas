@@ -14,6 +14,8 @@
 class AdminReporteServiciosColaboradorControllerCore extends AdminController
 {
 
+    protected $_default_pagination = 20;
+
     public function __construct()
     {
         $this->bootstrap = true;
@@ -35,12 +37,12 @@ class AdminReporteServiciosColaboradorControllerCore extends AdminController
         $this->_join .= 'LEFT JOIN `'._DB_PREFIX_.'customer` ec ON (ec.`id_customer` = o.`id_customer`)';
 
         $this->_select .= 'CONCAT_WS(" ",ea.firstname, ea.lastname) as colaborador, ec.firstname as cliente, o.date_add as fecha';
-        $this->_where = ' AND es_servicio = 1 AND id_colaborador = '. Tools::getValue('id_colaborador').' AND valid = 1 AND o.date_add BETWEEN '.Tools::getValue('fi').' AND '.Tools::getValue('ff');
+        $this->_where = ' AND es_servicio = 1 AND a.id_colaborador = '. Tools::getValue('id_colaborador').' AND valid = 1 AND o.date_add BETWEEN '.Tools::getValue('fi').' AND '.Tools::getValue('ff');
 
 
         $this->_orderBy = 'o.date_add';
         $this->_orderWay = 'DESC';
-        $this->list_simple_header = true;
+//        $this->list_simple_header = true;
 //        $this->allow_export = true;
 
         $this->fields_list = array(
@@ -48,24 +50,29 @@ class AdminReporteServiciosColaboradorControllerCore extends AdminController
                 'title' => $this->l('ID'),
                 'align' => 'hide',
                 'class' => 'hide',
-                'remove_onclick' => true
+                'remove_onclick' => true,
+                'search' => false
             ),
-            'colaborador' => array(
-                'title' => $this->l('Colaborador'),
-                'remove_onclick' => true
-            ),
+//            'colaborador' => array(
+//                'title' => $this->l('Colaborador'),
+//                'remove_onclick' => true,
+//                'search' => false
+//            ),
             'fecha' => array(
                 'title' => $this->l('Fecha'),
-                'remove_onclick' => true
+                'remove_onclick' => true,
+                'search' => false
             ),
             'cliente' => array(
                 'title' => $this->l('Cliente'),
-                'remove_onclick' => true
+                'remove_onclick' => true,
+                'search' => false
             ),
             'total_price_tax_incl' => array(
                 'title' => $this->l('Importe'),
                 'type' => 'price',
-                'remove_onclick' => true
+                'remove_onclick' => true,
+                'search' => false
             ),
 
         );

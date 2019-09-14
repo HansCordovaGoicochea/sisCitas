@@ -63,7 +63,7 @@
 	<div class="panel row">
 		<div class="col-md-12 col-lg-12" id="hookDashboardZoneTwo">
 			{foreach $reporte_colaboradores as $key => $item}
-				<strong><a href="{$link->getAdminLink('AdminReporteServiciosColaborador')}&id_colaborador={$item.id_colaborador}&fi='{$date_from|escape}'&ff='{$date_to|escape}'">{$item.colaborador}</a></strong>
+				<strong><a href="{$link->getAdminLink('AdminReporteServiciosColaborador')}&id_colaborador={$item.id_colaborador}&fi='{$date_from|escape} 00:00:00'&ff='{$date_to|escape} 23:59:59'">{$item.colaborador}</a></strong>
 				<strong class="pull-right">{$item.cantidad}</strong>
 				<div class="progress">
 					<div class="progress-bar progress-bar-info" role="progressbar" aria-valuemin="0" aria-valuemax="999999999999999999" style="width: {$item.cantidad}px;">

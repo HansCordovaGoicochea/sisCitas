@@ -88,8 +88,8 @@ class AdminOrdersControllerCore extends AdminController
 		IF(a.valid, 1, 0) badge_success,
 		IF (poc.tipo_documento_electronico != "", poc.tipo_documento_electronico, "Ticket") comprobante,
 		IF (poc.numero_comprobante  != "", poc.numero_comprobante, a.nro_ticket) nro_comprobante,
-        (a.total_paid_tax_incl - a.total_paid_real) as deuda,
-        a.total_paid_real as `pagado`,
+        (a.total_paid_tax_incl - IFNULL((select SUM(op.amount) from `'._DB_PREFIX_.'order_payment` op where op.order_reference = a.reference), 0)) as deuda,
+        IFNULL((select SUM(op.amount) from `'._DB_PREFIX_.'order_payment` op where op.order_reference = a.reference), 0) as `pagado`,
         IF (a.`id_employee`, CONCAT_WS(" ",emp.firstname, emp.lastname), "Venta desde la Web") as empleado,
         motivo_anulacion
 		';
@@ -1844,7 +1844,7 @@ class AdminOrdersControllerCore extends AdminController
         if (empty($this->display)) {
             $this->page_header_toolbar_btn['new_order'] = array(
                 'href' => self::$currentIndex.'&addorder&token='.$this->token,
-                'desc' => $this->trans('Add new order', array(), 'Admin.Orderscustomers.Feature'),
+                'desc' => $this->trans('Nueva Venta', array(), 'Admin.Orderscustomers.Feature'),
                 'icon' => 'process-icon-new'
             );
         }

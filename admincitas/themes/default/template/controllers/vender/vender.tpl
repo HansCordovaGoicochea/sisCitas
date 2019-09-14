@@ -58,7 +58,7 @@
                                                     <div v-for="(val, index) in msg_success" v-html="val.msg"></div>
                                                 </div>
                                                 <div>
-                                                    <div class="row" v-if="!hasComprobante && total > 0">
+                                                    <div class="row" v-if="!hasComprobante && total > 0 && perfil_empleado_vue != 'Colaborador'">
                                                         <div class="col-xs-6 col-lg-6 col-xl-6 text-center mb-3">
                                                             <a href="javascript:void(0)" class="card-link" @click="activarComprobante('Boleta')">
                                                                 <i class="fa fa-file fa-lg"></i>&nbsp;&nbsp;Boleta
@@ -203,7 +203,7 @@
                                 >
                                 </selectdos>
 
-                                <select2-basic :options="colaboradores" :name="'id_colaborador'" :id="'id_colaborador'" v-model="id_colaborador" class="form-control" style="width: 45%;" :disabled="!es_servicio">
+                                <select2-basic :options="colaboradores" :name="'id_colaborador'" :id="'id_colaborador'" v-model="id_colaborador" class="form-control" style="width: 45%;" :disabled="cart.length > 0">
 
                                 </select2-basic>
                                 <div class="input-group-append"  style="width: 5%; float: right">

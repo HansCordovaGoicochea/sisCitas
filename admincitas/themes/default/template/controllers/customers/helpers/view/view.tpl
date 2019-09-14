@@ -154,7 +154,7 @@
 								<tr>
 									<th class="center"><span class="title_box ">{l s='ID' d='Admin.Global'}</span></th>
 									<th><span class="title_box">{l s='Date' d='Admin.Global'}</span></th>
-									<th><span class="title_box">{l s='Payment' d='Admin.Global'}</span></th>
+{*									<th><span class="title_box">{l s='Payment' d='Admin.Global'}</span></th>*}
 									<th><span class="title_box">{l s='Status' d='Admin.Global'}</span></th>
 									<th><span class="title_box">{l s='Products' d='Admin.Global'}</span></th>
 									<th><span class="title_box ">{l s='Total spent' d='Admin.Orderscustomers.Feature'}</span></th>
@@ -166,7 +166,7 @@
 								<tr onclick="document.location = '?tab=AdminOrders&amp;id_order={$order['id_order']|intval}&amp;vieworder&amp;token={getAdminToken tab='AdminOrders'}'">
 									<td>{$order['id_order']}</td>
 									<td>{dateFormat date=$order['date_add'] full=0}</td>
-									<td>{$order['payment']}</td>
+{*									<td>{$order['payment']}</td>*}
 									<td>{$order['order_state']}</td>
 									<td>{$order['nb_products']}</td>
 									<td>{$order['total_paid_real']}</td>
@@ -187,7 +187,7 @@
 								<tr>
 									<th><span class="title_box ">{l s='ID' d='Admin.Global'}</span></th>
 									<th><span class="title_box ">{l s='Date' d='Admin.Global'}</span></th>
-									<th><span class="title_box ">{l s='Payment' d='Admin.Global'}</span></th>
+{*									<th><span class="title_box ">{l s='Payment' d='Admin.Global'}</span></th>*}
 									<th><span class="title_box ">{l s='Status' d='Admin.Global'}</span></th>
 									<th><span class="title_box ">{l s='Products' d='Admin.Global'}</span></th>
 									<th><span class="title_box ">{l s='Total spent' d='Admin.Orderscustomers.Feature'}</span></th>
@@ -198,7 +198,7 @@
 								<tr onclick="document.location = '?tab=AdminOrders&amp;id_order={$order['id_order']|intval}&amp;vieworder&amp;token={getAdminToken tab='AdminOrders'}'">
 									<td>{$order['id_order']}</td>
 									<td><a href="?tab=AdminOrders&amp;id_order={$order['id_order']}&amp;vieworder&amp;token={getAdminToken tab='AdminOrders'}">{dateFormat date=$order['date_add'] full=0}</a></td>
-									<td>{$order['payment']}</td>
+{*									<td>{$order['payment']}</td>*}
 									<td>{$order['order_state']}</td>
 									<td>{$order['nb_products']}</td>
 									<td>{$order['total_paid_real']}</td>
@@ -249,35 +249,6 @@
 				</p>
 				{/if}
 			</div>
-			{if $products AND count($products)}
-			<div class="panel">
-				<div class="panel-heading">
-					<i class="icon-archive"></i> {l s='Purchased products' d='Admin.Orderscustomers.Feature'} <span class="badge">{count($products)}</span>
-				</div>
-				<table class="table">
-					<thead>
-						<tr>
-							<th><span class="title_box">{l s='Date' d='Admin.Global'}</span></th>
-							<th><span class="title_box">{l s='Name' d='Admin.Global'}</span></th>
-							<th><span class="title_box">{l s='Quantity' d='Admin.Global'}</span></th>
-						</tr>
-					</thead>
-					<tbody>
-						{foreach $products AS $key => $product}
-						<tr onclick="document.location = '?tab=AdminOrders&amp;id_order={$product['id_order']|intval}&amp;vieworder&amp;token={getAdminToken tab='AdminOrders'}'">
-							<td>{dateFormat date=$product['date_add'] full=0}</td>
-							<td>
-								<a href="?tab=AdminOrders&amp;id_order={$product['id_order']}&amp;vieworder&amp;token={getAdminToken tab='AdminOrders'}">
-									{$product['product_name']}
-								</a>
-							</td>
-							<td>{$product['product_quantity']}</td>
-						</tr>
-						{/foreach}
-					</tbody>
-				</table>
-			</div>
-			{/if}
 
 		</div>
 		{*right*}
@@ -286,7 +257,7 @@
 				<div class="panel-heading">
 					<i class="icon-eye-close"></i> {l s='Add a private note' d='Admin.Orderscustomers.Feature'}
 				</div>
-				<div class="alert alert-info">{l s='This note will be displayed to all employees but not to customers.' d='Admin.Orderscustomers.Help'}</div>
+{*				<div class="alert alert-info">{l s='This note will be displayed to all employees but not to customers.' d='Admin.Orderscustomers.Help'}</div>*}
 				<form id="customer_note" class="form-horizontal" action="ajax.php" method="post" onsubmit="saveCustomerNote({$customer->id|intval});return false;" >
 					<div class="form-group">
 						<div class="col-lg-12">
@@ -304,7 +275,35 @@
 					<span id="note_feedback"></span>
 				</form>
 			</div>
-
+			{if $products AND count($products)}
+				<div class="panel">
+					<div class="panel-heading">
+						<i class="icon-archive"></i> {l s='Purchased products' d='Admin.Orderscustomers.Feature'} <span class="badge">{count($products)}</span>
+					</div>
+					<table class="table">
+						<thead>
+						<tr>
+							<th><span class="title_box">{l s='Date' d='Admin.Global'}</span></th>
+							<th><span class="title_box">{l s='Name' d='Admin.Global'}</span></th>
+							<th><span class="title_box">{l s='Quantity' d='Admin.Global'}</span></th>
+						</tr>
+						</thead>
+						<tbody>
+						{foreach $products AS $key => $product}
+							<tr onclick="document.location = '?tab=AdminOrders&amp;id_order={$product['id_order']|intval}&amp;vieworder&amp;token={getAdminToken tab='AdminOrders'}'">
+								<td>{dateFormat date=$product['date_add'] full=0}</td>
+								<td>
+									<a href="?tab=AdminOrders&amp;id_order={$product['id_order']}&amp;vieworder&amp;token={getAdminToken tab='AdminOrders'}">
+										{$product['product_name']}
+									</a>
+								</td>
+								<td>{$product['product_quantity']}</td>
+							</tr>
+						{/foreach}
+						</tbody>
+					</table>
+				</div>
+			{/if}
 
 			<div class="panel hide">
 				<div class="panel-heading">
@@ -345,7 +344,7 @@
 		<div class="col-lg-6">
 
 		</div>
-		<div class="col-lg-6">
+		<div class="col-lg-6 hide">
 			{if count($referrers)}
 			<div class="panel">
 				<div class="panel-heading">

@@ -40,9 +40,10 @@ function notiInsertOnBackOfficeDOM(json) {
     var today = new Date();
     var date_ache = today.getDate()+'/'+(today.getMonth()+1)+'/'+today.getFullYear();
 
+    var nbOrders = parseInt(json.order.total);
     var nbCitasMessages = parseInt(json.citas.total);
     var nbCumples = parseInt(json.cumples.total);
-    var notifications_total = nbCitasMessages + nbCumples;
+    var notifications_total = nbCitasMessages + nbCumples + nbOrders;
     // $('#ache_notif').remove();
     if (0 < $('ul.header-list').length) {
         // PrestaShop 1.7 - Default theme
@@ -59,12 +60,16 @@ function notiInsertOnBackOfficeDOM(json) {
 			<div class="notifications">
 				<ul class="nav nav-tabs" role="tablist">
 
-					<li class="nav-item active" style="width: 50%">
-						<a class="nav-link" data-toggle="tab" data-type="cita" href="#citas-notifications" role="tab" id="orders-tab">Prox. Citas<span id="citas_notif_value"></span></a>
-					</li>
+					  <li class="nav-item active" style="width: 33.33%!important;">
+                            <a class="nav-link" data-toggle="tab" data-type="cita" href="#citas-notifications" role="tab" id="orders-tab">Prox. Citas<span id="citas_notif_value"></span></a>
+                    </li>
 
-					<li class="nav-item" style="width: 50%">
-						<a class="nav-link" data-toggle="tab" data-type="cumples" href="#cumples-notifications" role="tab" id="cumples-tab">Prox. Cumpleaños<span id="cumples_notif_value"></span></a>
+					<li class="nav-item" style="width: 33.33%!important;">
+						<a class="nav-link" data-toggle="tab" data-type="cumples" href="#cumples-notifications" role="tab" id="cumples-tab">Prox. Cumpl.<span id="cumples_notif_value"></span></a>
+					</li>
+					
+					<li class="nav-item" style="width: 33.33%!important;">
+						<a class="nav-link" data-toggle="tab" data-type="cobrar" href="#cobrar-notifications" role="tab" id="cobrar-tab">Por Cobrar<span id="cobrar_notif_value"></span></a>
 					</li>
 
 				</ul>
@@ -75,9 +80,11 @@ function notiInsertOnBackOfficeDOM(json) {
 						<p class="no-notification" style="bottom: 20px;">
 							No hay próximas citas por ahora. :(<br>
 						</p>
-						<div class="notification-elements"></div>
-						<footer class="panel-footer" id="footer_citas" style="position: absolute; left: 0; bottom: 0; width: 100%; background-color: #bbcdd245; color: white; text-align: center;height: 25px!important; display: flex; align-items: center; justify-content: center;">
-                            <a href="` + baseAdminDir + `index.php?tab=AdminReservarCita&token=` + token_admin_citas + `">Ver Reservas <i class="material-icons" style="color: #25b9d7!important;">chevron_right</i></a>
+						<div class="notification-elements" style="padding-bottom: 25px;"></div>
+						<footer class="panel-footer" id="footer_citas" style="position: absolute; left: 0; bottom: 0; width: 100%; background-color: #d1dee2; color: white; text-align: center;height: 25px!important; display: flex; align-items: center; justify-content: center;">
+						    <i class="fa fa-ticket" style="color: #25b9d7!important;"></i>&nbsp;
+                            <a href="` + baseAdminDir + `index.php?tab=AdminReservarCita&token=` + token_admin_citas + `">Ver Reservas 
+                            <i class="material-icons" style="color: #25b9d7!important;">chevron_right</i></a>
                         </footer>
 					</div>
 
@@ -85,10 +92,23 @@ function notiInsertOnBackOfficeDOM(json) {
 						<p class="no-notification" style="bottom: 20px;">
 							No hay próximos cumpleaños por ahora. :(<br>
 						</p>
-						<div class="notification-elements"></div>
+						<div class="notification-elements" style="padding-bottom: 25px;"></div>
 				
-                        <footer class="panel-footer" id="footer_citas" style=" position: absolute; left: 0; bottom: 0; width: 100%; background-color: #bbcdd245; color: white; text-align: center;height: 25px!important; display: flex; align-items: center; justify-content: center;">
-                            <a href="` + baseAdminDir + `index.php?tab=AdminCustomersCumples&birthday=`+date_ache+`&token=` + token_admin_customerscumples + `">Ver Cumpleaños <i class="material-icons" style="color: #25b9d7!important;">chevron_right</i></a>
+                        <footer class="panel-footer" id="footer_citas" style=" position: absolute; left: 0; bottom: 0; width: 100%; background-color: #d1dee2; color: white; text-align: center;height: 25px!important; display: flex; align-items: center; justify-content: center;">
+                            <i class="fa fa-birthday-cake" style="color: #25b9d7!important;"></i>&nbsp;
+                            <a href="` + baseAdminDir + `index.php?tab=AdminCustomersCumples&birthday=`+date_ache+`&token=` + token_admin_customerscumples + `">Ver Cumpleaños 
+                            <i class="material-icons" style="color: #25b9d7!important;">chevron_right</i></a>
+                        </footer>
+					</div>
+					<div class="tab-pane empty" id="cobrar-notifications" role="tabpanel">
+                        <p class="no-notification" style="bottom: 20px;">
+                             No hay cuentas por cobrar. :)<br>
+                         </p>
+						<div class="notification-elements" style="padding-bottom: 25px;"></div>
+                        <footer class="panel-footer" id="footer_cobrar" style=" position: absolute; left: 0; bottom: 0; width: 100%; background-color: #d1dee2; color: white; text-align: center;height: 25px!important; display: flex; align-items: center; justify-content: center;">
+                            <i class="fa fa-money" style="color: #25b9d7!important;"></i>&nbsp;
+                            <a href="` + baseAdminDir + `index.php?tab=AdminCuentasCobrar&token=` + token_admin_cuentascobrar + `">Ver cuentas por cobrar 
+                            <i class="material-icons" style="color: #25b9d7!important;">chevron_right</i></a>
                         </footer>
 					</div>
 
@@ -112,13 +132,18 @@ function notiInsertOnBackOfficeDOM(json) {
 		<div class="dropdown-menu dropdown-menu-right js-notifs_dropdown">
 			<div class="notifications">
                 <ul class="nav nav-tabs" role="tablist">
-                  <li class="nav-item" style="width: 50%">
-						<a class="nav-link active" data-toggle="tab" data-type="cita" href="#citas-notifications" role="tab" id="citas-tab">Prox. Citas<span id="citas_notif_value"></span></a>
+                    <li class="nav-item active" style="width: 33.33%!important;">
+                            <a class="nav-link" data-toggle="tab" data-type="cita" href="#citas-notifications" role="tab" id="orders-tab">Prox. Citas<span id="citas_notif_value"></span></a>
+                    </li>
+
+					<li class="nav-item" style="width: 33.33%!important;">
+						<a class="nav-link" data-toggle="tab" data-type="cumples" href="#cumples-notifications" role="tab" id="cumples-tab">Prox. Cumpl.<span id="cumples_notif_value"></span></a>
+					</li>
+					
+					<li class="nav-item" style="width: 33.33%!important;">
+						<a class="nav-link" data-toggle="tab" data-type="cobrar" href="#cobrar-notifications" role="tab" id="cobrar-tab">Por Cobrar<span id="cobrar_notif_value"></span></a>
 					</li>
 
-					<li class="nav-item" style="width: 50%">
-						<a class="nav-link" data-toggle="tab" data-type="cumples" href="#cumples-notifications" role="tab" id="cumples-tab">Prox. Cumpleaños<span id="cumples_notif_value"></span></a>
-					</li>
                 </ul>
 
 				<!-- Tab panes -->
@@ -128,10 +153,11 @@ function notiInsertOnBackOfficeDOM(json) {
 						<p class="no-notification" style="bottom: 20px;">
 							No hay próximas citas por ahora. :(
 						</p>
-						<div class="notification-elements"></div>
-						
-						<footer class="panel-footer" id="footer_citas" style=" position: fixed; left: 0; bottom: 0; width: 100%; background-color: #bbcdd245; color: white; text-align: center;height: 25px!important; display: flex; align-items: center; justify-content: center;">
-                            <a href="` + baseAdminDir + `index.php?tab=AdminReservarCita&token=` + token_admin_citas + `">Ver Reservas <i class="material-icons" style="color: #25b9d7!important;">chevron_right</i></a>
+						<div class="notification-elements" style="padding-bottom: 25px;"></div>
+						<footer class="panel-footer" id="footer_citas" style=" position: absolute; left: 0; bottom: 0; width: 100%; background-color: #d1dee2; color: white; text-align: center;height: 25px!important; display: flex; align-items: center; justify-content: center;">
+			                <i class="material-icons" style="color: #25b9d7!important;">insert_invitation</i>&nbsp;
+                            <a href="` + baseAdminDir + `index.php?tab=AdminReservarCita&token=` + token_admin_citas + `">Ver Reservas 
+                            <i class="material-icons" style="color: #25b9d7!important;">chevron_right</i></a>
                         </footer>
 					</div>
 
@@ -139,9 +165,20 @@ function notiInsertOnBackOfficeDOM(json) {
 						<p class="no-notification" style="bottom: 20px;">
 							No hay próximos cumpleaños por ahora. :(
 						</p>
-						<div class="notification-elements"></div>
-						<footer class="panel-footer" id="footer_cuples" style=" position: fixed; left: 0; bottom: 0; width: 100%; background-color: #bbcdd245; color: white; text-align: center;height: 25px!important; display: flex; align-items: center; justify-content: center;">
+						<div class="notification-elements" style="padding-bottom: 25px;"></div>
+						<footer class="panel-footer" id="footer_cuples" style=" position: absolute; left: 0; bottom: 0; width: 100%; background-color: #d1dee2; color: white; text-align: center;height: 25px!important; display: flex; align-items: center; justify-content: center;">
+						        <i class="material-icons" style="color: #25b9d7!important;">cake</i>&nbsp;
                             <a href="` + baseAdminDir + `index.php?tab=AdminCustomersCumples&birthday=`+date_ache+`&token=` + token_admin_customerscumples + `">Ver Cumpleaños <i class="material-icons" style="color: #25b9d7!important;">chevron_right</i></a>
+                        </footer>
+					</div>
+					<div class="tab-pane empty" id="cobrar-notifications" role="tabpanel">
+                        <p class="no-notification" style="bottom: 20px;">
+                             No hay cuentas por cobrar. :)<br>
+                         </p>
+						<div class="notification-elements" style="padding-bottom: 25px;"></div>
+                        <footer class="panel-footer" id="footer_cobrar" style=" position: absolute; left: 0; bottom: 0; width: 100%; background-color: #d1dee2; color: white; text-align: center;height: 25px!important; display: flex; align-items: center; justify-content: center;">
+                                 <i class="material-icons" style="color: #25b9d7!important;">money</i>&nbsp;
+                            <a href="` + baseAdminDir + `index.php?tab=AdminCuentasCobrar&token=` + token_admin_cuentascobrar + `">Ver cuentas por cobrar <i class="material-icons" style="color: #25b9d7!important;">chevron_right</i></a>
                         </footer>
 					</div>
                     
@@ -199,6 +236,25 @@ function notiInsertOnBackOfficeDOM(json) {
     } else {
         $("#cumples-notifications").addClass('empty');
         $("#cumples_notif_value").text('');
+    }
+
+    // Add orders notifications to the list
+    html = "";
+    $.each(json.order.results, function(property, value) {
+        html += "<a class='notif' href='"+baseAdminDir+"index.php?tab=AdminOrders&token=" + token_admin_orders + "&vieworder&id_order=" + parseInt(value.id_order) + "'>";
+        html += "&nbsp;<strong>" + value.customer_name + "</strong>";
+        html += "<strong class='pull-right float-right'>" + value.total_paid + "</strong>";
+        html += "</a>";
+    });
+    $("#cobrar-notifications").children('.notification-elements').empty();
+    if (parseInt(json.order.total) > 0)
+    {
+        $("#cobrar-notifications").removeClass('empty');
+        $("#cobrar-notifications").children('.notification-elements').append(html);
+        $("#cobrar_notif_value").text(' (' + nbOrders + ')').attr('data-nb', nbOrders);
+    } else {
+        $("#cobrar-notifications").addClass('empty');
+        $("#cobrar_notif_value").text('');
     }
 
 

@@ -94,7 +94,7 @@
     <div class="panel">
         <div class="panel-heading">
             <i class="icon-table"></i>&nbsp;Cita
-            {if $cita->id}
+            {if $cita->id && $nombre_access != 'Colaborador' && $nombre_access != 'Recepcionista' && $existeCajasAbiertas && $cita->estado_actual == 0}
                 <a class="btn badge pull-right" style="{if $cita->id_order} display: none; {/if} background-color: #72c279; color: #fff" id="pasarVenta">
                     <i class="icon-money"></i>  Pasar a Venta
                 </a>
@@ -201,7 +201,49 @@
         </div>
     </div>
 </div>
+<div id="overlay"></div>
+{if $cita->estado_actual == 2}
+    <style>
+        #overlay:after {
+            content: "ANULADO";
+            font-size: 15em;
+            color: rgba(52, 166, 214, 0.17);
+            z-index: 9999;
+            transform: rotate(-20deg);
 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+
+            -webkit-pointer-events: none;
+            -moz-pointer-events: none;
+            -ms-pointer-events: none;
+            -o-pointer-events: none;
+            pointer-events: none;
+
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            -o-user-select: none;
+            user-select: none;
+        }
+        #overlay {
+            background-color: rgba(0, 0, 0, 0.01);
+            z-index: 123;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+        }​
+
+    </style>
+{/if}
 <script>
     const url_ajax_cita = "{$link->getAdminLink('AdminReservarCita')|addslashes}";
 
@@ -368,6 +410,7 @@
                         $('#txtNombre').val(data.result.firstname);
                         $('#txtDireccion').val(data.result.direccion);
                         $('#celular').val(data.result.celular);
+                        $('#birthday').val(data.result.birthday.split('-').reverse().join('/'));
 
                     }
 

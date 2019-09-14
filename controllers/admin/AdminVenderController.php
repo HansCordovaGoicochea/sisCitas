@@ -35,8 +35,8 @@ class AdminVenderControllerCore extends AdminController {
    public function display()
     {
 
-       if ($this->nombre_access['name'] == 'Administrador' || $this->nombre_access['name'] == 'SuperAdmin' || $this->nombre_access['name'] == 'Cajero'){
-           if ($this->nombre_access['name'] == 'Administrador' || $this->nombre_access['name'] == 'SuperAdmin'){
+//       if ($this->nombre_access['name'] == 'Administrador' || $this->nombre_access['name'] == 'SuperAdmin' || $this->nombre_access['name'] == 'Cajero'){
+
                if (!$this->existeCajasAbiertas){
                    $this->display='error_caja_sincaja';
                }
@@ -48,23 +48,13 @@ class AdminVenderControllerCore extends AdminController {
                        ));
                    }
                }
-           }
-           else{
-               $last_caja = PosArqueoscaja::getCajaLast($this->context->shop->id);
-    //           d($last_caja);
-               if (empty($last_caja) || $last_caja['estado'] == 0){
-                   $this->display='apertura_caja';
-               }elseif ($last_caja['estado'] == 1){
-                   $this->display='vender';
-               }else{
-                   $this->display='error_caja';
-               }
-           }
 
-       }else{
-           $this->errors[] = $this->trans('You do not have permission to access this module.', array(), 'Admin.Modules.Notification');
-           return parent::display();
-       }
+
+
+//       }else{
+//           $this->errors[] = $this->trans('You do not have permission to access this module.', array(), 'Admin.Modules.Notification');
+//           return parent::display();
+//       }
 
         $shop_context = (!Shop::isFeatureActive() || Shop::getContext() == Shop::CONTEXT_SHOP);
         if (!$shop_context) {
@@ -506,6 +496,8 @@ class AdminVenderControllerCore extends AdminController {
 
                 $order->id_pos_caja = $last_caja['id_pos_caja'];
                 $order->id_employee = $this->context->employee->id;
+                $order->id_colaborador = Tools::getValue('id_colaborador_general');
+                $order->colaborador_name = Tools::getValue('colaborador_name_general');
                 $order->update();
 
                 $ordeD = OrderDetail::getList($order->id);

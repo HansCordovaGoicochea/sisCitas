@@ -377,6 +377,8 @@ var app_vender = new Vue({
 
             //datos devueltos al guardar
             order: [],
+            id_colaborador_general: 0,
+            colaborador_name_general: "",
 
             //datos del cliente
             mostrar_form_cliente: false,
@@ -557,7 +559,7 @@ var app_vender = new Vue({
             }
             // alert(this.total);
             this.total = ps_round(total_temporal, 2);
-            this.pagos[0].monto = ps_round(this.total, 2);
+            // this.pagos[0].monto = ps_round(this.total, 2);
 
 
         },
@@ -581,7 +583,8 @@ var app_vender = new Vue({
 
                 // Add item if not already in the cart
                 if(! inCart){
-
+                    this.id_colaborador_general = self.id_colaborador;
+                    this.colaborador_name_general = self.colaborador_name;
                     this.cart.push({
                         id: self.id_product,
                         title: self.product_name,
@@ -598,7 +601,7 @@ var app_vender = new Vue({
                     $.growl.notice({ title: 'Prod. Agregado!', message: '', duration: 1000, location: 'br' });
                     this.limpiarDatosAdd();
                     //actualizar monto de pago
-                    this.pagos[0].monto = ps_round(this.total, 2);
+                    // this.pagos[0].monto = ps_round(this.total, 2);
 
                     // }else{
                     //     $.growl.error({ title: 'Alerta!', message: 'No hay stock', location: 'br' });
@@ -628,8 +631,8 @@ var app_vender = new Vue({
             self.cantidad_real = 0;
             self.precio_unitario = 0;
             self.es_servicio = false;
-            self.id_colaborador = 0;
-            self.colaborador_name = "";
+            // self.id_colaborador = 0;
+            // self.colaborador_name = "";
         },
         changeCantidad(item){
             this.total = 0;
@@ -707,6 +710,8 @@ var app_vender = new Vue({
                                 direccion_cliente: self.direccion_cliente,
                                 array_pagos: self.pagos,
                                 puntos_cliente: self.puntos_cliente,
+                                id_colaborador_general: self.id_colaborador_general,
+                                colaborador_name_general: self.colaborador_name_general,
                             },
                             beforeSend: function(){
                                 self.guardandoEnviar = true;
@@ -737,7 +742,10 @@ var app_vender = new Vue({
                                     self.order = data.order;
                                     let html_buttons = '';
 
-                                    html_buttons += '<a class="btn btn-primary" style="margin: 5px;" target="_blank" href="'+data.link_venta+'">Venta</a>';
+                                    if (self.perfil_empleado_vue !== 'Colaborador'){
+                                        html_buttons += '<a class="btn btn-primary" style="margin: 5px;" target="_blank" href="'+data.link_venta+'">Venta</a>';
+                                    }
+
 
                                     html_buttons += '<input type="button" class="btn btn-warning" value="Ticket Venta - '+data.order.nro_ticket+'" style="margin: 5px;" onclick="windowPrintAche(\'PDFtoTicket\')">';
                                     let iframes = '<iframe id="PDFtoTicket" src="'+data.order.ruta_ticket_normal+'" style="display: none;"></iframe>';

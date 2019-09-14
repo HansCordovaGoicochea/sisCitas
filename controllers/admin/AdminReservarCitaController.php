@@ -2,7 +2,8 @@
 
 class AdminReservarCitaControllerCore extends AdminController
 {
-
+    protected $existeCajasAbiertas;
+    protected $nombre_access;
     public function __construct()
     {
         $this->bootstrap = true;
@@ -16,6 +17,9 @@ class AdminReservarCitaControllerCore extends AdminController
 //        $this->addRowAction('view');
         $this->addRowAction('pasar_venta');
         $this->addRowAction('anularcita');
+
+        $this->existeCajasAbiertas = PosArqueoscaja::existenCajasAbiertas();
+        $this->nombre_access = Profile::getProfile(Context::getContext()->employee->id_profile);
 
         parent::__construct();
 
@@ -108,6 +112,15 @@ class AdminReservarCitaControllerCore extends AdminController
 
     public function initPageHeaderToolbar()
     {
+
+        if ($this->display == 'edit' || $this->display == 'add') {
+            $this->page_header_toolbar_btn['back_to_list'] = array(
+                'href' => Context::getContext()->link->getAdminLink('AdminReservarCita'),
+                'desc' => $this->l('Back to list', null, null, false),
+                'icon' => 'process-icon-back'
+            );
+        }
+
         if (empty($this->display))
             $this->page_header_toolbar_btn['new_cita'] = array(
                 'href' => self::$currentIndex.'&addreservar_cita&token='.$this->token,
@@ -141,7 +154,9 @@ class AdminReservarCitaControllerCore extends AdminController
             'cita' => $cita,
             'customer' => $customer,
             'colaboradores' => $colaboradores,
-            'tipo_documentos' => $tipo_documentos
+            'tipo_documentos' => $tipo_documentos,
+            'existeCajasAbiertas' =>  $this->existeCajasAbiertas,
+            'nombre_access' =>  $this->nombre_access['name'],
         ));
 
         return parent::renderForm();
@@ -344,6 +359,9 @@ class AdminReservarCitaControllerCore extends AdminController
                 $order = new Order((int)$result['orderid']);
                 $order->id_pos_caja = $last_caja['id_pos_caja'];
                 $order->id_employee = $this->context->employee->id;
+                $order->id_colaborador = $objCita->id_colaborador;
+                $col = new Employee((int)$objCita->id_colaborador);
+                $order->colaborador_name = $col->firstname.' '. $col->lastname;
                 $order->update();
 
                 $ordeD = OrderDetailCore::getList($order->id);

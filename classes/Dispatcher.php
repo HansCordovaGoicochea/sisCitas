@@ -368,7 +368,8 @@ class DispatcherCore
                         'controller_class' => $controller_class,
                         'is_module' => 1
                     );
-                } else {
+                }
+                else {
                     $controllers = Dispatcher::getControllers(
                         array(
                             _PS_ADMIN_DIR_.'/tabs/',
