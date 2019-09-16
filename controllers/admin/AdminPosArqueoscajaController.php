@@ -36,19 +36,33 @@ class AdminPosArqueoscajaControllerCore extends AdminController
 
         $this->_join .= 'LEFT JOIN `'._DB_PREFIX_.'employee` ea ON (ea.`id_employee` = a.`id_employee_apertura` AND a.`id_shop` = '.$this->context->shop->id.')';
         $this->_join .= 'LEFT JOIN `'._DB_PREFIX_.'employee` ec ON (ec.`id_employee` = a.`id_employee_cierre` AND a.`id_shop` = '.$this->context->shop->id.')';
-        $this->_select .= 'CONCAT_WS(" ",ea.firstname, ea.lastname) as empleado_apertura, CONCAT_WS(" ",ea.firstname, ea.lastname) as empleado_cierre, IF(a.estado = 1, "Arqueo Abierto", "Arqueo Cerrado") estado_caja, estado, monto_operaciones - monto_apertura as ventas, a.id_pos_arqueoscaja as id_button_cierre
+        $this->_select .= '
+        CONCAT_WS(" ",ea.firstname, ea.lastname) as empleado_apertura, 
+        CONCAT_WS(" ",ea.firstname, ea.lastname) as empleado_cierre, 
+        IF(a.estado = 1, "Arqueo Abierto", "Arqueo Cerrado") estado_caja, 
+        estado, 
+        ( SELECT SUM(op.amount)
+FROM tm_orders o INNER JOIN tm_order_payment op
+ON (o.reference = op.order_reference)
+where o.current_state in (1, 2) AND op.date_add BETWEEN a.fecha_apertura AND IF(a.fecha_cierre = 0, CURRENT_TIMESTAMP(), a.fecha_cierre) ) as ventas, 
+        ( SELECT SUM(monto)
+FROM tm_pos_gastos
+where fecha BETWEEN a.fecha_apertura AND IF(a.fecha_cierre = 0, CURRENT_TIMESTAMP(), a.fecha_cierre) ) as gastos,       
+        a.id_pos_arqueoscaja as id_button_cierre
         ';
 
         $this->_where = Shop::addSqlRestriction(false, 'a');
 
         $this->fields_list = array(
 //            'id_pos_arqueoscaja' => array('title' => $this->l('ID'), 'align' => 'center', 'class' => 'fixed-width-xs'),
-            'fecha_apertura' => array('title' => $this->l('Fecha Apertura'),  'type' => 'datetime',),
-            'empleado_apertura' => array('title' => $this->l('Cajero'),  'havingFilter' => true),
-            'monto_apertura' => array('title' => $this->l('Fondo'),  'type' => 'price'),
-            'ventas' => array('title' => $this->l('Ventas'),  'type' => 'price',  'havingFilter' => true),
-            'monto_cierre' => array('title' => $this->l('Cierre real (S/)'),  'type' => 'price'),
-            'fecha_cierre' => array('title' => $this->l('Fecha Cierre'),  'type' => 'datetime',),
+            'fecha_apertura' => array('title' => $this->l('Fecha Apertura'),  'type' => 'datetime', 'remove_onclick' => true),
+            'empleado_apertura' => array('title' => $this->l('Cajero'),  'havingFilter' => true, 'remove_onclick' => true),
+            'monto_apertura' => array('title' => $this->l('Monto Apertura'),  'type' => 'price', 'remove_onclick' => true),
+            'ventas' => array('title' => $this->l('Ventas'),  'type' => 'price',  'havingFilter' => true, 'remove_onclick' => true),
+            'gastos' => array('title' => $this->l('
+            Gastos'),  'type' => 'price',  'havingFilter' => true, 'remove_onclick' => true),
+            'monto_cierre' => array('title' => $this->l('Cierre real'),  'type' => 'price', 'remove_onclick' => true),
+            'fecha_cierre' => array('title' => $this->l('Fecha Cierre'),  'type' => 'datetime', 'remove_onclick' => true),
 //            'estado_caja' => array('title' => $this->l('Estado'), 'align' => 'center', 'class' => 'fixed-width-sm', ),
 
         );

@@ -115,4 +115,18 @@ class PosArqueoscajaCore extends ObjectModel
 		');
     }
 
+    //para reportes
+
+    public static function getAllByDates($id_tienda,$fecha_inicio, $fecha_fin, $id_employee = false)
+    {
+
+        $sql = 'SELECT t.* FROM `'._DB_PREFIX_.'pos_arqueoscaja` t 
+        WHERE id_shop= ' .$id_tienda. ' 
+        AND DATE(fecha_apertura) BETWEEN \''.$fecha_inicio.' 00:00:00\' AND \''.$fecha_fin.' 23:59:59\' 
+        ' . ($id_employee > 0 ? ' AND id_employee_apertura = '.$id_employee:'').' ORDER BY fecha_apertura DESC';
+
+//        d($sql);
+        return Db::getInstance()->ExecuteS($sql);
+    }
+
 }

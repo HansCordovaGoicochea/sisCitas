@@ -2594,4 +2594,77 @@ class OrderCore extends ObjectModel
         $new_cart->delete();
         return $this;
     }
+
+    public static function getOrdersDateFromDateTOEfectivo($shop, $date_from, $date_to )
+    {
+//        d($id_caja);
+        $sql =
+            'select o.*, 
+( SELECT SUM(op.amount)
+FROM tm_order_payment op
+where o.reference = op.order_reference AND op.date_add BETWEEN \'' . $date_from . '\' AND  \'' . $date_to . '\' ) as pagos
+                FROM tm_orders o inner join tm_order_payment op ON (o.reference = op.order_reference)
+                WHERE o.id_shop = ' . $shop . ' and o.date_add >= \'' . $date_from . '\' and o.date_add <= \'' . $date_to . '\' AND o.current_state in (1, 2) AND tipo_pago = 1 group by o.id_order order by o.id_order desc
+                ';
+//
+//        var_dump($sql);
+//        echo '<br/>';
+//        d($sql);
+
+        return Db::getInstance()->executeS($sql);
+    }
+
+    public static function getOrdersDateFromDateTOVisa($shop, $date_from, $date_to )
+    {
+//        d($id_caja);
+        $sql =
+            'select o.*, 
+( SELECT SUM(op.amount)
+FROM tm_order_payment op
+where o.reference = op.order_reference AND op.date_add BETWEEN \'' . $date_from . '\' AND  \'' . $date_to . '\' ) as pagos
+                FROM tm_orders o inner join tm_order_payment op ON (o.reference = op.order_reference)
+                WHERE o.id_shop = ' . $shop . ' and o.date_add >= \'' . $date_from . '\' and o.date_add <= \'' . $date_to . '\' AND o.current_state in (1, 2) AND tipo_pago = 2 order by o.id_order desc
+                ';
+//
+//        var_dump($sql);
+//        echo '<br/>';
+//        d($sql);
+
+        return Db::getInstance()->executeS($sql);
+    }
+
+    public static function getOrdersDateFromDateTOIzipay($shop, $date_from, $date_to )
+    {
+//        d($id_caja);
+        $sql =
+            'select o.*, 
+( SELECT SUM(op.amount)
+FROM tm_order_payment op
+where o.reference = op.order_reference AND op.date_add BETWEEN \'' . $date_from . '\' AND  \'' . $date_to . '\' ) as pagos
+                FROM tm_orders o inner join tm_order_payment op ON (o.reference = op.order_reference)
+                WHERE o.id_shop = ' . $shop . ' and o.date_add >= \'' . $date_from . '\' and o.date_add <= \'' . $date_to . '\' AND o.current_state in (1, 2) AND tipo_pago = 3 order by o.id_order desc
+                ';
+//
+//        var_dump($sql);
+//        echo '<br/>';
+//        d($sql);
+
+        return Db::getInstance()->executeS($sql);
+    }
+    public static function getDetailsOrdersDateFromDateTO($id_order)
+    {
+//        d($id_caja);
+        $sql =
+            'select product_name, product_quantity, unit_price_tax_incl, total_price_tax_incl, o.id_currency, o.id_employee, "venta" as venta
+FROM tm_orders o LEFT JOIN tm_order_detail od
+  on o.id_order = od.id_order
+WHERE o.id_order = '.$id_order.' AND o.id_shop = '.Context::getContext()->shop->id.'
+';
+
+//        var_dump($sql);
+//        echo '<br/>';
+//        d($sql);
+
+        return Db::getInstance()->executeS($sql);
+    }
 }
