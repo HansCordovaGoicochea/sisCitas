@@ -97,7 +97,8 @@ if ($items && ($disableCombination ||$excludeIds)) {
     } else {
         echo json_encode($results);
     }
-} elseif ($items) {
+}
+elseif ($items) {
     // packs
     $results = array();
     foreach ($items as $item) {

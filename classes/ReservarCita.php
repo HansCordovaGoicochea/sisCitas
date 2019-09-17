@@ -21,6 +21,8 @@ class ReservarCitaCore extends ObjectModel
     public $id_shop;
     public $date_add;
     public $date_upd;
+    public $precio;
+    public $adelanto;
 
     /**
      * @see ObjectModel::$definition
@@ -44,6 +46,9 @@ class ReservarCitaCore extends ObjectModel
             'id_shop' => array('type' => self::TYPE_INT, 'validate' => 'isInt', 'required' => true),
             'date_add' => array('type' => self::TYPE_DATE, 'validate' => 'isDateFormat'),
             'date_upd' => array('type' => self::TYPE_DATE, 'validate' => 'isDateFormat'),
+
+            'precio' => array('type' => self::TYPE_FLOAT),
+            'adelanto' => array('type' => self::TYPE_FLOAT),
         ),
     );
 

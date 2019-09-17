@@ -194,7 +194,7 @@
                             <div class="input-group" style="width: 100%;">
                                 <selectdos
                                         style=" width: 50%;"
-                                        url="{$link->getAdminLink('AdminVender')|addslashes}&ajax=1&action=searchProducts"
+                                        url="ajax_products_list_ache.php"
                                         :name="'id_producto'"
                                         :selecteditems="[]"
                                         :text="product_name"

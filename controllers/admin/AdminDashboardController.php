@@ -330,7 +330,8 @@ from tm_order_detail od
 LEFT JOIN tm_employee e ON od.id_colaborador = e.id_employee
 where o.valid = 1 AND od.es_servicio = 1 AND o.date_add between \''.$fi.' 00:00:00\' and  \''.$ff.' 23:59:59\'
 group by colaborador, id_colaborador';
-
+//echo($sql);
+//d($sql);
         return Db::getInstance()->executeS($sql);
     }
 

@@ -41,13 +41,13 @@ class AdminCustomersControllerCore extends AdminController
         $this->addRowAction('edit');
         $this->addRowAction('view');
         $this->addRowAction('delete');
-        $this->bulk_actions = array(
-            'delete' => array(
-                'text' => $this->trans('Delete selected', array(), 'Admin.Notifications.Info'),
-                'confirm' => $this->trans('Delete selected items?', array(), 'Admin.Notifications.Info'),
-                'icon' => 'icon-trash'
-            )
-        );
+//        $this->bulk_actions = array(
+//            'delete' => array(
+//                'text' => $this->trans('Delete selected', array(), 'Admin.Notifications.Info'),
+//                'confirm' => $this->trans('Delete selected items?', array(), 'Admin.Notifications.Info'),
+//                'icon' => 'icon-trash'
+//            )
+//        );
 
         $this->default_form_language = $this->context->language->id;
 
@@ -290,24 +290,24 @@ class AdminCustomersControllerCore extends AdminController
         }
 
         // When deleting, first display a form to select the type of deletion
-        if ($this->action == 'delete' || $this->action == 'bulkdelete') {
-            if (Tools::getValue('deleteMode') == 'real' || Tools::getValue('deleteMode') == 'deleted') {
-                $this->delete_mode = Tools::getValue('deleteMode');
-            } else {
-                $this->action = 'select_delete';
-            }
-        }
+//        if ($this->action == 'delete' || $this->action == 'bulkdelete') {
+//            if (Tools::getValue('deleteMode') == 'real' || Tools::getValue('deleteMode') == 'deleted') {
+//                $this->delete_mode = Tools::getValue('deleteMode');
+//            } else {
+//                $this->action = 'select_delete';
+//            }
+//        }
     }
 
     public function renderList()
     {
-        if ((Tools::isSubmit('submitBulkdelete'.$this->table) || Tools::isSubmit('delete'.$this->table)) && $this->access('delete')) {
-            $this->tpl_list_vars = array(
-                'delete_customer' => true,
-                'REQUEST_URI' => $_SERVER['REQUEST_URI'],
-                'POST' => $_POST
-            );
-        }
+//        if ((Tools::isSubmit('submitBulkdelete'.$this->table) || Tools::isSubmit('delete'.$this->table)) && $this->access('delete')) {
+//            $this->tpl_list_vars = array(
+//                'delete_customer' => true,
+//                'REQUEST_URI' => $_SERVER['REQUEST_URI'],
+//                'POST' => $_POST
+//            );
+//        }
 
         return parent::renderList();
     }
@@ -717,7 +717,7 @@ class AdminCustomersControllerCore extends AdminController
         $customer->id_shop = $this->context->shop->id;
     }
 
-    public function renderKpis()
+    public function render123Kpis()
     {
         $time = time();
         $kpis = array();
@@ -964,8 +964,23 @@ class AdminCustomersControllerCore extends AdminController
 
     public function processDelete()
     {
-        $this->_setDeletedMode();
-        parent::processDelete();
+        if ($this->access('delete')) {
+            if (Validate::isLoadedObject($object = $this->loadObject())) {
+                /** @var State $object */
+                if (!$object->isUsed()) {
+                    $this->_setDeletedMode();
+                    parent::processDelete();
+
+                } else {
+                    $this->errors[] = $this->trans('Este cliente '.$object->firstname.' tiene ventas asociadas. Por esto no se puede borrar.', array(), 'Admin.International.Notification');
+                }
+            } else {
+                $this->errors[] = $this->trans('An error occurred while deleting the object.', array(), 'Admin.Notifications.Error').' <b>'.$this->table.'</b> '.$this->trans('(cannot load object)', array(), 'Admin.Notifications.Error');
+            }
+        } else {
+            $this->errors[] = $this->trans('You do not have permission to delete this.', array(), 'Admin.Notifications.Error');
+        }
+
     }
 
     protected function _setDeletedMode()

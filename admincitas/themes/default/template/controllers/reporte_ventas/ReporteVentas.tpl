@@ -206,7 +206,7 @@
                                 <tr class="success">
                                     <td style="text-align: left;" colspan="5">
                                         <strong>
-                                           Venta {$datos_fila.nro_ticket}
+                                           Venta {$datos_fila.nro_comprobante} - {$datos_fila.cliente}
                                         </strong>
                                     </td>
                                 </tr>
@@ -218,7 +218,7 @@
                                     {assign var='nro_operaciones' value=$nro_operaciones+1}
                                     {if $detail.product_quantity > 0}
                                         <tr >
-                                            <td style="text-align: left;">{$detail.date_add|date_format:"%d/%m/%Y %H:%M %p"}</td>
+                                            <td style="text-align: left;">{$detail.fecha|date_format:"%d/%m/%Y %H:%M %p"}</td>
                                             <td style="text-align: left;">{$detail.product_name}</td>
                                             <td style="text-align: center;">{$detail.product_quantity|round:2}</td>
                                             <td style="text-align: center;">{displayPrice currency=$datos_fila.id_currency price=$detail.total_price_tax_incl|round:2}</td>
@@ -264,7 +264,7 @@
                                 <tr class="success">
                                     <td style="text-align: left;" colspan="5">
                                         <strong>
-                                           Venta {$datos_fila.nro_ticket}
+                                            Venta {$datos_fila.nro_comprobante} - {$datos_fila.cliente}
                                         </strong>
                                     </td>
                                 </tr>
@@ -276,7 +276,7 @@
                                     {assign var='nro_operaciones' value=$nro_operaciones+1}
                                     {if $detail.product_quantity > 0}
                                         <tr >
-                                            <td style="text-align: left;">{$detail.date_add|date_format:"%d/%m/%Y %H:%M %p"}</td>
+                                            <td style="text-align: left;">{$detail.fecha|date_format:"%d/%m/%Y %H:%M %p"}</td>
                                             <td style="text-align: left;">{$detail.product_name}</td>
                                             <td style="text-align: center;">{$detail.product_quantity|round:2}</td>
                                             <td style="text-align: center;">{displayPrice currency=$datos_fila.id_currency price=$detail.total_price_tax_incl|round:2}</td>
@@ -322,7 +322,7 @@
                                 <tr class="success">
                                     <td style="text-align: left;" colspan="5">
                                         <strong>
-                                            Venta {$datos_fila.nro_ticket}
+                                            Venta {$datos_fila.nro_comprobante} - {$datos_fila.cliente}
                                         </strong>
                                     </td>
                                 </tr>
@@ -334,7 +334,7 @@
                                     {assign var='nro_operaciones' value=$nro_operaciones+1}
                                     {if $detail.product_quantity > 0}
                                         <tr >
-                                            <td style="text-align: left;">{$detail.date_add|date_format:"%d/%m/%Y %H:%M %p"}</td>
+                                            <td style="text-align: left;">{$detail.fecha|date_format:"%d/%m/%Y %H:%M %p"}</td>
                                             <td style="text-align: left;">{$detail.product_name}</td>
                                             <td style="text-align: center;">{$detail.product_quantity|round:2}</td>
                                             <td style="text-align: center;">{displayPrice currency=$datos_fila.id_currency price=$detail.total_price_tax_incl|round:2}</td>

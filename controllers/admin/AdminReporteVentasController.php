@@ -35,9 +35,14 @@ class AdminReporteVentasControllerCore extends AdminController {
             if($diaSemana==0)
                 $diaSemana=7;
             // A la fecha recibida, le restamos el dia de la semana y obtendremos el lunes
-            $primerDia=date("Y-m-d",mktime(0,0,0,$month,$day-$diaSemana+1,$year));
+//            $primerDia=date("Y-m-d",mktime(0,0,0,$month,$day-$diaSemana+1,$year));
+//            // A la fecha recibida, le sumamos el dia de la semana menos siete y obtendremos el domingo
+//            $ultimoDia=date("Y-m-d",mktime(0,0,0,$month,$day+(7-$diaSemana),$year));
+//
+            // A la fecha recibida, le restamos el dia de la semana y obtendremos el lunes
+            $primerDia=date("Y-m-d");
             // A la fecha recibida, le sumamos el dia de la semana menos siete y obtendremos el domingo
-            $ultimoDia=date("Y-m-d",mktime(0,0,0,$month,$day+(7-$diaSemana),$year));
+            $ultimoDia=date("Y-m-d");
         }
         else{
             $primerDia = str_replace('/', '-', $primerDia);

@@ -1474,4 +1474,30 @@ class CustomerCore extends ObjectModel
         return $result;
     }
 
+    /**
+     * Check if a state is used
+     *
+     * @return bool
+     */
+    public function isUsed()
+    {
+        return ($this->countUsed() > 0);
+    }
+
+    /**
+     * Returns the number of utilisation of a state
+     *
+     * @return int count for this state
+     */
+    public function countUsed()
+    {
+        $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue('
+			SELECT COUNT(*)
+			FROM `'._DB_PREFIX_.'orders`
+			WHERE `'.$this->def['primary'].'` = '.(int) $this->id
+        );
+
+        return $result;
+    }
+
 }

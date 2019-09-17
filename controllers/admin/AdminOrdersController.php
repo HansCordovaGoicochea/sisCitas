@@ -44,20 +44,26 @@ class AdminOrdersControllerCore extends AdminController
         $this->addRowAction('descargar_xml');
         $this->addRowAction('descargar_cdr');
         $this->addRowAction('descargar_pdf');
-        $this->addRowAction('generar_nota_credito');
-//        $this->addRowAction('generar_nota_debito');
-        $this->addRowAction('anular_comunicacion_baja');
-        $this->addRowAction('consultar_cdr');
-        ////////////////////////
-        $this->addRowAction('anular_venta');
-//        $this->addRowAction('comunicacion_baja');
-
-        parent::__construct();
 
         $this->existeCajasAbiertas = PosArqueoscaja::existenCajasAbiertas();
 //        if($this->context->cookie->admin_caja)
 //            $this->existeCaja = PosArqueoscaja::existeCaja($this->context->cookie->admin_caja);
         $this->nombre_access = Profile::getProfile(Context::getContext()->employee->id_profile);
+        if ($this->nombre_access['name'] == 'Administrador' || $this->nombre_access['name'] == 'SuperAdmin'){
+            $this->addRowAction('generar_nota_credito');
+//        $this->addRowAction('generar_nota_debito');
+            $this->addRowAction('anular_comunicacion_baja');
+            $this->addRowAction('anular_venta');
+        }
+
+        $this->addRowAction('consultar_cdr');
+        ////////////////////////
+
+//        $this->addRowAction('comunicacion_baja');
+
+        parent::__construct();
+
+
 
 
 
@@ -110,7 +116,7 @@ class AdminOrdersControllerCore extends AdminController
 
         $statuses = OrderState::getOrderStates((int)$this->context->language->id);
         foreach ($statuses as $status) {
-            if ($status['id_order_state'] == 1 || $status['id_order_state'] == 2 || $status['id_order_state'] == 6)
+            if ($status['id_order_state'] == 1 || $status['id_order_state'] == 2 || $status['id_order_state'] == 6 || $status['id_order_state'] == 14 || $status['id_order_state'] == 15 || $status['id_order_state'] == 16)
                 $this->statuses_array[$status['id_order_state']] = $status['name'];
         }
 
@@ -890,25 +896,25 @@ class AdminOrdersControllerCore extends AdminController
 
         $order->motivo_anulacion = Tools::getValue('motivo_anulacion');
         $order->update();
+        if (!empty($doc)) {
+            $order->setCurrentState(14, $this->context->employee->id); //estado 14 comunicacion de baja
+            $arr = Certificadofe::getCertificado();
+            $objCerti = new Certificadofe((int)$arr); // buscar el certificado
+            $numero_comprobante = $objComprobantes->numeracion_nota_baja;
+            $nombre_xml_comprobante = PS_SHOP_RUC . '-' . $numero_comprobante;
+            //creamos las RUTAS de los documentos
+            // creamos la carpeta donde se guardara el XML
+            $ruta_general_cdr = "archivos_sunat/baja/" . PS_SHOP_RUC . "/cdr/";
+            $ruta_cdr = $ruta_general_cdr;
 
-        $order->setCurrentState(14, $this->context->employee->id); //estado 14 comunicacion de baja
-        $arr = Certificadofe::getCertificado();
-        $objCerti = new Certificadofe((int)$arr); // buscar el certificado
-        $numero_comprobante = $objComprobantes->numeracion_nota_baja;
-        $nombre_xml_comprobante = PS_SHOP_RUC.'-'.$numero_comprobante;
-        //creamos las RUTAS de los documentos
-        // creamos la carpeta donde se guardara el XML
-        $ruta_general_cdr = "archivos_sunat/baja/".PS_SHOP_RUC."/cdr/";
-        $ruta_cdr = $ruta_general_cdr;
+            $resp_cdr = ProcesarComprobante::consultar_envio_ticket($objCerti->user_sunat, $objCerti->pass_sunat, $objComprobantes->identificador_comunicacion, $nombre_xml_comprobante, $ruta_cdr, $objCerti->web_service_sunat);
 
-        $resp_cdr = ProcesarComprobante::consultar_envio_ticket($objCerti->user_sunat, $objCerti->pass_sunat,  $objComprobantes->identificador_comunicacion, $nombre_xml_comprobante, $ruta_cdr, $objCerti->web_service_sunat);
-
-        if ($resp_cdr['respuesta'] == 'ok'){
-            $objComprobantes->mensaje_cdr = $resp_cdr['msj_sunat'];
-            $objComprobantes->ruta_cdr_otro = $resp_cdr['ruta_cdr'];
-            $objComprobantes->update();
+            if ($resp_cdr['respuesta'] == 'ok') {
+                $objComprobantes->mensaje_cdr = $resp_cdr['msj_sunat'];
+                $objComprobantes->ruta_cdr_otro = $resp_cdr['ruta_cdr'];
+                $objComprobantes->update();
+            }
         }
-
 
         return die(Tools::jsonEncode(array('errors' => true, 'estado' => 'disponible')));
 
@@ -1761,7 +1767,7 @@ class AdminOrdersControllerCore extends AdminController
             return false;
         }
 
-        return '<a  href="#cajas_pago" class="cajas_pago btn-default" title="Pagar" data-idorder="'.$id.'"><i class="icon-money"></i> Pagar</a>';
+        return '<a  href="#cajas_pago" class="cajas_pago btn-default" title="Pagar" data-idorder="'.$id.'"><i class="icon-money"></i> Pago Directo</a>';
 
     }
 
@@ -1840,6 +1846,14 @@ class AdminOrdersControllerCore extends AdminController
     public function initPageHeaderToolbar()
     {
         parent::initPageHeaderToolbar();
+
+        if ($this->display == 'view') {
+            $this->page_header_toolbar_btn['back_to_list'] = array(
+                'href' => Context::getContext()->link->getAdminLink('AdminOrders'),
+                'desc' => $this->l('Back to list', null, null, false),
+                'icon' => 'process-icon-back'
+            );
+        }
 
         if (empty($this->display)) {
             $this->page_header_toolbar_btn['new_order'] = array(

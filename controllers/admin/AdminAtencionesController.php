@@ -133,6 +133,15 @@ class AdminAtencionesControllerCore extends AdminController
 //
 
     }
+    public function setMedia($isNewTheme = false)
+    {
+        parent::setMedia($isNewTheme);
+
+        $this->addCSS(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/css/waitMe.min.css');
+        $this->addJs(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/js/waitMe.min.js');
+
+    }
+
 
     public function initPageHeaderToolbar()
     {

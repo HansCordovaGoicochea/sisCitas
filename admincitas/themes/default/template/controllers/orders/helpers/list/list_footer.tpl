@@ -193,7 +193,7 @@
                     },
                     success : function(res)
                     {
-                        // location.reload();
+                        location.reload();
                         if (res.respuesta === 'error'){
                             $.each(res.msg, function (i, value) {
                                 $.growl.error({ title:'', message: value })
@@ -305,7 +305,7 @@
                     },
                     success : function(res)
                     {
-                        // location.reload();
+                        location.reload();
                     },
                 });
             }else{

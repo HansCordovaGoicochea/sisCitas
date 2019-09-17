@@ -104,7 +104,7 @@
                 </a>
 
                   {if !empty($certificado) && (bool)$certificado['active'] && $order->current_state == 2}
-                    <button type="button" class="btn {if $objComprobantes->tipo_documento_electronico == "Boleta"}btn-primary{else}btn-default{/if} {if $order->total_paid_tax_incl == 0}hide{/if}" id="abrirCliente" data-value="Boleta">
+                    <button type="button" class="btn {if $objComprobantes->tipo_documento_electronico == "Boleta"}btn-primary{elseif $objComprobantes->tipo_documento_electronico == ""}btn-primary{else}btn-default{/if} {if $order->total_paid_tax_incl == 0}hide{/if}" id="abrirCliente" data-value="Boleta">
                       <i class="icon-file"></i>
                       {l s='Boleta Elect.' d='Admin.Orderscustomers.Feature'}
                     </button>
@@ -1059,6 +1059,8 @@
     });
     {/if}
 
+
+
     var help_class_name = "";
     $(document).ready(function() {
 
@@ -1136,9 +1138,12 @@
     });
 
 
+    var td_ache = '{$objComprobantes->tipo_documento_electronico}';
     $('#abrirCliente, #abrirEmpresa').on('click', function(evt, params) {
       var self = this;
-
+      if (td_ache === 'Factura'){
+        location.reload();
+      }
       if ($(this).data("value") === "Boleta") {
         tipo_documento_electronico = "Boleta";
         limitText('#txtNumeroDocumento', 8);
@@ -1175,6 +1180,8 @@
           $('#txtDireccion').val("");
         }
       }
+
+      td_ache = tipo_documento_electronico;
 
     });
 
@@ -1548,6 +1555,8 @@
                         $('#div_datos_cliente input').attr('disabled', false);
                         $('.adminorders').waitMe('hide');
                       }
+
+                      $('#b_compro, #f_compro').attr('disabled', false);
                     })
                     .fail(function (jqXHR, textStatus, errorThrown) {
                       alert("Solicitud fallida:" + textStatus);

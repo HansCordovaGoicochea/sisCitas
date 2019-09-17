@@ -190,6 +190,7 @@ class AdminPosGastosControllerCore extends AdminController
         $this->fields_value = array(
             'id_shop' => $this->getFieldValue($obj, 'id_shop') ? $this->getFieldValue($obj, 'id_shop') : $this->context->shop->id,
             'id_employee' => $this->getFieldValue($obj, 'id_employee') ? $this->getFieldValue($obj, 'id_employee') : $this->context->employee->id,
+            'fecha' => $this->getFieldValue($obj, 'fecha') ? $this->getFieldValue($obj, 'fecha') : date('Y-m-d'),
         );
 
         return parent::renderForm();

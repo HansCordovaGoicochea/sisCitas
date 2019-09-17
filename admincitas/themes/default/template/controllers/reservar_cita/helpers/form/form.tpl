@@ -1,3 +1,4 @@
+
 <style>
     .sunat-button {
         text-transform: uppercase!important;
@@ -121,20 +122,48 @@
                             </span>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <input type="hidden" id="product_id" name="product_id" value="{$cita->product_id}"/>
-                        <label for="product_id" class="control-label required">Servicio:</label>
-                        <div class="input-group">
-                            <input type="text" id="product_name" name="product_name" value="{$cita->product_name}" autocomplete="off" placeholder="Buscar servicio"/>
-                            <div class="input-group-addon">
-                                <i class="icon-search"></i>
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            <input type="hidden" id="product_id" name="product_id" value="{$cita->product_id}"/>
+                            <label for="product_id" class="control-label required">Servicio:</label>
+
+                                <input type="text" id="product_select2" name="product_select2" value="{$cita->product_name}" autocomplete="off" placeholder="Buscar servicio"/>
+                                <input type="hidden" id="product_name" name="product_name" value="{$cita->product_name}" autocomplete="off" placeholder="Buscar servicio"/>
+
+                        </div>
+                    </div>
+                    <div class="col-lg-3">
+                        <div class="form-group">
+                            <label for="product_id" class="control-label required">Precio:</label>
+                            <div class="input-group">
+                                <div class="input-group-addon">
+                                    <i class="icon-money"></i>
+                                </div>
+                                <input type="text" id="precio" name="precio" value="{$cita->precio}" autocomplete="off" readonly/>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3">
+                        <div class="form-group">
+                            <label for="product_id" class="control-label required">Monto de Adelanto:</label>
+                            <div class="input-group">
+                                <div class="input-group-addon">
+                                    <i class="icon-money"></i>
+                                </div>
+                                <input type="text" id="adelanto" name="adelanto" value="{$cita->adelanto}" autocomplete="off"/>
                             </div>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="product_id" class="control-label">Observación:</label>
-                        <textarea name="observacion" id="observacion" rows="2">{$cita->observacion}</textarea>
+
+                    <div class="col-lg-12">
+                        <div class="form-group">
+                            <label for="product_id" class="control-label">Observación:</label>
+                            <textarea name="observacion" id="observacion" rows="2">{$cita->observacion}</textarea>
+                        </div>
                     </div>
+
                     <div class="form-group col-lg-4 hide">
                         <label for="tipo_doc">Estado Actual:</label>
                         <select name="estado_actual" id="estado_actual" class="chosen">
@@ -179,7 +208,7 @@
                     </div>
                     <div class="form-group col-lg-6">
                         <label for="birthday" class="control-label required">Fecha Nacimiento:</label>
-                        <input type="text" class="form-control datepicker" id="birthday" name="birthday" value="{if $customer->birthday}{$customer->birthday|date_format:"%d/%m/%Y"}{/if}">
+                        <input type="text" class="form-control datepicker" id="birthday" name="birthday" value="{if isset($customer->birthday) != '0000-00-00'}{$customer->birthday|date_format:"%d/%m/%Y"}{/if}">
                     </div>
                     <div class="form-group col-lg-6">
                         <label for="celular" class="control-label">Celular:</label>
@@ -247,6 +276,10 @@
 <script>
     const url_ajax_cita = "{$link->getAdminLink('AdminReservarCita')|addslashes}";
 
+    $(function () {
+        $('.select2-arrow').append('<i class="fa fa-angle-down"></i>');
+    });
+
     $('#pasarVenta').click(function () {
         var x = confirm("¿Seguro de crear la venta?");
         if (x){
@@ -294,7 +327,7 @@
         }
 
     })
-    
+
     $('#cita_guardar_btn').click(function () {
         if (
             $('#id_colaborador :selected').val() !== "" &&
@@ -348,7 +381,7 @@
 
 
     });
-    
+
     function limitText(field, maxChar){
         $(field).attr('maxlength',maxChar);
     }
@@ -410,7 +443,8 @@
                         $('#txtNombre').val(data.result.firstname);
                         $('#txtDireccion').val(data.result.direccion);
                         $('#celular').val(data.result.celular);
-                        $('#birthday').val(data.result.birthday.split('-').reverse().join('/'));
+                        if (data.result.birthday !== '0000-00-00')
+                            $('#birthday').val(data.result.birthday.split('-').reverse().join('/'));
 
                     }
 
@@ -481,48 +515,138 @@
         });
     }
 
-
-    $("#product_name").autocomplete(url_ajax_cita,
-        {
-            minChars: 1,
-            max: 10,
-            // width: 100%,
-            selectFirst: true,
-            scroll: false,
-            dataType: "json",
-            highlightItem: true,
-            formatItem: function(data, i, max, value, term) {
-                return value;
-                // return '<table><tr><td valign="top">' + value + '</td><td valign="top"> 123 </td></tr></table>';
-            },
-            parse: function(data) {
-                var products = new Array();
-                if (typeof(data.products) != 'undefined')
-                    for (var i = 0; i < data.products.length; i++)
-                        products[i] = { data: data.products[i], value: data.products[i].name };
-                return products;
-            },
-            extraParams: {
-                ajax: true,
-                token: token,
-                action: 'getProductByName',
-                product_search: function() { return $('#product_name').val(); }
-            }
+    function productFormatResult(repo) {
+        if (repo.loading) {
+            return repo.text;
         }
-    )
-        .result(function(event, data, formatted) {
-            if (!data)
-            {
 
+        var $container = $(
+            "<div class='select2-result-repository clearfix'>" +
+            // "<div class='select2-result-repository__avatar'><img src='' /></div>" +
+            "<div class='select2-result-repository__meta'>" +
+            "<div class='select2-result-repository__title'></div>" +
+            "<div class='select2-result-repository__description'></div>" +
+            '<div class="select2-result-repository__statistics">' +
+            '<div class="select2-result-repository__forks"><i class="fa fa-list-ol"></i> </div>' +
+            '<div class="select2-result-repository__stargazers"><i class="fa fa-money"></i></div>' +
+            '</div>' +
+            "</div>" +
+            "</div>"
+        );
+
+        $container.find(".select2-result-repository__title").text(repo.name);
+        // $container.find(".select2-result-repository__description").text(repo.reference);
+
+        if (parseInt(repo.is_virtual) === 1){
+            // $container.find(".select2-result-repository__forks").remove();
+            $container.find(".select2-result-repository__forks").html("SERVICIO");
+        }else{
+            $container.find(".select2-result-repository__forks").append("&nbsp;Stock "+ repo.quantity);
+
+        }
+
+        $container.find(".select2-result-repository__stargazers").append("&nbsp;Precio "+ repo.formatted_price);
+        // $container.find(".select2-result-repository__watchers").append(repo.watchers_count + " Watchers");
+
+        return $container;
+    }
+    function productFormatSelection(repo) {
+        // console.log(repo);
+        return repo.name || repo.text;
+    }
+
+    $('#product_select2').select2({
+        placeholder: "Buscar Servicio",
+        minimumInputLength: 3,
+        width: '100%',
+        dropdownCssClass: "bootstrap",
+        initSelection: function (element, callback) {
+            callback({ id: '{$cita->product_id}', text: '{$cita->product_name}' });
+        },
+        ajax: {
+            url: "ajax_servicios_list.php",
+            dataType: 'json',
+            data: function (term) {
+                return {
+                    q: term
+                };
+            },
+            results: function (data) {
+                var returnIds = new Array();
+                if (data) {
+                    for (var i = data.length - 1; i >= 0; i--) {
+                        returnIds.push(data[i]);
+                    }
+                    return {
+                        results: returnIds
+                    }
+                } else {
+                    return {
+                        results: []
+                    }
+                }
             }
-            else
+        },
+        formatResult: productFormatResult,
+        formatSelection: productFormatSelection,
+    })
+        .on("select2-selecting", function(e) {
+            // selectedProduct = e.object
+            console.log(e.object);
+            if (e.object)
             {
                 // Keep product variable
-                current_product = data;
-                $('#product_id').val(data.id_product);
-                $('#product_name').val(data.name);
+                current_product = e.object;
+                $('#product_id').val(current_product.id_product);
+                $('#product_name').val(current_product.name);
+                $('#precio').val(current_product.price_tax_incl);
             }
+
         });
+
+
+
+    // $("#product_name").autocomplete(url_ajax_cita,
+    //     {
+    //         minChars: 1,
+    //         max: 10,
+    //         // width: 100%,
+    //         selectFirst: true,
+    //         scroll: false,
+    //         dataType: "json",
+    //         highlightItem: true,
+    //         formatItem: function(data, i, max, value, term) {
+    //             return value;
+    //             // return '<table><tr><td valign="top">' + value + '</td><td valign="top"> 123 </td></tr></table>';
+    //         },
+    //         parse: function(data) {
+    //             var products = new Array();
+    //             if (typeof(data.products) != 'undefined')
+    //                 for (var i = 0; i < data.products.length; i++)
+    //                     products[i] = { data: data.products[i], value: data.products[i].name };
+    //             return products;
+    //         },
+    //         extraParams: {
+    //             ajax: true,
+    //             token: token,
+    //             action: 'getProductByName',
+    //             product_search: function() { return $('#product_name').val(); }
+    //         }
+    //     }
+    // )
+    //     .result(function(event, data, formatted) {
+    //         if (!data)
+    //         {
+    //
+    //         }
+    //         else
+    //         {
+    //             // Keep product variable
+    //             current_product = data;
+    //             $('#product_id').val(data.id_product);
+    //             $('#product_name').val(data.name);
+    //         }
+    //     });
 
 
     $('.datetimepicker').datetimepicker({

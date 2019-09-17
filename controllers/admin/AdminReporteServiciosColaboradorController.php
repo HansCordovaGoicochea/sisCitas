@@ -36,7 +36,7 @@ class AdminReporteServiciosColaboradorControllerCore extends AdminController
         $this->_join .= 'LEFT JOIN `'._DB_PREFIX_.'orders` o ON (o.`id_order` = a.`id_order` AND o.`id_shop` = '.$this->context->shop->id.')';
         $this->_join .= 'LEFT JOIN `'._DB_PREFIX_.'customer` ec ON (ec.`id_customer` = o.`id_customer`)';
 
-        $this->_select .= 'CONCAT_WS(" ",ea.firstname, ea.lastname) as colaborador, ec.firstname as cliente, o.date_add as fecha';
+        $this->_select .= 'CONCAT_WS(" ",ea.firstname, ea.lastname) as colaborador, ec.firstname as cliente, o.date_add as fecha, a.total_price_tax_incl as total_servicio';
         $this->_where = ' AND es_servicio = 1 AND a.id_colaborador = '. Tools::getValue('id_colaborador').' AND valid = 1 AND o.date_add BETWEEN '.Tools::getValue('fi').' AND '.Tools::getValue('ff');
 
 
@@ -68,7 +68,12 @@ class AdminReporteServiciosColaboradorControllerCore extends AdminController
                 'remove_onclick' => true,
                 'search' => false
             ),
-            'total_price_tax_incl' => array(
+            'product_name' => array(
+                'title' => $this->l('Servicio'),
+                'remove_onclick' => true,
+                'search' => false
+            ),
+            'total_servicio' => array(
                 'title' => $this->l('Importe'),
                 'type' => 'price',
                 'remove_onclick' => true,
@@ -82,6 +87,19 @@ class AdminReporteServiciosColaboradorControllerCore extends AdminController
     {
         parent::initToolbar();
         unset($this->toolbar_btn['new']);
+
+    }
+
+    public function initPageHeaderToolbar()
+    {
+        parent::initPageHeaderToolbar();
+
+
+            $this->page_header_toolbar_btn['back_to_list'] = array(
+                'href' => Context::getContext()->link->getAdminLink('AdminDashboard'),
+                'desc' => $this->l('Back to list', null, null, false),
+                'icon' => 'process-icon-back'
+            );
 
     }
 

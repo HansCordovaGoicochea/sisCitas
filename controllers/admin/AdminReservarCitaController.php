@@ -38,6 +38,8 @@ class AdminReservarCitaControllerCore extends AdminController
             'colaborador' => array('title' => $this->l('Colaborador'),  'havingFilter' => true),
             'cliente' => array('title' => $this->l('Cliente'),  'havingFilter' => true),
             'product_name' => array('title' => $this->l('Servicio'),  'havingFilter' => true),
+            'precio' => array('title' => $this->l('Precio'),  'search' => false,  'type' => 'price'),
+            'adelanto' => array('title' => $this->l('Monto Adelantado'),  'search' => false,  'type' => 'price'),
             'estado' => array('title' => $this->l('Estado'),  'havingFilter' => true, 'color' => 'color'),
         );
         
@@ -108,6 +110,13 @@ class AdminReservarCitaControllerCore extends AdminController
         $this->addJqueryPlugin('autocomplete');
         $this->addCSS(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/css/waitMe.min.css');
         $this->addJs(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/js/waitMe.min.js');
+        $this->addCSS(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/template/controllers/reservar_cita/css/select2-reserva.css');
+
+        $this->addjQueryPlugin(array(
+            'select2',
+        ));
+        $this->addJS(_PS_JS_DIR_.'jquery/plugins/select2/select2_locale_es.js');
+
     }
 
     public function initPageHeaderToolbar()
@@ -157,6 +166,7 @@ class AdminReservarCitaControllerCore extends AdminController
             'tipo_documentos' => $tipo_documentos,
             'existeCajasAbiertas' =>  $this->existeCajasAbiertas,
             'nombre_access' =>  $this->nombre_access['name'],
+            'tpl_folder' => __PS_BASE_URI__ . $this->admin_webpath .'/themes/default/template/'. $this->tpl_folder,
         ));
 
         return parent::renderForm();
@@ -168,6 +178,7 @@ class AdminReservarCitaControllerCore extends AdminController
         $params = array();
         parse_str($data, $params);
 
+//        d($params);
         $id_reservar_cita = $params['id_reservar_cita'];
 
 
@@ -177,7 +188,7 @@ class AdminReservarCitaControllerCore extends AdminController
             $customer->num_document = trim($params['txtNumeroDocumento']);
             $customer->firstname = $params['txtNombre'];
             $customer->direccion = $params['txtDireccion'];
-            $customer->birthday = Tools::getFormatFechaGuardar($params['birthday']);
+            $customer->birthday = $params['birthday'] && $params['birthday'] != '0000-00-00' && $params['birthday'] != '1969-12-31' ? Tools::getFormatFechaGuardar($params['birthday']) : null;
             $customer->telefono_celular = $params['celular'];
             $customer->update();
             $id_cliente = $customer->id;
@@ -195,7 +206,7 @@ class AdminReservarCitaControllerCore extends AdminController
             $pass = $this->get('hashing')->hash("123456789", _COOKIE_KEY_);
             $customer->passwd = $pass;
             $customer->last_passwd_gen = date('Y-m-d H:i:s', strtotime('-'.Configuration::get('PS_PASSWD_TIME_FRONT').'minutes'));
-            $customer->birthday = Tools::getFormatFechaGuardar($params['birthday']);
+            $customer->birthday = $params['birthday'] != '0000-00-00' && $params['birthday'] != '1969-12-31' ? Tools::getFormatFechaGuardar($params['birthday']) : null;
             $customer->newsletter = 0;
             $customer->optin = 0;
             $customer->outstanding_allow_amount = 0;
@@ -239,6 +250,8 @@ class AdminReservarCitaControllerCore extends AdminController
         $obj->observacion = $params['observacion'];
         $obj->id_order = 0;
         $obj->estado_actual = $params['estado_actual'];
+        $obj->precio = $params['precio'];
+        $obj->adelanto = $params['adelanto'];
         $obj->id_employee = $this->context->employee->id;
         $obj->id_shop = $this->context->shop->id;
 
@@ -382,6 +395,88 @@ class AdminReservarCitaControllerCore extends AdminController
                 $objCita->estado_actual = 3; //facturado
                 $objCita->id_order = $order->id;
                 $objCita->update();
+
+                if ($objCita->adelanto > 0){
+
+                        $amount = str_replace(',', '.', $objCita->adelanto);
+                        $vuelto_pago = 0;
+                        $ultimopago = 0;
+                        foreach ($order->getOrderPaymentCollection() as $payment){
+                            $ultimopago += $payment->amount;
+                        }
+
+                        if ($amount > $order->total_paid){
+                            $vuelto_pago = $amount - $order->total_paid;
+                            $amount = $order->total_paid;
+                        } else {
+                            $ultimopago_final = $order->total_paid - $ultimopago ;
+                            if($amount > $ultimopago_final){
+                                $vuelto_pago = $amount - $ultimopago_final;
+                                $amount = $ultimopago_final;
+                            }
+                        }
+
+                        $currency = new Currency($order->id_currency);
+                        $order_invoice = null;
+
+                        if (!Validate::isLoadedObject($order)) {
+                            $this->errors[] = $this->trans('The order cannot be found', array(), 'Admin.Orderscustomers.Notification');
+                        } elseif (!Validate::isNegativePrice($amount) || !(float)$amount) {
+                            $this->errors[] = $this->trans('The amount is invalid.', array(), 'Admin.Orderscustomers.Notification');
+                        } elseif (!Validate::isLoadedObject($currency)) {
+                            $this->errors[] = $this->trans('The selected currency is invalid.', array(), 'Admin.Orderscustomers.Notification');
+                        } elseif (!Validate::isDate($order->date_add)) {
+                            $this->errors[] = $this->trans('The date is invalid', array(), 'Admin.Orderscustomers.Notification');
+                        } else {
+                            if (!$order->addOrderPayment($amount, "Efectivo", null, $currency, $order->date_add, $order_invoice, $vuelto_pago, 1, null, $this->context->employee->id)) {
+                                $this->errors[] = $this->trans('An error occurred during payment.', array(), 'Admin.Orderscustomers.Notification');
+
+                            } else {
+                                $suma_pagos = 0;
+
+                                foreach ($order->getOrderPaymentCollection() as $payment) {
+                                    $suma_pagos += $payment->amount;
+                                }
+
+                                if ($suma_pagos >= $order->total_paid_tax_incl){
+                                    //pago correcto
+                                    $order_state = new OrderState((int)ConfigurationCore::get('PS_OS_PAYMENT'), (int)$this->context->language->id);
+                                    $current_order_state = $order->getCurrentOrderState();
+
+                                    if ($current_order_state->id != $order_state->id) {
+                                        // Create new OrderHistory
+                                        $history = new OrderHistory();
+                                        $history->id_order = $order->id;
+                                        $history->id_employee = (int)$this->context->employee->id;
+
+                                        $use_existings_payment = false;
+                                        if (!$order->hasInvoice()) {
+                                            $use_existings_payment = true;
+                                        }
+                                        $history->changeIdOrderState((int)$order_state->id, $order, $use_existings_payment);
+
+                                        // Save all changes
+                                        if ($history->addWithemail(true)) {
+                                            // synchronizes quantities if needed..
+                                            if (Configuration::get('PS_ADVANCED_STOCK_MANAGEMENT')) {
+                                                foreach ($order->getProducts() as $product) {
+                                                    if (StockAvailable::dependsOnStock($product['product_id'])) {
+                                                        StockAvailable::synchronize($product['product_id'], (int)$product['id_shop']);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                $obj_caja = new PosArqueoscaja((int)$last_caja['id_pos_arqueoscaja']);
+                                $monto_temp = $obj_caja->monto_operaciones;
+                                $obj_caja->monto_operaciones = $monto_temp + $amount;
+                                $obj_caja->update();
+
+                            }
+                        }
+                }
 
                 $this->crearTicketVenta($order);
                 $this->ajaxDie(json_encode(array('response' => 'ok', 'order' => $order, 'cart' => $this->context->cart)));
