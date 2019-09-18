@@ -527,7 +527,7 @@ class ProcesarComprobante
             //convertimos de base 64 a archivo fisico
             $doc = new DOMDocument();
             $doc->loadXML($response);
-            d($response);
+//            d($response);
             file_put_contents("doc_response_ticket-consulta.txt",  $archivo ." ". date('Y-m-d H:i:s'). " -> ".$response.PHP_EOL , FILE_APPEND | LOCK_EX);
 
             //===================VERIFICAMOS SI HA ENVIADO CORRECTAMENTE EL COMPROBANTE=====================

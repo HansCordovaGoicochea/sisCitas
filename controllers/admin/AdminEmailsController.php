@@ -57,25 +57,25 @@ class AdminEmailsControllerCore extends AdminController
                 $languages[$language['id_lang']] = $language['name'];
             }
 
-            $this->fields_list = array(
-                'id_mail' => array('title' => $this->trans('ID', array(), 'Admin.Global'), 'align' => 'center', 'class' => 'fixed-width-xs'),
-                'recipient' => array('title' => $this->trans('Recipient', array(), 'Admin.Advparameters.Feature')),
-                'template' => array('title' => $this->trans('Template', array(), 'Admin.Advparameters.Feature')),
-                'language' => array(
-                    'title' => $this->trans('Language', array(), 'Admin.Global'),
-                    'type' => 'select',
-                    'color' => 'color',
-                    'list' => $languages,
-                    'filter_key' => 'a!id_lang',
-                    'filter_type' => 'int',
-                    'order_key' => 'language'
-                ),
-                'subject' => array('title' => $this->trans('Subject', array(), 'Admin.Advparameters.Feature')),
-                'date_add' => array(
-                    'title' => $this->trans('Sent', array(), 'Admin.Advparameters.Feature'),
-                    'type' => 'datetime',
-                )
-            );
+//            $this->fields_list = array(
+//                'id_mail' => array('title' => $this->trans('ID', array(), 'Admin.Global'), 'align' => 'center', 'class' => 'fixed-width-xs'),
+//                'recipient' => array('title' => $this->trans('Recipient', array(), 'Admin.Advparameters.Feature')),
+//                'template' => array('title' => $this->trans('Template', array(), 'Admin.Advparameters.Feature')),
+//                'language' => array(
+//                    'title' => $this->trans('Language', array(), 'Admin.Global'),
+//                    'type' => 'select',
+//                    'color' => 'color',
+//                    'list' => $languages,
+//                    'filter_key' => 'a!id_lang',
+//                    'filter_type' => 'int',
+//                    'order_key' => 'language'
+//                ),
+//                'subject' => array('title' => $this->trans('Subject', array(), 'Admin.Advparameters.Feature')),
+//                'date_add' => array(
+//                    'title' => $this->trans('Sent', array(), 'Admin.Advparameters.Feature'),
+//                    'type' => 'datetime',
+//                )
+//            );
             $this->_select .= 'l.name as language';
             $this->_join .= ' LEFT JOIN '._DB_PREFIX_.'lang l ON (a.id_lang = l.id_lang)';
             $this->_use_found_rows = false;
@@ -93,6 +93,7 @@ class AdminEmailsControllerCore extends AdminController
                 'icon' => 'icon-envelope',
                 'fields' =>    array(
                     'PS_MAIL_EMAIL_MESSAGE' => array(
+                        'form_group_class' => 'hide',
                         'title' => $this->trans('Send emails to', array(), 'Admin.Advparameters.Feature'),
                         'desc' => $this->trans('Where customers send messages from the order page.', array(), 'Admin.Advparameters.Help'),
                         'validation' => 'isUnsignedId',
@@ -102,16 +103,18 @@ class AdminEmailsControllerCore extends AdminController
                         'list' => $arr
                     ),
                     'PS_MAIL_METHOD' => array(
+
                         'title' => '',
                         'validation' => 'isGenericName',
                         'type' => 'radio',
                         'required' => true,
                         'choices' => array(
-                            3 => $this->trans('Never send emails (may be useful for testing purposes)', array(), 'Admin.Advparameters.Feature'),
+//                            3 => $this->trans('Never send emails (may be useful for testing purposes)', array(), 'Admin.Advparameters.Feature'),
                             2 => $this->trans('Set my own SMTP parameters (for advanced users ONLY)', array(), 'Admin.Advparameters.Feature')
                         )
                     ),
                     'PS_MAIL_TYPE' => array(
+                        'form_group_class' => 'hide',
                         'title' => '',
                         'validation' => 'isGenericName',
                         'type' => 'radio',
@@ -123,6 +126,7 @@ class AdminEmailsControllerCore extends AdminController
                         )
                     ),
                     'PS_LOG_EMAILS' => array(
+                        'form_group_class' => 'hide',
                         'title' => $this->trans('Log Emails', array(), 'Admin.Advparameters.Feature'),
                         'validation' => 'isBool',
                         'cast' => 'intval',

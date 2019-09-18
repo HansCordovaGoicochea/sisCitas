@@ -17,7 +17,7 @@
             <h4>Filtro del Reporte:</h4>
         </div>
         <div class="panel-body ">
-            <div class="container" >
+            <div class="" >
                 <div class='row ' >
                     <div class="col-md-3  col-xs-12">
                         <div class="input-group">
@@ -76,7 +76,7 @@
                     <div class="row">
                         <div class="col-md-12">
                             <div class="pull-left">
-                                <span class="badge {if !(bool)$aperturas_caja.estado}badge-danger{/if}">{$aperturas_caja.fecha_apertura|date_format:"%d/%m/%Y %H:%M %p"} - {$aperturas_caja.fecha_cierre|date_format:"%d/%m/%Y %H:%M %p"} - Monto de Apertura Caja: {displayPrice currency=1 price=$aperturas_caja.monto_apertura|round:2} - {$aperturas_caja.empleado_apertura->firstname}, {$aperturas_caja.empleado_apertura->lastname}</span>
+                                <span class="badge {if !(bool)$aperturas_caja.estado}badge-danger{/if}">{$aperturas_caja.fecha_apertura|date_format:"%d/%m/%Y %I:%M %p"} - {$aperturas_caja.fecha_cierre|date_format:"%d/%m/%Y %I:%M %p"} - Monto de Apertura Caja: {displayPrice currency=1 price=$aperturas_caja.monto_apertura|round:2} - {$aperturas_caja.empleado_apertura->firstname}, {$aperturas_caja.empleado_apertura->lastname}</span>
                             </div>
                             <div class="pull-right">
                                 <a id="desc-oper-export-{$aperturas_caja.id_pos_arqueoscaja}" class="list-toolbar-btn" href="#" style="height: 30px; width: 30px; color: #CCC; float: left; border-left: solid 1px #eee;">
@@ -106,8 +106,9 @@
                                             Fecha: { type: String },
                                             Producto: { type: String },
                                             Cant: { type: String },
-                                            // Precio: { type: String },
-                                            // SubTotal: { type: String }
+                                            Importe: { type: String },
+                                            Pagos: { type: String },
+                                            Deuda: { type: String }
                                         }
                                     }
                                 });
@@ -115,7 +116,7 @@
                                 // when parsing is done, export the data to Excel
                                 dataSource.read().then(function (data) {
                                     new shield.exp.OOXMLWorkbook({
-                                        author: "SCTecnologia",
+                                        author: "Ache",
                                         worksheets: [
                                             {
                                                 name: "Reporte Ventas",
@@ -143,20 +144,27 @@
                                                                 type: String,
                                                                 value: "Cant"
                                                             },
-                                                            // {
-                                                            //     style: {
-                                                            //         bold: true
-                                                            //     },
-                                                            //     type: String,
-                                                            //     value: "Precio"
-                                                            // },
-                                                            // {
-                                                            //     style: {
-                                                            //         bold: true
-                                                            //     },
-                                                            //     type: String,
-                                                            //     value: "SubTotal"
-                                                            // }
+                                                            {
+                                                                style: {
+                                                                    bold: true
+                                                                },
+                                                                type: String,
+                                                                value: "Importe"
+                                                            },
+                                                            {
+                                                                style: {
+                                                                    bold: true
+                                                                },
+                                                                type: String,
+                                                                value: "Pagos"
+                                                            },
+                                                            {
+                                                                style: {
+                                                                    bold: true
+                                                                },
+                                                                type: String,
+                                                                value: "Deuda"
+                                                            }
                                                         ]
                                                     }
                                                 ].concat($.map(data, function(item) {
@@ -165,8 +173,9 @@
                                                             { type: String, value: item.Fecha },
                                                             { type: String, value: item.Producto },
                                                             { type: String, value: item.Cant },
-                                                            // { type: String, value: item.Precio },
-                                                            // { type: String, value: item.SubTotal }
+                                                            { type: String, value: item.Importe },
+                                                            { type: String, value: item.Pagos },
+                                                            { type: String, value: item.Deuda }
                                                         ]
                                                     };
                                                 }))
@@ -182,11 +191,12 @@
                     <table width="100%" class="table" id="tabla_datos_apertura_{$aperturas_caja.id_pos_arqueoscaja}">
                         <thead>
                             <tr>
-                                <th style="text-align: left;" width="20%">Fecha</th>
-                                <th style="text-align: left; " width="28%">Producto</th>
-                                <th style="text-align: center; " width="9%">Cant</th>
-                                <th style="text-align: center;  " width="18%">Importe</th>
-                                <th style="text-align: center; " width="20%">Pagos</th>
+                                <th style="text-align: left;" width="15%">Fecha</th>
+                                <th style="text-align: left; " width="30%">Producto</th>
+                                <th style="text-align: center; " width="10%">Cant</th>
+                                <th style="text-align: center;  " width="15%">Importe</th>
+                                <th style="text-align: center; " width="15%">Pagos</th>
+                                <th style="text-align: center; " width="15%">Deuda</th>
     {*                            <th style="text-align: center; font-weight: bold;" width="20%">Precio</th>*}
     {*                            <th style="text-align: center; font-weight: bold;" width="20%">SubTotal</th>*}
                             </tr>
@@ -195,7 +205,7 @@
                         <!-- PRODUCTS -->
                         {if count($aperturas_caja.efectivo)}
                             <tr class="info">
-                                <td style="text-align: center;" colspan="5">
+                                <td style="text-align: center; font-size: 1.25em" colspan="6">
                                     <strong>
                                         Efectivo
                                     </strong>
@@ -204,7 +214,7 @@
                         {foreach from=$aperturas_caja.efectivo item=datos_fila}
                             {if isset($datos_fila.id_order) && (int)$datos_fila.id_order > 0}
                                 <tr class="success">
-                                    <td style="text-align: left;" colspan="5">
+                                    <td style="text-align: left;" colspan="6">
                                         <strong>
                                            Venta {$datos_fila.nro_comprobante} - {$datos_fila.cliente}
                                         </strong>
@@ -218,7 +228,7 @@
                                     {assign var='nro_operaciones' value=$nro_operaciones+1}
                                     {if $detail.product_quantity > 0}
                                         <tr >
-                                            <td style="text-align: left;">{$detail.fecha|date_format:"%d/%m/%Y %H:%M %p"}</td>
+                                            <td style="text-align: left;">{$detail.fecha|date_format:"%d/%m/%Y %I:%M %p"}</td>
                                             <td style="text-align: left;">{$detail.product_name}</td>
                                             <td style="text-align: center;">{$detail.product_quantity|round:2}</td>
                                             <td style="text-align: center;">{displayPrice currency=$datos_fila.id_currency price=$detail.total_price_tax_incl|round:2}</td>
@@ -236,7 +246,7 @@
                                     <td style="text-align: right;">Totales</td>
                                     <td style="text-align: center;">{displayPrice currency=$datos_fila.id_currency price=$total|round:2}</td>
                                     <td style="text-align: center;">{displayPrice currency=$datos_fila.id_currency price=$datos_fila.pagos|round:2}</td>
-{*                                    <td style="text-align: right;"></td>*}
+                                    <td style="text-align: center;">S/ 0.00</td>
 {*                                    <td style="text-align: right;"></td>*}
                                 </tr>
                             {/if}
@@ -253,7 +263,7 @@
                         {/if}
                         {if count($aperturas_caja.visa)}
                             <tr class="info">
-                                <td style="text-align: center;" colspan="5">
+                                <td style="text-align: center; font-size: 1.25em" colspan="6">
                                     <strong>
                                         Visa
                                     </strong>
@@ -262,7 +272,7 @@
                         {foreach from=$aperturas_caja.visa item=datos_fila}
                             {if isset($datos_fila.id_order) && (int)$datos_fila.id_order > 0}
                                 <tr class="success">
-                                    <td style="text-align: left;" colspan="5">
+                                    <td style="text-align: left; " colspan="6">
                                         <strong>
                                             Venta {$datos_fila.nro_comprobante} - {$datos_fila.cliente}
                                         </strong>
@@ -276,7 +286,7 @@
                                     {assign var='nro_operaciones' value=$nro_operaciones+1}
                                     {if $detail.product_quantity > 0}
                                         <tr >
-                                            <td style="text-align: left;">{$detail.fecha|date_format:"%d/%m/%Y %H:%M %p"}</td>
+                                            <td style="text-align: left;">{$detail.fecha|date_format:"%d/%m/%Y %I:%M %p"}</td>
                                             <td style="text-align: left;">{$detail.product_name}</td>
                                             <td style="text-align: center;">{$detail.product_quantity|round:2}</td>
                                             <td style="text-align: center;">{displayPrice currency=$datos_fila.id_currency price=$detail.total_price_tax_incl|round:2}</td>
@@ -294,7 +304,7 @@
                                     <td style="text-align: right;">Totales</td>
                                     <td style="text-align: center;">{displayPrice currency=$datos_fila.id_currency price=$total|round:2}</td>
                                     <td style="text-align: center;">{displayPrice currency=$datos_fila.id_currency price=$datos_fila.pagos|round:2}</td>
-{*                                    <td style="text-align: right;"></td>*}
+                                    <td style="text-align: center;">S/ 0.00</td>
 {*                                    <td style="text-align: right;"></td>*}
                                 </tr>
                             {/if}
@@ -311,7 +321,7 @@
                         {/if}
                         {if count($aperturas_caja.izipay)}
                             <tr class="info">
-                                <td style="text-align: center;" colspan="5">
+                                <td style="text-align: center; font-size: 1.25em" colspan="6">
                                     <strong>
                                         Izipay
                                     </strong>
@@ -320,7 +330,7 @@
                         {foreach from=$aperturas_caja.izipay item=datos_fila}
                             {if isset($datos_fila.id_order) && (int)$datos_fila.id_order > 0}
                                 <tr class="success">
-                                    <td style="text-align: left;" colspan="5">
+                                    <td style="text-align: left;" colspan="6">
                                         <strong>
                                             Venta {$datos_fila.nro_comprobante} - {$datos_fila.cliente}
                                         </strong>
@@ -334,7 +344,7 @@
                                     {assign var='nro_operaciones' value=$nro_operaciones+1}
                                     {if $detail.product_quantity > 0}
                                         <tr >
-                                            <td style="text-align: left;">{$detail.fecha|date_format:"%d/%m/%Y %H:%M %p"}</td>
+                                            <td style="text-align: left;">{$detail.fecha|date_format:"%d/%m/%Y %I:%M %p"}</td>
                                             <td style="text-align: left;">{$detail.product_name}</td>
                                             <td style="text-align: center;">{$detail.product_quantity|round:2}</td>
                                             <td style="text-align: center;">{displayPrice currency=$datos_fila.id_currency price=$detail.total_price_tax_incl|round:2}</td>
@@ -352,7 +362,7 @@
                                     <td style="text-align: right;">Totales</td>
                                     <td style="text-align: center;">{displayPrice currency=$datos_fila.id_currency price=$total|round:2}</td>
                                     <td style="text-align: center;">{displayPrice currency=$datos_fila.id_currency price=$datos_fila.pagos|round:2}</td>
-                                    {*                                    <td style="text-align: right;"></td>*}
+                                    <td style="text-align: center;">S/ 0.00</td>
                                     {*                                    <td style="text-align: right;"></td>*}
                                 </tr>
                             {/if}
@@ -366,6 +376,100 @@
                                 </td>
                             </tr>
                         {/foreach}
+                        {/if}
+                        {if count($aperturas_caja.porcobrar)}
+                            <tr class="info">
+                                <td style="text-align: center; font-size: 1.25em" colspan="6">
+                                    <strong>
+                                        CUENTAS POR COBRAR
+                                    </strong>
+                                </td>
+                            </tr>
+                        {foreach from=$aperturas_caja.porcobrar item=datos_fila}
+                            {if isset($datos_fila.id_order) && (int)$datos_fila.id_order > 0}
+                                <tr class="success">
+                                    <td style="text-align: left;" colspan="6">
+                                        <strong>
+                                            Venta {$datos_fila.nro_comprobante} - {$datos_fila.cliente}
+                                        </strong>
+                                    </td>
+                                </tr>
+
+                                {assign var='total' value=0}
+                                {assign var='nro_operaciones' value=0}
+                                {foreach from=Order::getDetailsOrdersDateFromDateTO((int)$datos_fila.id_order) item='detail'}
+                                    {assign var='total' value=$total+$detail.total_price_tax_incl}
+                                    {assign var='nro_operaciones' value=$nro_operaciones+1}
+                                    {if $detail.product_quantity > 0}
+                                        <tr >
+                                            <td style="text-align: left;">{$detail.fecha|date_format:"%d/%m/%Y %I:%M %p"}</td>
+                                            <td style="text-align: left;">{$detail.product_name}</td>
+                                            <td style="text-align: center;">{$detail.product_quantity|round:2}</td>
+                                            <td style="text-align: center;">{displayPrice currency=$datos_fila.id_currency price=$detail.total_price_tax_incl|round:2}</td>
+                                            <td style="text-align: center;">- -</td>
+                                            {*                                            <td style="text-align: center;">{displayPrice currency=$datos_fila.id_currency price=$detail.unit_price_tax_incl|round:2}</td>*}
+                                            {*                                            <td style="text-align: center;">{displayPrice currency=$datos_fila.id_currency price=$detail.total_price_tax_incl|round:2}</td>*}
+                                        </tr>
+                                    {/if}
+
+                                {/foreach}
+
+                                <tr class="warning">
+                                    <td style="text-align: right;"></td>
+                                    <td style="text-align: right;"></td>
+                                    <td style="text-align: right;">Totales</td>
+                                    <td style="text-align: center;">{displayPrice currency=$datos_fila.id_currency price=$total|round:2}</td>
+                                    <td style="text-align: center;">{displayPrice currency=$datos_fila.id_currency price=$datos_fila.pagos|round:2}</td>
+                                    <td style="text-align: center;">{displayPrice currency=$datos_fila.id_currency price=$total - $datos_fila.pagos|round:2}</td>
+                                    {*                                    <td style="text-align: right;"></td>*}
+                                </tr>
+                            {/if}
+                            {foreachelse}
+                            <tr>
+                                <td class="list-empty" colspan="6">
+                                    <div class="list-empty-msg">
+                                        <i class="icon-warning-sign list-empty-icon"></i>
+                                        Ningún registro encontrado
+                                    </div>
+                                </td>
+                            </tr>
+                        {/foreach}
+                        {/if}
+
+                        {if count($aperturas_caja.egresos)}
+                            <tr class="info">
+                                <td style="text-align: center; font-size: 1.25em" colspan="6">
+                                    <strong>
+                                        EGRESOS
+                                    </strong>
+                                </td>
+                            </tr>
+
+
+                                {assign var='total' value=0}
+                                {assign var='nro_operaciones' value=0}
+                                {foreach from=$aperturas_caja.egresos item='detail'}
+                                    {assign var='total' value=$total+$detail.monto}
+                                    {assign var='nro_operaciones' value=$nro_operaciones+1}
+                                    <tr >
+                                        <td style="text-align: left;">{$detail.fecha|date_format:"%d/%m/%Y %I:%M %p"}</td>
+                                        <td style="text-align: left;">{$detail.descripcion}</td>
+                                        <td style="text-align: center;">- -</td>
+                                        <td style="text-align: center;">-{displayPrice currency=1 price=$detail.monto|round:2}</td>
+                                        <td style="text-align: center;">- -</td>
+                                    </tr>
+                                {/foreach}
+
+                                <tr class="warning">
+                                    <td style="text-align: right;"></td>
+                                    <td style="text-align: right;"></td>
+                                    <td style="text-align: right;">Totales</td>
+                                    <td style="text-align: center;">-{displayPrice currency=$datos_fila.id_currency price=$total|round:2}</td>
+                                    <td style="text-align: center;"> - - </td>
+                                    <td style="text-align: center;"> - - </td>
+                                    {*                                    <td style="text-align: right;"></td>*}
+                                </tr>
+
                         {/if}
                         </tbody>
                     </table>

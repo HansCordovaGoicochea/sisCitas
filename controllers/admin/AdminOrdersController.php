@@ -5402,8 +5402,9 @@ class AdminOrdersControllerCore extends AdminController
         if ($this->tabAccess['edit']) {
 //            d(Tools::getValue('id_order'));
             $order = new Order((int)Tools::getValue('id_order'));
+            $objComprobantes = new PosOrdercomprobantes((int)Tools::getValue('id_pos_ordercomprobantes'));
 
-//         d($order);
+
             if (Validate::isLoadedObject($order)) {
 
                 $customer = new Customer((int)$order->id_customer);
@@ -5420,16 +5421,18 @@ class AdminOrdersControllerCore extends AdminController
 
 
 
-                    if($order->nota_baja != "" && $order->nota_baja == "NotaCredito"){
-                        $files[] = $order->ruta_pdf_a4nota;
-                    }else if($order->nota_baja != "" && $order->nota_baja == "Baja"){
-                        $files[] = $order->ruta_ticket;
-                        $files[] = $order->ruta_pdf_a4;
+                    if($objComprobantes->nota_baja != "" && $objComprobantes->nota_baja == "ComunicacionBaja"){
+                        $files[] = $objComprobantes->ruta_ticket;
+                        $files[] = $objComprobantes->ruta_pdf_a4;
+                        $files[] = $objComprobantes->ruta_xml_otro;
                     }else{
-                        $files[] = $order->ruta_ticket;
-                        $files[] = $order->ruta_pdf_a4;
-                        $files[] = $order->ruta_xml;
-                        $files[] = $order->ruta_cdr;
+                        if($objComprobantes->tipo_documento_electronico != "" && $objComprobantes->tipo_documento_electronico == "NotaCredito") {
+                        }else{
+                            $files[] = $objComprobantes->ruta_ticket;
+                        }
+                        $files[] = $objComprobantes->ruta_pdf_a4;
+                        $files[] = $objComprobantes->ruta_xml;
+                        $files[] = $objComprobantes->ruta_cdr;
                     }
 
 
@@ -5454,91 +5457,55 @@ class AdminOrdersControllerCore extends AdminController
                     }
 //                 d($adjuntoArchivos);
 
-                    if($order->nota_baja != "" && $order->nota_baja == "NotaCredito"){
-                        $formato_page = 'nota_credito_email';
-
-                        if ($order->cliente_empresa == "Cliente") {
-                            $titulo_m = 'Nota de Credito del Comprobante Nro. ' . $order->numero_comprobante . ' - ' . $customer->firstname . ' ' . $customer->lastname;
-
-                            $mailVars = array(
-                                '{nombre}' =>$customer->firstname.' '.$customer->lastname,
-                                '{firstname}' => $customer->firstname,
-                                '{lastname}' => $customer->lastname,
-                                '{numero_comprobante}' => $order->numero_comprobante,
-                                '{numeracion_nota_baja}' => $order->numeracion_nota_baja,
-
-                            );
-                            $nombre_cliente = $customer->firstname.' '.$customer->lastname;
-                        }
-                        else {
-                            $supplier = new Supplier((int)$order->id_supplier);
-                            $titulo_m = 'Nota de Credito del Comprobante Nro. ' . $order->numero_comprobante . $supplier->razon_social_supplier;
-                            $mailVars = array(
-                                '{nombre}' => $supplier->razon_social_supplier,
-                                '{firstname}' => "",
-                                '{lastname}' => "",
-                                '{numero_comprobante}' => $order->numero_comprobante,
-                                '{numeracion_nota_baja}' => $order->numeracion_nota_baja,
-                            );
-                            $nombre_cliente = $supplier->razon_social_supplier;
-                        }
-
-                    }else if($order->nota_baja != "" && $order->nota_baja == "Baja"){
+                 if($objComprobantes->nota_baja != "" && $objComprobantes->nota_baja == "ComunicacionBaja"){
                         $formato_page = 'comunicacion_baja_email';
 
-                        if ($order->cliente_empresa == "Cliente") {
-                            $titulo_m = 'Comunicacion de baja del Comprobante Nro. ' . $order->numero_comprobante . ' - ' . $customer->firstname . ' ' . $customer->lastname;
 
-                            $mailVars = array(
-                                '{nombre}' =>$customer->firstname.' '.$customer->lastname,
-                                '{firstname}' => $customer->firstname,
-                                '{lastname}' => $customer->lastname,
-                                '{numero_comprobante}' => $order->numero_comprobante,
-                                '{numeracion_nota_baja}' => $order->numeracion_nota_baja,
-                                '{mensaje_anulacion}' => $order->tipo_documento_electronico == "Factura"?"con la Comunicación de Baja":"en un Resumen diario",
+                        $titulo_m = 'Comunicacion de baja del Comprobante Nro. ' . $objComprobantes->numero_comprobante . ' - ' . $customer->firstname;
+
+                        $mailVars = array(
+                            '{nombre}' =>$customer->firstname,
+                            '{firstname}' => $customer->firstname,
+                            '{lastname}' => $customer->lastname,
+                            '{numero_comprobante}' => $objComprobantes->numero_comprobante,
+                            '{numeracion_nota_baja}' => $objComprobantes->numeracion_nota_baja,
+                            '{mensaje_anulacion}' => $objComprobantes->tipo_documento_electronico == "Factura"?"con la Comunicación de Baja":"en un Resumen diario",
 //                        '{total}' => $detalleCotiza[0]['total_con_impuesto'],
 //                        '{attached_file}'=>'Por favor ver Archivos Adjuntos'
-                            );
-                            $nombre_cliente = $customer->firstname.' '.$customer->lastname;
-                        }
-                        else {
-                            $supplier = new Supplier((int)$order->id_supplier);
-                            $titulo_m = 'Comunicacion de baja del Comprobante Nro. ' . $order->numero_comprobante . ' - ' . $supplier->razon_social_supplier;
-                            $mailVars = array(
-                                '{nombre}' => $supplier->razon_social_supplier,
-                                '{firstname}' => "",
-                                '{lastname}' => "",
-                                '{numero_comprobante}' => $order->numero_comprobante,
-                                '{numeracion_nota_baja}' => $order->numeracion_nota_baja,
-                            );
+                        );
+                        $nombre_cliente = $customer->firstname.' '.$customer->lastname;
 
-                            $nombre_cliente = $supplier->razon_social_supplier;
-                        }
+
 
                     }else{
-                        $formato_page = 'comprobantes_electronicos';
-
-                        if ($order->cliente_empresa == "Cliente") {
-                            $titulo_m = 'Adjuntos Nro. ' . $order->id . ' - ' . $customer->firstname . ' ' . $customer->lastname;
+                        if($objComprobantes->tipo_documento_electronico != "" && $objComprobantes->tipo_documento_electronico == "NotaCredito") {
+                            $formato_page = 'nota_credito_email';
+                            $factura = PosOrdercomprobantes::getFacturaByOrderLimit($objComprobantes->id_order);
+                            $titulo_m = 'Nota de Credito del Comprobante Nro. ' . $factura['numero_comprobante'] . ' - ' . $customer->firstname;
                             $mailVars = array(
-                                '{nombre}' =>$customer->firstname.' '.$customer->lastname,
+                                '{nombre}' =>$customer->firstname,
+                                '{firstname}' => $customer->firstname,
+                                '{lastname}' => $customer->lastname,
+                                '{numero_comprobante}' => $factura['numero_comprobante'],
+                                '{numeracion_nota_baja}' => $objComprobantes->numero_comprobante,
+
+                            );
+                        }else{
+                            $formato_page = 'comprobantes_electronicos';
+                            $titulo_m = 'Adjuntos Nro. ' . $objComprobantes->numero_comprobante . ' - ' . $customer->firstname ;
+
+                            $mailVars = array(
+                                '{nombre}' =>$customer->firstname,
                                 '{firstname}' => $customer->firstname,
                                 '{lastname}' => $customer->lastname,
 //                        '{total}' => $detalleCotiza[0]['total_con_impuesto'],
 //                        '{attached_file}'=>'Por favor ver Archivos Adjuntos'
                             );
-                            $nombre_cliente = $customer->firstname.' '.$customer->lastname;
                         }
-                        else {
-                            $supplier = new Supplier((int)$order->id_supplier);
-                            $titulo_m = 'Adjuntos Nro. ' . $order->id . ' - ' . $supplier->razon_social_supplier;
-                            $mailVars = array(
-                                '{nombre}' => $supplier->razon_social_supplier,
-                                '{firstname}' => "",
-                                '{lastname}' => "",
-                            );
-                            $nombre_cliente = $supplier->razon_social_supplier;
-                        }
+
+
+
+                        $nombre_cliente = $customer->firstname.' '.$customer->lastname;
 
                     }
 
@@ -5549,14 +5516,15 @@ class AdminOrdersControllerCore extends AdminController
                     $correo='';
 //                    d( $this->context->language->id);
                     $cart = new Shop((int)Context::getContext()->shop->id);
-                    foreach ($arraycorreo as $email) {
+                    foreach ($arraycorreo as $key => $email) {
                         if ($email) {
 //                            echo $email.'<br/>';
 //                            d($email);
-                            if ($order->cliente_empresa == "Cliente") {
+                            if ($key == 0){
                                 $customer->email = $email;
                                 $customer->update();
                             }
+
 
                             Mail::Send($this->context->language->id, $formato_page, Mail::l($titulo_m, 1), $mailVars, $email, $nombre_cliente, null, null, $adjuntoArchivos, null, _PS_MAIL_DIR_, true, $cart->id);
                             $correo = $email . '; ';

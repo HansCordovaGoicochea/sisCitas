@@ -43,4 +43,20 @@ class PosGastosCore extends ObjectModel
         ),
     );
 
+    public static function getDateFromDateTOEgresos($shop, $date_from, $date_to )
+    {
+//        d($id_caja);
+        $sql =
+            'select * from tm_pos_gastos pg
+                WHERE pg.id_shop = ' . $shop . ' and pg.fecha >= \'' . $date_from . '\' and pg.fecha <= \'' . $date_to . '\' order by id_pos_gastos desc
+                ';
+//
+//        var_dump($sql);
+//        echo '<br/>';
+//        d($sql);
+
+        return Db::getInstance()->executeS($sql);
+    }
+
+
 }

@@ -193,6 +193,7 @@
                           tab: "AdminOrders",
                           action: "sendMailValidateOrderDocs",
                           id_order: '{$order->id}',
+                          id_pos_ordercomprobantes: '{$objComprobantes->id}',
                           correos: $('#correo').val(),
                         },
                         success : function(res)
@@ -225,6 +226,7 @@
                             msg = 'Uncaught Error.\n' + jqXHR.responseText;
                           }
                           $('#resultado').html(msg);
+                          $('#modal-formyo').waitMe("hide");
                         },
                       });
 

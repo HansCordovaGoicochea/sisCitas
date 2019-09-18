@@ -227,14 +227,14 @@ class PDFGeneratorCore extends TCPDF
             $this->SetAutoPageBreak(TRUE, 0);
             $this->AddPage('P',array('80','800'));
         }
-        elseif(Tools::getValue('ventascierrecaja') > 0){
-            $margen = 1;
-            $this->SetHeaderMargin(1);
-            $this->SetFooterMargin(0);
-            $this->setMargins(1, $margen, 1);
-            $this->SetAutoPageBreak(TRUE, 0);
-            $this->AddPage('P',array('80','800'));
-        }
+//        elseif(Tools::getValue('ventascierrecaja') > 0){
+//            $margen = 1;
+//            $this->SetHeaderMargin(1);
+//            $this->SetFooterMargin(0);
+//            $this->setMargins(1, $margen, 1);
+//            $this->SetAutoPageBreak(TRUE, 0);
+//            $this->AddPage('P',array('80','800'));
+//        }
         elseif(Tools::getValue('acumulativoreport') > 0){
             $margen = 1;
             $this->SetHeaderMargin(1);

@@ -2602,9 +2602,9 @@ class OrderCore extends ObjectModel
             'select o.*, IF (po.numero_comprobante  != "", po.numero_comprobante, o.nro_ticket) nro_comprobante, CONCAT(c.firstname, " ( ", c.num_document, " )") as cliente, 
 ( SELECT SUM(op.amount)
 FROM tm_order_payment op
-where o.reference = op.order_reference AND op.date_add BETWEEN \'' . $date_from . '\' AND  \'' . $date_to . '\' ) as pagos
+where o.reference = op.order_reference AND op.date_add BETWEEN \'' . $date_from . '\' AND  \'' . $date_to . '\' AND op.tipo_pago = 1) as pagos
                 FROM tm_orders o inner join tm_order_payment op ON (o.reference = op.order_reference) LEFT JOIN tm_pos_ordercomprobantes po ON (po.id_order = o.id_order) LEFT JOIN tm_customer c ON (c.id_customer = o.id_customer)
-                WHERE o.id_shop = ' . $shop . ' and o.date_add >= \'' . $date_from . '\' and o.date_add <= \'' . $date_to . '\' AND o.current_state in (1, 2) AND tipo_pago = 1 group by o.id_order order by o.id_order desc
+                WHERE o.id_shop = ' . $shop . ' and o.date_add >= \'' . $date_from . '\' and o.date_add <= \'' . $date_to . '\' AND o.current_state in (2) AND tipo_pago = 1 group by o.id_order order by o.id_order desc
                 ';
 //
 //        var_dump($sql);
@@ -2621,9 +2621,9 @@ where o.reference = op.order_reference AND op.date_add BETWEEN \'' . $date_from 
             'select o.*, IF (po.numero_comprobante  != "", po.numero_comprobante, o.nro_ticket) nro_comprobante, CONCAT(c.firstname, " ( ", c.num_document, " )") as cliente, 
 ( SELECT SUM(op.amount)
 FROM tm_order_payment op
-where o.reference = op.order_reference AND op.date_add BETWEEN \'' . $date_from . '\' AND  \'' . $date_to . '\' ) as pagos
+where o.reference = op.order_reference AND op.date_add BETWEEN \'' . $date_from . '\' AND  \'' . $date_to . '\' AND op.tipo_pago = 2) as pagos
                 FROM tm_orders o inner join tm_order_payment op ON (o.reference = op.order_reference) LEFT JOIN tm_pos_ordercomprobantes po ON (po.id_order = o.id_order) LEFT JOIN tm_customer c ON (c.id_customer = o.id_customer)
-                WHERE o.id_shop = ' . $shop . ' and o.date_add >= \'' . $date_from . '\' and o.date_add <= \'' . $date_to . '\' AND o.current_state in (1, 2) AND tipo_pago = 2 order by o.id_order desc
+                WHERE o.id_shop = ' . $shop . ' and o.date_add >= \'' . $date_from . '\' and o.date_add <= \'' . $date_to . '\' AND o.current_state in (2) AND tipo_pago = 2 order by o.id_order desc
                 ';
 //
 //        var_dump($sql);
@@ -2640,9 +2640,9 @@ where o.reference = op.order_reference AND op.date_add BETWEEN \'' . $date_from 
             'select o.*, IF (po.numero_comprobante  != "", po.numero_comprobante, o.nro_ticket) nro_comprobante, CONCAT(c.firstname, " ( ", c.num_document, " )") as cliente, 
 ( SELECT SUM(op.amount)
 FROM tm_order_payment op
-where o.reference = op.order_reference AND op.date_add BETWEEN \'' . $date_from . '\' AND  \'' . $date_to . '\' ) as pagos
+where o.reference = op.order_reference AND op.date_add BETWEEN \'' . $date_from . '\' AND  \'' . $date_to . '\' AND op.tipo_pago = 3) as pagos
                 FROM tm_orders o inner join tm_order_payment op ON (o.reference = op.order_reference) LEFT JOIN tm_pos_ordercomprobantes po ON (po.id_order = o.id_order) LEFT JOIN tm_customer c ON (c.id_customer = o.id_customer)
-                WHERE o.id_shop = ' . $shop . ' and o.date_add >= \'' . $date_from . '\' and o.date_add <= \'' . $date_to . '\' AND o.current_state in (1, 2) AND tipo_pago = 3 order by o.id_order desc
+                WHERE o.id_shop = ' . $shop . ' and o.date_add >= \'' . $date_from . '\' and o.date_add <= \'' . $date_to . '\' AND o.current_state in (2) AND tipo_pago = 3 order by o.id_order desc
                 ';
 //
 //        var_dump($sql);
@@ -2651,6 +2651,24 @@ where o.reference = op.order_reference AND op.date_add BETWEEN \'' . $date_from 
 
         return Db::getInstance()->executeS($sql);
     }
+
+    public static function getOrdersDateFromDateTOPorCobrar($shop, $date_from, $date_to )
+    {
+//        d($id_caja);
+        $sql =
+            'select o.*, IF (po.numero_comprobante  != "", po.numero_comprobante, o.nro_ticket) nro_comprobante, CONCAT(c.firstname, " ( ", c.num_document, " )") as cliente, 
+IFNULL(sum(amount), 0) as pagos
+                FROM tm_orders o LEFT join tm_order_payment op ON (o.reference = op.order_reference) LEFT JOIN tm_pos_ordercomprobantes po ON (po.id_order = o.id_order) LEFT JOIN tm_customer c ON (c.id_customer = o.id_customer)
+                WHERE o.id_shop = ' . $shop . ' and o.date_add >= \'' . $date_from . '\' and o.date_add <= \'' . $date_to . '\' AND o.current_state in (1) group by o.id_order, total_discounts_tax_incl having  sum(amount) is null OR sum(amount) != o.total_discounts_tax_incl order by o.id_order desc
+                ';
+//
+//        var_dump($sql);
+//        echo '<br/>';
+//        d($sql);
+
+        return Db::getInstance()->executeS($sql);
+    }
+
     public static function getDetailsOrdersDateFromDateTO($id_order)
     {
 //        d($id_caja);
