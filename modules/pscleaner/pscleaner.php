@@ -839,6 +839,8 @@ class PSCleaner extends Module
             'pos_arqueoscaja',
             'reservar_cita',
             'pos_gastos',
+            'resumen_diario',
+            'resumen_diariodetalle',
         );
     }
 }
