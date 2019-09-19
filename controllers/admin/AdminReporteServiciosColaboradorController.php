@@ -36,12 +36,13 @@ class AdminReporteServiciosColaboradorControllerCore extends AdminController
         $this->_join .= 'LEFT JOIN `'._DB_PREFIX_.'orders` o ON (o.`id_order` = a.`id_order` AND o.`id_shop` = '.$this->context->shop->id.')';
         $this->_join .= 'LEFT JOIN `'._DB_PREFIX_.'customer` ec ON (ec.`id_customer` = o.`id_customer`)';
 
-        $this->_select .= 'CONCAT_WS(" ",ea.firstname, ea.lastname) as colaborador, ec.firstname as cliente, o.date_add as fecha, a.total_price_tax_incl as total_servicio';
-        $this->_where = ' AND es_servicio = 1 AND a.id_colaborador = '. Tools::getValue('id_colaborador').' AND valid = 1 AND o.date_add BETWEEN '.Tools::getValue('fi').' AND '.Tools::getValue('ff');
+        $this->_select .= 'CONCAT_WS(" ",ea.firstname, ea.lastname) as colaborador, ec.firstname as cliente, o.date_add as fecha, SUM(product_quantity) as cantidad, sum(a.total_price_tax_incl) as total_servicio';
+        $this->_where = ' AND a.id_colaborador = '. Tools::getValue('id_colaborador').' AND valid = 1 AND o.date_add BETWEEN '.Tools::getValue('fi').' AND '.Tools::getValue('ff');
 
 
         $this->_orderBy = 'o.date_add';
         $this->_orderWay = 'DESC';
+        $this->_group = ' group by a.product_id';
 //        $this->list_simple_header = true;
 //        $this->allow_export = true;
 
@@ -58,18 +59,23 @@ class AdminReporteServiciosColaboradorControllerCore extends AdminController
 //                'remove_onclick' => true,
 //                'search' => false
 //            ),
-            'fecha' => array(
-                'title' => $this->l('Fecha'),
-                'remove_onclick' => true,
-                'search' => false
-            ),
-            'cliente' => array(
-                'title' => $this->l('Cliente'),
-                'remove_onclick' => true,
-                'search' => false
-            ),
+//            'fecha' => array(
+//                'title' => $this->l('Fecha'),
+//                'remove_onclick' => true,
+//                'search' => false
+//            ),
+//            'cliente' => array(
+//                'title' => $this->l('Cliente'),
+//                'remove_onclick' => true,
+//                'search' => false
+//            ),
             'product_name' => array(
-                'title' => $this->l('Servicio'),
+                'title' => $this->l('Producto/Servicio'),
+                'remove_onclick' => true,
+                'search' => false
+            ),
+            'cantidad' => array(
+                'title' => $this->l('Cantidad'),
                 'remove_onclick' => true,
                 'search' => false
             ),

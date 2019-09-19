@@ -37,7 +37,7 @@ class AdminOrdersControllerCore extends AdminController
         $this->allow_export = true;
         $this->deleted = false;
         $this->context = Context::getContext();
-        $this->addRowAction('pagar_order');
+//        $this->addRowAction('pagar_order');
 
         //botones cuando existe comprobante
 //        $this->addRowAction('enviar_mail');
@@ -2893,6 +2893,7 @@ class AdminOrdersControllerCore extends AdminController
 
                 $tipo_comprobante = '';
                 $amount = str_replace(',', '.', Tools::getValue('payment_amount'));
+
                 $debe_vuelto = 0;
                 $vuelto_pago = 0;
                 $ultimopago = 0;
@@ -2901,9 +2902,9 @@ class AdminOrdersControllerCore extends AdminController
                 }
 
                 if ($amount > $order->total_paid){
-                    $debe_vuelto = $amount - $order->total_paid;
-                    $vuelto_pago = $amount - $order->total_paid;
-                    $amount = $order->total_paid;
+                    $debe_vuelto = $amount - ($order->total_paid - $ultimopago);
+                    $vuelto_pago = $amount - ($order->total_paid - $ultimopago);
+                    $amount = ($order->total_paid - $ultimopago);
                 }
                 else {
                     $ultimopago_final = $order->total_paid - $ultimopago ;
@@ -2916,7 +2917,9 @@ class AdminOrdersControllerCore extends AdminController
                         $debe_vuelto = $amount - $ultimopago_final;
                     }
                 }
-//            d(Tools::ps_round($debe_vuelto,4));
+
+                d(Tools::ps_round($debe_vuelto,4));
+
                 $currency = new Currency(Tools::getValue('payment_currency'));
                 $order_has_invoice = $order->hasInvoice();
                 if ($order_has_invoice) {

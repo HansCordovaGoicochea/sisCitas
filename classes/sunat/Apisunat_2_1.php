@@ -221,6 +221,16 @@ class Apisunat_2_1
                      </cac:PartyLegalEntity>
                   </cac:Party>
                </cac:AccountingCustomerParty>
+               <!-- Información de descuentos Globales -->
+               <cac:AllowanceCharge>
+                    <cbc:ChargeIndicator>false</cbc:ChargeIndicator>  <!-- Indicador del cargo / descuento global  "true"/"false" -->
+                    <cbc:AllowanceChargeReasonCode listName="Cargo/descuento" listAgencyName="PE:SUNAT" listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo53">00</cbc:AllowanceChargeReasonCode>  <!-- Código del motivo del cargo/descuento global - Se debe considerar el código 00 de acuerdo al catálogo N° 53.--> 
+                    <cbc:MultiplierFactorNumeric>0.00</cbc:MultiplierFactorNumeric> <!-- el porcentaje que corresponde del descuento global
+aplicado. Se expresa en números decimales por ejemplo 5% será 0.05. -->
+                    <cbc:Amount currencyID="PEN">0.00</cbc:Amount> <!-- Monto del cargo/descuento global  -->
+                    <cbc:BaseAmount currencyID="PEN">0.00</cbc:BaseAmount> <!-- Monto de base de cargo/descuento global  -->
+                </cac:AllowanceCharge>
+                <!-- FIN Información de descuentos Globales -->
                <cac:TaxTotal>
                   <!--Sumatoria del Total IGV + Total ISC + Total Otros tributos-->
                   <cbc:TaxAmount currencyID="PEN">'.round($cabecera['TOTAL_IGV'],2).'</cbc:TaxAmount> <!-- Monto total de impuestos -->
@@ -580,11 +590,12 @@ class Apisunat_2_1
             </cac:PartyLegalEntity>
         </cac:Party>
     </cac:AccountingCustomerParty>
+   
     <cac:TaxTotal>
         <cbc:TaxAmount currencyID="' . $cabecera["COD_MONEDA"] . '">' . round($cabecera['TOTAL_IGV'],2) . '</cbc:TaxAmount>
         <cac:TaxSubtotal>
-<cbc:TaxableAmount currencyID="' . $cabecera["COD_MONEDA"] . '">' . round($cabecera['SUB_TOTAL'],2) . '</cbc:TaxableAmount>
-<cbc:TaxAmount currencyID="' . $cabecera["COD_MONEDA"] . '">' . round($cabecera['TOTAL_IGV'],2) . '</cbc:TaxAmount>
+        <cbc:TaxableAmount currencyID="' . $cabecera["COD_MONEDA"] . '">' . round($cabecera['SUB_TOTAL'],2) . '</cbc:TaxableAmount>
+        <cbc:TaxAmount currencyID="' . $cabecera["COD_MONEDA"] . '">' . round($cabecera['TOTAL_IGV'],2) . '</cbc:TaxAmount>
             <cac:TaxCategory>
                 <cac:TaxScheme>
                     <cbc:ID schemeID="UN/ECE 5153" schemeAgencyID="6">1000</cbc:ID>
