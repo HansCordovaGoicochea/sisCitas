@@ -232,7 +232,7 @@ class Apisunat_2_1
                         <cbc:MultiplierFactorNumeric>'.round($cabecera["TOTAL_DESCUENTO"] / ($cabecera["TOTAL_DESCUENTO"] + $cabecera["TOTAL_GRAVADA"]), 5).'</cbc:MultiplierFactorNumeric> <!-- el porcentaje que corresponde del descuento global
     aplicado. Se expresa en números decimales por ejemplo 5% será 0.05. -->
                         <cbc:Amount currencyID="PEN">'.round($cabecera["TOTAL_DESCUENTO"], 2).'</cbc:Amount> <!-- Monto del cargo/descuento global  -->
-                        <cbc:BaseAmount currencyID="PEN">0.00</cbc:BaseAmount> <!-- Monto de base de cargo/descuento global  -->
+                        <cbc:BaseAmount currencyID="PEN">'.round($cabecera["TOTAL_DESCUENTO"] + $cabecera["TOTAL_GRAVADA"], 2).'</cbc:BaseAmount> <!-- Monto de base de cargo/descuento global  -->
                     </cac:AllowanceCharge>
                     <!-- FIN Información de descuentos Globales -->';
                 }
