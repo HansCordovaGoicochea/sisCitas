@@ -95,18 +95,24 @@
     <div class="panel">
         <div class="panel-heading">
             <i class="icon-table"></i>&nbsp;Cita
-            {if $cita->id && $nombre_access != 'Colaborador' && $nombre_access != 'Recepcionista' && $existeCajasAbiertas && $cita->estado_actual == 0}
+{*            {if $cita->id && $nombre_access != 'Colaborador' && $nombre_access != 'Recepcionista' && $existeCajasAbiertas && $cita->estado_actual == 0}*}
+{*            {if $cita->id_order && $nombre_access != 'Colaborador' && $nombre_access != 'Recepcionista' && $existeCajasAbiertas && $cita->estado_actual == 0}*}
                 <a class="btn badge pull-right" style="{if $cita->id_order} display: none; {/if} background-color: #72c279; color: #fff" id="pasarVenta">
-                    <i class="icon-money"></i>  Pasar a Venta
+                    <i class="icon-money"></i>  Atender
                 </a>
-            {/if}
+{*            {else}*}
+                <a class="btn badge pull-right" style="{if !$cita->id && !$cita->id_order} display: none; {/if} background-color: #72c279; color: #fff" target="_blank" href="{strip}{if $smarty.server['HTTPS']=='on'}https://{else}http://{/if}{$smarty.server.HTTP_HOST}{$smarty.server.BASE}/index.php?controller=AdminPdf&token={getAdminToken tab='AdminPdf'}{/strip}&submitAction=generateInvoicePDF&id_ventarapida={$cita->id_order|intval}&documento=ticket" id="imprimir_ticket">
+                    <i class="icon-print"></i>
+                    {l s='Ticket' d='Admin.Orderscustomers.Feature'}
+                </a>
+{*            {/if}*}
         </div>
         <div  {if $cita->id_order}style="pointer-events: none"{/if} class="panel-body">
             <div class="row">
                 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
                     <div class="form-group col-lg-6 ">
                         <label for="id_colaborador" class="control-label required">{l s='Colaborador:' d='Admin.Orderscustomers.Feature'}</label>
-                        <select name="id_colaborador" id="id_colaborador" class="chosen required">
+                        <select name="id_colaborador" id="id_colaborador" class="chosen">
                             <option value="">{l s='-- Elija un Colaborador --' d='Admin.Actions'}</option>
                             {foreach $colaboradores as $employee}
                                 <option value="{$employee.id_employee}" {if $cita->id_colaborador == $employee.id_employee}selected{/if}> {$employee.firstname} {$employee.lastname}</option>
@@ -307,7 +313,8 @@
                 },
                 success: function (data) {
                     if (data.response === 'ok'){
-                        window.location.href = "{$link->getAdminLink('AdminOrders')|escape:'UTF-8'}&id_order=" + data.order.id + "&vieworder";
+                        {*window.location.href = "{$link->getAdminLink('AdminOrders')|escape:'UTF-8'}&id_order=" + data.order.id + "&vieworder";*}
+                        window.location.href = "{$link->getAdminLink('AdminReservarCita')|escape:'UTF-8'}&updatereservar_cita&id_reservar_cita="+ data.objCita.id;
                         $('body').waitMe('hide');
                     }
                     if (data.response === 'failed'){
@@ -330,7 +337,7 @@
 
     $('#cita_guardar_btn').click(function () {
         if (
-            $('#id_colaborador :selected').val() !== "" &&
+            // $('#id_colaborador :selected').val() !== "" &&
             $('#fecha_inicio').val() !== "" &&
             $('#product_id').val() !== "" &&
             $.trim($('#product_name').val()) !== "" &&

@@ -404,7 +404,7 @@ body{
 }
 
 .v-autocomplete input {
-    width: 100%!important;
+    width: 65%!important;
     display: block!important;
     padding: .375rem .75rem!important;
     font-size: 1rem!important;
@@ -448,6 +448,7 @@ input[type=search] {
 input.price, input.number_cantidad, .total {
     text-align: center!important;
 }
+
 .tabla_lista_venta td input {
     font-size: 0.85rem!important;
 }
@@ -456,6 +457,7 @@ input.price, input.number_cantidad, .total {
     font-size: 0.85rem!important;
     padding: 3px 3px!important;
 }
+
 @media (max-width: 576px){
     .tabla_lista_venta td {
         font-size: 1rem!important;

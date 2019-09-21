@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="b1fdc292-d543-49db-8ca0-061d8027331c" name="adminsuc" url="http://192.185.96.120">
+        <fileTransfer host="192.185.96.120" port="21" rootFolder="/coradey.nelcorp.org">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+          <option name="port" value="21" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

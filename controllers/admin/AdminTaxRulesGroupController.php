@@ -246,21 +246,20 @@ class AdminTaxRulesGroupControllerCore extends AdminController
             ),
             'input' => array(
                 array(
+                    'form_group_class' => 'hide',
                     'type' => 'select',
                     'label' => $this->trans('Country', array(), 'Admin.Global'),
                     'name' => 'country',
                     'id' => 'country',
+                    'default_value' => (int)$this->context->country->id,
                     'options' => array(
                         'query' => Country::getCountries($this->context->language->id),
                         'id' => 'id_country',
                         'name' => 'name',
-                        'default' => array(
-                            'value' => 0,
-                            'label' => $this->trans('All', array(), 'Admin.Global')
-                        )
                     )
                 ),
                 array(
+                    'form_group_class' => 'hide',
                     'type' => 'select',
                     'label' => $this->trans('State', array(), 'Admin.Global'),
                     'name' => 'states[]',
@@ -281,6 +280,7 @@ class AdminTaxRulesGroupControllerCore extends AdminController
                     'name' => 'action'
                 ),
                 array(
+                    'form_group_class' => 'hide',
                     'type' => 'text',
                     'label' => $this->trans('Zip/postal code range', array(), 'Admin.International.Feature'),
                     'name' => 'zipcode',
@@ -288,6 +288,7 @@ class AdminTaxRulesGroupControllerCore extends AdminController
                     'hint' => $this->trans('You can define a range of Zip/postal codes (e.g., 75000-75015) or simply use one Zip/postal code.', array(), 'Admin.International.Help')
                 ),
                 array(
+                    'form_group_class' => 'hide',
                     'type' => 'select',
                     'label' => $this->trans('Behavior', array(), 'Admin.International.Feature'),
                     'name' => 'behavior',
@@ -334,8 +335,10 @@ class AdminTaxRulesGroupControllerCore extends AdminController
                     'hint' => $this->trans('(Total tax: 9%)', array(), 'Admin.International.Help'),
                 ),
                 array(
-                    'type' => 'text',
-                    'label' => $this->trans('Description', array(), 'Admin.Global'),
+                    'col' => '3',
+                    'type' => 'numeric',
+                    'label' => $this->trans('Código SUNAT', array(), 'Admin.Global'),
+                    'desc' => ' (Catálogo No. 07: Códigos de Tipo de Afectación del IGV)',
                     'name' => 'description',
                 )
             ),

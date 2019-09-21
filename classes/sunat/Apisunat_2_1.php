@@ -40,7 +40,7 @@ class Apisunat_2_1
             if ($tipo_comprobante == "07"){ //NOTA DE CREDITO
                 $codigo_motivo_modifica = $objComprobantes->code_motivo_nota_credito;
                 $descripcion_motivo_modifica = $notacredito_descripcion[$objComprobantes->code_motivo_nota_credito];
-//                $numero_comprobante = $objComprobantes->numeracion_nota_baja;
+                $numero_comprobante = $objComprobantes->numeracion_nota_baja;
             }else if($tipo_comprobante == "08"){ //NOTA DE DEBITO
                 $codigo_modifica = $objComprobantes->notadebito_motivo_id;
                 $descripcion_motivo_modifica =$notadebito_descripcion[$objComprobantes->notadebito_motivo_id];
@@ -62,7 +62,8 @@ class Apisunat_2_1
 //        http://cpe.sunat.gob.pe/sites/default/files/inline-images/Guia%2BXML%2BFactura%2Bversion%202-1%2B1%2B0%20%282%29.pdf
         $cabecera = array(
             "TIPO_OPERACION" => "0101", //Pag. 28
-            "TOTAL_GRAVADA" => $order->total_paid_tax_excl,
+            "TOTAL_GRAVADA" => Tools::truncate_number(OrderDetail::getTotalPorCodigo($order->id, '10'), 2),
+            "TOTAL_INAFECTA" => Tools::truncate_number(OrderDetail::getTotalPorCodigo($order->id, '30'), 2),
             "TOTAL_INAFECTA" => "0",
             "TOTAL_EXONERADAS" => "0",
             "TOTAL_GRATUITAS" => "0",
@@ -71,7 +72,7 @@ class Apisunat_2_1
             "TOTAL_DETRACCIONES" => "0",
             "TOTAL_BONIFICACIONES" => "0",
             "TOTAL_EXPORTACION" => "0",
-            "TOTAL_DESCUENTO" => "0",
+            "TOTAL_DESCUENTO" => $order->total_discounts_tax_excl,
             "SUB_TOTAL" => $order->total_paid_tax_excl,
             "PORCENTAJE_IGV" => "18.00",
             "TOTAL_IGV" => (float)($order->total_paid_tax_incl - $order->total_paid_tax_excl),
@@ -220,23 +221,28 @@ class Apisunat_2_1
                         <cbc:RegistrationName><![CDATA['.Tools::eliminar_tildes($cabecera['RAZON_SOCIAL_CLIENTE']).']]></cbc:RegistrationName> <!-- Nombre o denominación o razón social del cliente -->
                      </cac:PartyLegalEntity>
                   </cac:Party>
-               </cac:AccountingCustomerParty>
-               <!-- Información de descuentos Globales -->
-               <cac:AllowanceCharge>
-                    <cbc:ChargeIndicator>false</cbc:ChargeIndicator>  <!-- Indicador del cargo / descuento global  "true"/"false" -->
-                    <cbc:AllowanceChargeReasonCode listName="Cargo/descuento" listAgencyName="PE:SUNAT" listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo53">00</cbc:AllowanceChargeReasonCode>  <!-- Código del motivo del cargo/descuento global - Se debe considerar el código 00 de acuerdo al catálogo N° 53.--> 
-                    <cbc:MultiplierFactorNumeric>0.00</cbc:MultiplierFactorNumeric> <!-- el porcentaje que corresponde del descuento global
-aplicado. Se expresa en números decimales por ejemplo 5% será 0.05. -->
-                    <cbc:Amount currencyID="PEN">0.00</cbc:Amount> <!-- Monto del cargo/descuento global  -->
-                    <cbc:BaseAmount currencyID="PEN">0.00</cbc:BaseAmount> <!-- Monto de base de cargo/descuento global  -->
-                </cac:AllowanceCharge>
-                <!-- FIN Información de descuentos Globales -->
-               <cac:TaxTotal>
+               </cac:AccountingCustomerParty>';
+
+                if ($cabecera["TOTAL_DESCUENTO"] > 0) {
+                    $xmlCPE .=
+                        ' <!-- Información de descuentos Globales -->
+                   <cac:AllowanceCharge>
+                        <cbc:ChargeIndicator>false</cbc:ChargeIndicator>  <!-- Indicador del cargo / descuento global  "true"/"false" -->
+                        <cbc:AllowanceChargeReasonCode listName="Cargo/descuento" listAgencyName="PE:SUNAT" listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo53">00</cbc:AllowanceChargeReasonCode>  <!-- Código del motivo del cargo/descuento global - Se debe considerar el código 00 de acuerdo al catálogo N° 53.--> 
+                        <cbc:MultiplierFactorNumeric>'.round($cabecera["TOTAL_DESCUENTO"] / ($cabecera["TOTAL_DESCUENTO"] + $cabecera["TOTAL_GRAVADA"]), 5).'</cbc:MultiplierFactorNumeric> <!-- el porcentaje que corresponde del descuento global
+    aplicado. Se expresa en números decimales por ejemplo 5% será 0.05. -->
+                        <cbc:Amount currencyID="PEN">'.round($cabecera["TOTAL_DESCUENTO"], 2).'</cbc:Amount> <!-- Monto del cargo/descuento global  -->
+                        <cbc:BaseAmount currencyID="PEN">0.00</cbc:BaseAmount> <!-- Monto de base de cargo/descuento global  -->
+                    </cac:AllowanceCharge>
+                    <!-- FIN Información de descuentos Globales -->';
+                }
+
+               $xmlCPE .= '<cac:TaxTotal>
                   <!--Sumatoria del Total IGV + Total ISC + Total Otros tributos-->
                   <cbc:TaxAmount currencyID="PEN">'.round($cabecera['TOTAL_IGV'],2).'</cbc:TaxAmount> <!-- Monto total de impuestos -->
                   <!--Total de IGV del comprobante | tambien va el (total de operaciones gravadas + ISC) / 1.%Descuento global-->
                   <cac:TaxSubtotal>
-                     <cbc:TaxableAmount currencyID="PEN">'.round($cabecera['SUB_TOTAL'],2).'</cbc:TaxableAmount> <!-- Monto las operaciones gravadas -->
+                     <cbc:TaxableAmount currencyID="PEN">'.round($cabecera['TOTAL_GRAVADA'],2).'</cbc:TaxableAmount> <!-- Monto las operaciones gravadas -->
                      <cbc:TaxAmount currencyID="PEN">'.round($cabecera['TOTAL_IGV'],2).'</cbc:TaxAmount> <!-- Monto total de impuestos -->
                      <cac:TaxCategory>
                         <cac:TaxScheme>
@@ -248,7 +254,7 @@ aplicado. Se expresa en números decimales por ejemplo 5% será 0.05. -->
                   </cac:TaxSubtotal>
                </cac:TaxTotal>
                <cac:LegalMonetaryTotal>
-                  <cbc:LineExtensionAmount currencyID="PEN">'.round($cabecera['SUB_TOTAL'],2).'</cbc:LineExtensionAmount> <!-- Total Valor de Venta sin impuesto -->
+                  <cbc:LineExtensionAmount currencyID="PEN">'.round($cabecera['TOTAL_GRAVADA'],2).'</cbc:LineExtensionAmount> <!-- Total Valor de Venta sin impuesto -->
                   <cbc:PayableAmount currencyID="PEN">'.round($cabecera['TOTAL'], 2).'</cbc:PayableAmount> <!-- Total Valor de Venta con impuesto -->
                </cac:LegalMonetaryTotal>
                ';

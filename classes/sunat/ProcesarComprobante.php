@@ -529,33 +529,42 @@ class ProcesarComprobante
             $doc->loadXML($response);
 //            d($response);
             file_put_contents("doc_response_ticket-consulta.txt",  $archivo ." ". date('Y-m-d H:i:s'). " -> ".$response.PHP_EOL , FILE_APPEND | LOCK_EX);
-
+            //0 = Procesó correctamente
+            //98 = En proceso
+            //99 = Proceso con errores
             //===================VERIFICAMOS SI HA ENVIADO CORRECTAMENTE EL COMPROBANTE=====================
             if (isset($doc->getElementsByTagName('content')->item(0)->nodeValue)) {
-                $xmlCDR = $doc->getElementsByTagName('content')->item(0)->nodeValue;
-                file_put_contents($ruta_archivo_cdr . 'R-' . $archivo . '.zip', base64_decode($xmlCDR));
+                if (isset($doc->getElementsByTagName('statusCode')->item(0)->nodeValue) && (int)$doc->getElementsByTagName('statusCode')->item(0)->nodeValue !== 127){
+                    $xmlCDR = $doc->getElementsByTagName('content')->item(0)->nodeValue;
+                    file_put_contents($ruta_archivo_cdr . 'R-' . $archivo . '.zip', base64_decode($xmlCDR));
 
-                //extraemos archivo zip a xml
-                $zip = new ZipArchive;
-                if ($zip->open($ruta_archivo_cdr . 'R-' . $archivo . '.zip') === TRUE) {
-                    $zip->extractTo($ruta_archivo_cdr, 'R-' . $archivo . '.xml');
-                    $zip->close();
-                }
+                    //extraemos archivo zip a xml
+                    $zip = new ZipArchive;
+                    if ($zip->open($ruta_archivo_cdr . 'R-' . $archivo . '.zip') === TRUE) {
+                        $zip->extractTo($ruta_archivo_cdr, 'R-' . $archivo . '.xml');
+                        $zip->close();
+                    }
 
-                //eliminamos los archivos Zipeados
-                //unlink($ruta_archivo . '.ZIP');
+                    //eliminamos los archivos Zipeados
+                    //unlink($ruta_archivo . '.ZIP');
 //                unlink($ruta_archivo_cdr . 'R-' . $archivo . '.zip');
 
-                //=============hash CDR=================
-                $doc_cdr = new DOMDocument();
-                $doc_cdr->load(dirname(__FILE__) . '/' . $ruta_archivo_cdr . 'R-' . $archivo . '.xml');
+                    //=============hash CDR=================
+                    $doc_cdr = new DOMDocument();
+                    $doc_cdr->load(dirname(__FILE__) . '/' . $ruta_archivo_cdr . 'R-' . $archivo . '.xml');
 
-                $mensaje['respuesta'] = 'OK';
-                $mensaje['cod_sunat'] = $doc_cdr->getElementsByTagName('ResponseCode')->item(0)->nodeValue;
-                $mensaje['msj_sunat'] = $doc_cdr->getElementsByTagName('Description')->item(0)->nodeValue;
-                $mensaje['mensaje'] = $doc_cdr->getElementsByTagName('Description')->item(0)->nodeValue;
-                $mensaje['ruta_cdr'] = $ruta_archivo_cdr . 'R-' . $archivo . '.zip';
-                $mensaje['hash_cdr'] = $doc_cdr->getElementsByTagName('DigestValue')->item(0)->nodeValue;
+                    $mensaje['respuesta'] = 'OK';
+                    $mensaje['cod_sunat'] = $doc_cdr->getElementsByTagName('ResponseCode')->item(0)->nodeValue;
+                    $mensaje['msj_sunat'] = $doc_cdr->getElementsByTagName('Description')->item(0)->nodeValue;
+                    $mensaje['mensaje'] = $doc_cdr->getElementsByTagName('Description')->item(0)->nodeValue;
+                    $mensaje['ruta_cdr'] = $ruta_archivo_cdr . 'R-' . $archivo . '.zip';
+                    $mensaje['hash_cdr'] = $doc_cdr->getElementsByTagName('DigestValue')->item(0)->nodeValue;
+                }else{
+                    $mensaje['respuesta'] = 'error';
+                    $mensaje['cod_sunat'] = (int)$doc->getElementsByTagName('statusCode')->item(0)->nodeValue;
+                    $mensaje['mensaje'] = $doc->getElementsByTagName('content')->item(0)->nodeValue;
+                    $mensaje['msj_sunat'] = $doc->getElementsByTagName('content')->item(0)->nodeValue;
+                }
             } else {
                 $mensaje['respuesta'] = 'error';
                 $resul_code_sunat = intval(preg_replace('/[^0-9]+/', '', $doc->getElementsByTagName('faultcode')->item(0)->nodeValue), 10);

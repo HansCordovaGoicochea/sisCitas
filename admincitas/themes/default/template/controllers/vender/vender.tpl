@@ -100,7 +100,12 @@
                                                         <div>
                                                             <div class="v-autocomplete">
                                                                 <div class="input-group mb-2" style="width: 95%">
-                                                                    <input type="text" maxlength="11" id="clientes_search" ref="numero_doc" class="clientes_search form-control" v-model="numero_doc" :disabled="id_customer != 1" placeholder="Número de documento" onkeyup="$(this).val().length >= 8 && $(this).val().length <= 11 ? $('#buscar_sunat').removeAttr('disabled') : $('#buscar_sunat').attr('disabled', 'disabled');" onkeypress="isNumberKey(event)" @keyup.enter="triggerBuscarSunat">
+                                                                    <select name="cb_tipo_documento" id="cb_tipo_documento" class="form-control" v-model.number="cb_tipo_documento" style="width: 35%"  @change="changeTipoDocumento($event)">
+                                                                        {foreach Tipodocumentolegal::getAllTipDoc() as $doc}
+                                                                            <option value="{$doc['id_tipodocumentolegal']}" data-codsunat="{$doc['cod_sunat']}">- {$doc['nombre']} -</option>
+                                                                        {/foreach}
+                                                                    </select>
+                                                                    <input type="text" maxlength="15" id="clientes_search" ref="numero_doc" class="clientes_search form-control" v-model="numero_doc" :disabled="id_customer != 1" placeholder="Número de documento" onkeyup="$(this).val().length >= 8 && $(this).val().length <= 15 ? $('#buscar_sunat').removeAttr('disabled') : $('#buscar_sunat').attr('disabled', 'disabled');" onkeypress="isNumberKey(event)" @keyup.enter="triggerBuscarSunat">
                                                                     <div id="buscar_sunat" class="input-group-addon btn btn-warning pointer" v-if="id_customer == 1" @click="buscarCliente()" disabled ref="enterBuscarSunat">
                                                                         {*                                                                        <img src="{$img_dir}sunat.png" style="width: 14px; height: auto;" alt="" >&nbsp; Buscar Sunat*}
                                                                         <i class="fa fa-search"></i>
@@ -113,7 +118,8 @@
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div v-if="id_customer != 1 || mostrar_form_cliente">
+{*                                                        <div v-if="id_customer != 1 || mostrar_form_cliente">*}
+                                                        <div>
                                                             <div  class="form-group row required mt-3" >
                                                                 <div  class="col-sm-4">
                                                                     <i class="fa fa-user"></i>&nbsp;<strong>Nombre Legal</strong>
@@ -134,6 +140,19 @@
                                                                 </div>
                                                                 <input type="text" class="col-sm-8 form-control" v-model="direccion_cliente">
                                                             </div>
+                                                            <div class="form-group row ">
+                                                                <div class="col-sm-4">
+                                                                    <i class="fa fa-phone"></i>&nbsp;<strong>Celular/Teléfono</strong>
+                                                                </div>
+                                                                <input type="text" class="col-sm-8 form-control" v-model="celular_cliente">
+                                                            </div>
+                                                            <div class="form-group row ">
+                                                                <div class="col-sm-4">
+                                                                    <i class="fa fa-calendar"></i>&nbsp;<strong>Fecha Nacimiento</strong>
+                                                                </div>
+                                                                <datepicker v-model="fecha_nacimiento"></datepicker>
+                                                            </div>
+
                                                         </div>
                                                     </div>
                                                     </p>
@@ -300,7 +319,7 @@
                             <i class="icon-cart-plus" v-else></i> Nueva Venta
                         </button>
                     </div>
-                    <div class="col-md-4 mb-2 col-lg-4 col-xl-4 col-sm-12" v-if="!order.id && !hasComprobante && total > 0">
+                    <div class="col-md-4 mb-2 col-lg-4 col-xl-4 col-sm-12" v-if="!order.id && !hasComprobante">
                         <button type="button" class="btn w-100 btn-primary btn-sm" :disabled="guardandoEnviar || cart.length  == 0  || bloquear_error" @click="agregarVenta(2)" style="text-transform: none;">
                             <i class="fa fa-spinner fa-spin fa-lg" v-if="guardandoEnviar"></i>
                             <i class="fa fa-file" v-else></i>
@@ -326,13 +345,13 @@
                             </div>
                         </div>
                     {/if}
-                    <div class="col-md-4 mb-2 col-lg-4 col-xl-4 col-sm-12 hide" v-if="!hasComprobante">
-                        <button type="button" class="btn btn-sm btn-success" style="width: 100%;" :disabled="guardandoEnviar || cart.length  == 0" @click="agregarVenta(1)" v-if="!order.id">
-                            <i class="fa fa-spinner fa-spin fa-lg" v-if="guardandoEnviar"></i>
-                            <i class="icon-save" v-else></i>
-                            Guardar Sin Pagar
-                        </button>
-                    </div>
+{*                    <div class="col-md-4 mb-2 col-lg-4 col-xl-4 col-sm-12 hide" v-if="!hasComprobante">*}
+{*                        <button type="button" class="btn btn-sm btn-success" style="width: 100%;" :disabled="guardandoEnviar || cart.length  == 0" @click="agregarVenta(1)" v-if="!order.id">*}
+{*                            <i class="fa fa-spinner fa-spin fa-lg" v-if="guardandoEnviar"></i>*}
+{*                            <i class="icon-save" v-else></i>*}
+{*                            Guardar Sin Pagar*}
+{*                        </button>*}
+{*                    </div>*}
                     <div class="col-md-4 mb-2 col-lg-4 col-xl-4 col-sm-12" v-if="total == 0 && cart.length && id_customer != 1 && puntos_cliente >= 6">
                         <button type="button" class="btn btn-sm btn-success" style="width: 100%;" :disabled="guardandoEnviar || cart.length  == 0" @click="agregarVenta(99)" v-if="!order.id">
                             <i class="fa fa-spinner fa-spin fa-lg" v-if="guardandoEnviar"></i>

@@ -876,4 +876,15 @@ class OrderDetailCore extends ObjectModel
 
         return $wholesale_price;
     }
+
+
+    public static function getTotalPorCodigo($id_order, $codigo){
+        $sql = 'select SUM(total_price_tax_excl)
+from tm_order_detail od LEFT JOIN tm_tax_rule tr on (od.id_tax_rules_group = tr.id_tax_rules_group)
+where id_order = '.$id_order.' AND description = "'.$codigo.'"';
+
+        return (float)Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($sql);
+
+    }
+
 }

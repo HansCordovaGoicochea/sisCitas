@@ -131,7 +131,7 @@
 	function initForm()
 	{
 		$('#id_tax_rule').val('');
-		$('#country').val(0);
+	$('#country').val(171);
 		$('#state').val(0);
 		$('#zipcode').val(0);
 		$('#behavior').val(0);

@@ -261,10 +261,10 @@ class PDFGeneratorCore extends TCPDF
         }
 
         $this->writeHTML($this->content, true, false, true, false, '');
-//
-//        if(Tools::getValue('id_order_fisico')){
-//            $this->IncludeJS("print();");
-//        }
+
+        if(Tools::getValue('documento') === 'ticket'){
+            $this->IncludeJS("print();");
+        }
 
     }
 

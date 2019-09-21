@@ -1451,11 +1451,11 @@ class CustomerCore extends ObjectModel
         return $result;
     }
 
-    public static function searchClienteByDocumento($query, Context $context = null)
+    public static function searchClienteByDocumento($query, $id_document )
     {
-        if (!$context) {
-            $context = Context::getContext();
-        }
+
+        $context = Context::getContext();
+
 
         $sql = new DbQuery();
         $sql->select('c.*, tdl.nombre as tipo_documento, cod_sunat');
@@ -1463,7 +1463,7 @@ class CustomerCore extends ObjectModel
         $sql->join(Shop::addSqlAssociation('customer', 'c'));
         $sql->leftJoin('tipodocumentolegal', 'tdl', 'tdl.`id_tipodocumentolegal` = c.`id_document`');
 
-        $where = 'c.`num_document` = \''.pSQL($query).'\'';
+        $where = 'c.`num_document` = \''.pSQL($query).'\' AND c.`id_document` = '.$id_document;
 
         $sql->orderBy('c.`firstname` ASC');
 

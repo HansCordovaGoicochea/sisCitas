@@ -28,6 +28,8 @@ class ResumenDiarioCore extends ObjectModel
     public $ruta_xml;
     public $ruta_cdr;
     public $hash_cdr;
+    public $date_add;
+    public $date_upd;
 
 
 
@@ -53,6 +55,9 @@ class ResumenDiarioCore extends ObjectModel
             'ruta_xml' => array('type' => self::TYPE_STRING),
             'ruta_cdr' => array('type' => self::TYPE_STRING),
             'hash_cdr' => array('type' => self::TYPE_STRING),
+
+            'date_add' => array('type' => self::TYPE_DATE, 'validate' => 'isDateFormat'),
+            'date_upd' => array('type' => self::TYPE_DATE, 'validate' => 'isDateFormat'),
 		),
 	);
 }

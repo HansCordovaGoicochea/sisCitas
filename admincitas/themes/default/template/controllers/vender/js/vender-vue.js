@@ -261,6 +261,9 @@ Vue.component('datepicker', {
             autoclose: true,
             startView: 'years',
             dateFormat: 'yy-mm-dd',
+            changeMonth: true,
+            changeYear: true,
+            yearRange: "-100:+0", // last hundred years
             onSelect: function(dateText) {
                 self.$emit('input', dateText);
             },
@@ -384,6 +387,9 @@ var app_vender = new Vue({
             mostrar_form_cliente: false,
             puntos_cliente: 0,
             id_customer: 1,
+            cb_tipo_documento: 1,
+            fecha_nacimiento: "",
+            celular_cliente: "",
             // cliente: "",
             nombre_legal: "",
             tipo_doc: "",
@@ -491,6 +497,21 @@ var app_vender = new Vue({
         mostrarErrores(){
             this.mostrar_adventencia = true;
             this.bloquear_error = true;
+        },
+        limitText(field, maxChar){
+            $(field).attr('maxlength',maxChar);
+        },
+        changeTipoDocumento: function(e){
+
+            let value = parseInt(e.target.options[e.target.options.selectedIndex].dataset.codsunat);
+            if (value === 1) {
+                this.limitText('#clientes_search', 8);
+            } else if(value === 4) {
+                this.limitText('#clientes_search', 15);
+            }else if(value === 6) {
+                this.limitText('#clientes_search', 11);
+            }
+
         },
         changeMetodoPago: function(e, pago){
             if(e.target.options.selectedIndex > -1) {
@@ -705,6 +726,9 @@ var app_vender = new Vue({
                                 hasComprobante: self.hasComprobante,
                                 tipo_comprobante: self.tipo_comprobante,
                                 id_customer: self.id_customer,
+                                fecha_nacimiento: self.fecha_nacimiento,
+                                cb_tipo_documento: self.cb_tipo_documento,
+                                celular_cliente: self.celular_cliente,
                                 nombre_legal: self.nombre_legal,
                                 numero_doc: self.numero_doc,
                                 direccion_cliente: self.direccion_cliente,
@@ -901,6 +925,7 @@ var app_vender = new Vue({
                     token: token_vender,
                     tab: "AdminVender",
                     action : "SearchClientes",
+                    cb_tipo_documento: that.cb_tipo_documento,
                     cliente_search: $.trim(that.numero_doc),
                 },
                 beforeSend: function(){
@@ -917,18 +942,26 @@ var app_vender = new Vue({
                 success: function (data) {
                     that.bloquear_error = false;
                     if (data.msg){
-                        that.buscarEnSunat();
+                        if (parseInt(that.cb_tipo_documento) !== 2) {
+                            that.buscarEnSunat();
+                        }else{
+                            $('.v-autocomplete').after('<small style="color: red;" class="error_ache">Cliente no encontrado en SUNAT (Llene los campos)</small>');
+                            that.mostrar_form_cliente = true;
+                            that.id_customer = 0;
+                            that.bloquear_error = true;
+                            // that.numero_doc = that.cliente;
+                            that.show_forma_pago = false;
+                        }
                     }else{
                         that.fillCustomer(data.result);
-                        $('body').waitMe('hide');
+
                     }
                 },
                 error: function (error) {
                     // console.log(error);
                 },
                 complete: function (data) {
-
-
+                    $('body').waitMe('hide');
                 }
             });
         },
@@ -985,6 +1018,8 @@ var app_vender = new Vue({
             self.numero_doc = data.num_document;
             self.tipo_doc = data.tipo_documento;
             self.cod_sunat = data.cod_sunat;
+            self.fecha_nacimiento = data.birthday;
+            self.telefono_celular = data.telefono_celular;
             self.show_forma_pago = parseInt(data.es_credito) === 1;
 
             if (data.direccion){

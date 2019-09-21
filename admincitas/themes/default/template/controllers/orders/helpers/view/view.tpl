@@ -743,6 +743,12 @@
                   {l s='Add a product' d='Admin.Orderscustomers.Feature'}
                 </button>
               {/if}
+              {if count($discounts) == 0}
+              <button id="add_voucher" class="btn btn-default" type="button"  {if isset($objComprobantes->numero_comprobante) && $objComprobantes->numero_comprobante}disabled{/if}>
+                <i class="icon-ticket"></i>
+                {l s='Add a new discount' d='Admin.Orderscustomers.Feature'}
+              </button>
+              {/if}
             </div>
           {/if}
           <div class="clear">&nbsp;</div>
@@ -1077,8 +1083,15 @@
 
       {if $objComprobantes->numero_comprobante != "" && $objComprobantes->cod_sunat == 0}
       var elem = $('#main');
-      $(':input[type=button], select, :input[type=radio]', elem).attr("disabled", "disabled").trigger("chosen:updated");
+      $(':input[type=button], select, :input[type=radio]', elem).css( {
+        "pointer-events": "none",
+        "border-color": "#999",
+        "color": "#999",
+        "background-color": "#f2f2f2",
+        "opacity": ".65",
+      } ).trigger("chosen:updated");
       {/if}
+
 
       $(".textarea-autosize").autosize();
 

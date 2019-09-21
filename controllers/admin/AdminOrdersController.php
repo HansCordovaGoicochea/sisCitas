@@ -2918,7 +2918,7 @@ class AdminOrdersControllerCore extends AdminController
                     }
                 }
 
-                d(Tools::ps_round($debe_vuelto,4));
+//                d(Tools::ps_round($debe_vuelto,4));
 
                 $currency = new Currency(Tools::getValue('payment_currency'));
                 $order_has_invoice = $order->hasInvoice();
@@ -3218,7 +3218,7 @@ class AdminOrdersControllerCore extends AdminController
                     // Update amounts of order
                     $order->total_discounts -= $order_cart_rule->value;
                     $order->total_discounts_tax_incl -= $order_cart_rule->value;
-                    $order->total_discounts_tax_excl -= $order_cart_rule->value_tax_excl;
+                    $order->total_discounts_tax_excl = Tools::ps_round($order->total_discounts_tax_excl - $order_cart_rule->value_tax_excl, 2);
 
                     $order->total_paid += $order_cart_rule->value;
                     $order->total_paid_tax_incl += $order_cart_rule->value;
@@ -5562,6 +5562,26 @@ class AdminOrdersControllerCore extends AdminController
             $total_products_wt += $order_detail['total_price_tax_incl'];
         }
 
+        $total_discounts = 0;
+        $total_discounts_tax_incl = 0;
+        $total_discounts_tax_excl = 0;
+        // discount
+        $discounts = $order->getCartRules();
+        foreach ($discounts as $discount) {
+
+            $total_discounts += $discount['value'];
+            $total_discounts_tax_incl += $discount['value'];
+            $total_discounts_tax_excl += $discount['value_tax_excl'];
+
+            $total_paid -= $discount['value'];
+            $total_paid_tax_incl -= $discount['value'];
+            $total_paid_tax_excl -= $discount['value_tax_excl'];
+        }
+
+        $order->total_discounts = $total_discounts;
+        $order->total_discounts_tax_incl = $total_discounts_tax_incl;
+        $order->total_discounts_tax_excl = $total_discounts_tax_excl;
+
         // Update Order
         $order->total_paid = $total_paid;
         $order->total_paid_tax_incl = $total_paid_tax_incl;
@@ -5569,17 +5589,8 @@ class AdminOrdersControllerCore extends AdminController
         $order->total_products = $total_products;
         $order->total_products_wt = $total_products_wt;
 
-        $res = $order->update();
 
-        // Update weight SUM
-        $order_carrier = new OrderCarrier((int)$order->getIdOrderCarrier());
-        if (Validate::isLoadedObject($order_carrier)) {
-            $order_carrier->weight = (float)$order->getTotalWeight();
-            $res &= $order_carrier->update();
-            if ($res) {
-                $order->weight = sprintf("%.3f ".Configuration::get('PS_WEIGHT_UNIT'), $order_carrier->weight);
-            }
-        }
+        $res = $order->update();
 
         if (!$res) {
             die(json_encode(array(
@@ -5609,8 +5620,6 @@ class AdminOrdersControllerCore extends AdminController
             'link' => Context::getContext()->link,
             'current_index' => self::$currentIndex
         ));
-
-        $this->sendChangedNotification($order);
 
         $order->pagado = $order->getTotalPaid();
 

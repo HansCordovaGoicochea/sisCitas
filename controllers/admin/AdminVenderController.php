@@ -181,9 +181,14 @@ class AdminVenderControllerCore extends AdminController {
         $nombre_legal = Tools::getValue('nombre_legal');
         $numero_doc = Tools::getValue('numero_doc');
         $direccion_cliente = Tools::getValue('direccion_cliente');
+        $fecha_nacimiento = Tools::getValue('fecha_nacimiento');
+        $celular_cliente = Tools::getValue('celular_cliente');
+        $cb_tipo_documento = Tools::getValue('cb_tipo_documento');
         if ($id_customer){
             $customer = new Customer((int)$id_customer);
             if ($direccion_cliente != 'No Definido') $customer->direccion = $direccion_cliente;
+            $customer->telefono_celular = $celular_cliente;
+            $customer->birthday = $fecha_nacimiento;
             $customer->update();
         }
         else{
@@ -211,8 +216,10 @@ class AdminVenderControllerCore extends AdminController {
             $customer->deleted = 0;
             $td = strlen(trim($numero_doc)) == 11 ? '6' : '1';
             $tipo_doc = Tipodocumentolegal::getByCodSunat($td);
-            $customer->id_document = $tipo_doc['id_tipodocumentolegal'];
+            $customer->id_document = $cb_tipo_documento;
             $customer->num_document = $numero_doc;
+            $customer->telefono_celular = $celular_cliente;
+            $customer->birthday = $fecha_nacimiento;
             if ($direccion_cliente != 'No Definido') $customer->direccion = $direccion_cliente;
             $customer->add();
             $customer->updateGroup(array($customer->id_default_group));
@@ -415,24 +422,27 @@ class AdminVenderControllerCore extends AdminController {
 
                 //modificar el precio
                 SpecificPrice::deleteByIdCart((int)$id_cart, (int)$product['id'], 0);
-                $specific_price = new SpecificPrice();
-                $specific_price->id_cart = (int)$id_cart;
-                $specific_price->id_shop = 0;
-                $specific_price->id_shop_group = 0;
-                $specific_price->id_currency = 0;
-                $specific_price->id_country = 0;
-                $specific_price->id_group = 0;
-                $specific_price->id_customer = (int)$this->context->customer->id;
-                $specific_price->id_product = (int)$product['id'];
-                $specific_price->id_product_attribute = 0;
-                $specific_price->price = round((float)$product['price'] / 1.18, 6);
-                $specific_price->from_quantity = 1;
-                $specific_price->reduction = 0;
-                $specific_price->reduction_type = 'amount';
-                $specific_price->reduction_tax = PS_TAX_EXC;
-                $specific_price->from = '0000-00-00 00:00:00';
-                $specific_price->to = '0000-00-00 00:00:00';
-                $specific_price->add();
+                $impuesto_percentaje = (float)( 1 + ($prod->tax_rate / 100));
+                if ($impuesto_percentaje > 0){
+                    $specific_price = new SpecificPrice();
+                    $specific_price->id_cart = (int)$id_cart;
+                    $specific_price->id_shop = 0;
+                    $specific_price->id_shop_group = 0;
+                    $specific_price->id_currency = 0;
+                    $specific_price->id_country = 0;
+                    $specific_price->id_group = 0;
+                    $specific_price->id_customer = (int)$this->context->customer->id;
+                    $specific_price->id_product = (int)$product['id'];
+                    $specific_price->id_product_attribute = 0;
+                    $specific_price->price = round((float)$product['price'] / $impuesto_percentaje, 6);
+                    $specific_price->from_quantity = 1;
+                    $specific_price->reduction = 0;
+                    $specific_price->reduction_type = 'amount';
+                    $specific_price->reduction_tax = PS_TAX_EXC;
+                    $specific_price->from = '0000-00-00 00:00:00';
+                    $specific_price->to = '0000-00-00 00:00:00';
+                    $specific_price->add();
+                }
 
             }
 
@@ -1053,7 +1063,9 @@ class AdminVenderControllerCore extends AdminController {
 
     public function ajaxProcessSearchClientes(){
 
-        if ($clientes = Customer::searchClienteByDocumento(pSQL(Tools::getValue('cliente_search')))) {
+
+        if ($clientes = Customer::searchClienteByDocumento(pSQL(Tools::getValue('cliente_search')), Tools::getValue('cb_tipo_documento'))) {
+
             $rtn = array(
                 "success" 	=> true,
                 "result" 	=> $clientes

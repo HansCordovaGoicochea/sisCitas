@@ -547,6 +547,7 @@ class ProductCore extends ObjectModel
     public function __construct($id_product = null, $full = false, $id_lang = null, $id_shop = null, Context $context = null)
     {
         parent::__construct($id_product, $id_lang, $id_shop);
+        $address = null;
         if ($full && $this->id) {
             if (!$context) {
                 $context = Context::getContext();
@@ -556,12 +557,10 @@ class ProductCore extends ObjectModel
             $this->tax_name = 'deprecated'; // The applicable tax may be BOTH the product one AND the state one (moreover this variable is some deadcode)
             $this->manufacturer_name = Manufacturer::getNameById((int)$this->id_manufacturer);
             $this->supplier_name = Supplier::getNameById((int)$this->id_supplier);
-            $address = null;
+
             if (is_object($context->cart) && $context->cart->{Configuration::get('PS_TAX_ADDRESS_TYPE')} != null) {
                 $address = $context->cart->{Configuration::get('PS_TAX_ADDRESS_TYPE')};
             }
-
-            $this->tax_rate = $this->getTaxesRate(new Address($address));
 
             $this->new = $this->isNew();
 
@@ -574,6 +573,8 @@ class ProductCore extends ObjectModel
 
             $this->loadStockData();
         }
+
+        $this->tax_rate = $this->getTaxesRate(new Address($address));
 
         if ($this->id_category_default) {
             $this->category = Category::getLinkRewrite((int)$this->id_category_default, (int)$id_lang);
