@@ -230,7 +230,7 @@ class Apisunat_2_1
                         <cbc:ChargeIndicator>false</cbc:ChargeIndicator>  <!-- Indicador del cargo / descuento global  "true"/"false" -->
                         <cbc:AllowanceChargeReasonCode listName="Cargo/descuento" listAgencyName="PE:SUNAT" listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo53">00</cbc:AllowanceChargeReasonCode>  <!-- Código del motivo del cargo/descuento global - Se debe considerar el código 00 de acuerdo al catálogo N° 53.--> 
                         <cbc:MultiplierFactorNumeric>'.round($cabecera["TOTAL_DESCUENTO"] / ($cabecera["TOTAL_DESCUENTO"] + $cabecera["TOTAL_GRAVADA"]), 5).'</cbc:MultiplierFactorNumeric> <!-- el porcentaje que corresponde del descuento global
-    aplicado. Se expresa en números decimales por ejemplo 5% será 0.05. -->
+    aplicado. Se expresa en numeros decimales por ejemplo 5% será 0.05. -->
                         <cbc:Amount currencyID="PEN">'.round($cabecera["TOTAL_DESCUENTO"], 2).'</cbc:Amount> <!-- Monto del cargo/descuento global  -->
                         <cbc:BaseAmount currencyID="PEN">'.round($cabecera["TOTAL_DESCUENTO"] + $cabecera["TOTAL_GRAVADA"], 2).'</cbc:BaseAmount> <!-- Monto de base de cargo/descuento global  -->
                     </cac:AllowanceCharge>
