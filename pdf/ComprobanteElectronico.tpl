@@ -70,8 +70,12 @@
         </tr>
     {/foreach}
     <tr>
-        <td style="text-align: right; border-top: 1px dashed black;" colspan="2">OP. GRAVADAS:</td>
-        <td style="text-align: right; border-top: 1px dashed black;" colspan="2">{displayPrice currency=$order->id_currency price=$order->total_paid_tax_excl}</td>
+        <td style="text-align: right; border-top: 1px dashed black;" colspan="2">DESCUENTO:</td>
+        <td style="text-align: right; border-top: 1px dashed black;" colspan="2">{if $order->total_discounts > 0} -{displayPrice currency=$order->id_currency price=$order->total_discounts}{else}S/0.00{/if}</td>
+    </tr>
+    <tr>
+        <td style="text-align: right;" colspan="2">OP. GRAVADAS:</td>
+        <td style="text-align: right;" colspan="2">{displayPrice currency=$order->id_currency price=$order->total_paid_tax_excl}</td>
     </tr>
     <tr>
         <td style="text-align: right;"  colspan="2">OP. INAFECTAS:</td>

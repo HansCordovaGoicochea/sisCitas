@@ -96,16 +96,19 @@
         <div class="panel-heading">
             <i class="icon-table"></i>&nbsp;Cita
 {*            {if $cita->id && $nombre_access != 'Colaborador' && $nombre_access != 'Recepcionista' && $existeCajasAbiertas && $cita->estado_actual == 0}*}
-{*            {if $cita->id_order && $nombre_access != 'Colaborador' && $nombre_access != 'Recepcionista' && $existeCajasAbiertas && $cita->estado_actual == 0}*}
+            {if $cita->id}
+
                 <a class="btn badge pull-right" style="{if $cita->id_order} display: none; {/if} background-color: #72c279; color: #fff" id="pasarVenta">
                     <i class="icon-money"></i>  Atender
                 </a>
+            {/if}
+            {if $cita->id_order}
 {*            {else}*}
                 <a class="btn badge pull-right" style="{if !$cita->id && !$cita->id_order} display: none; {/if} background-color: #72c279; color: #fff" target="_blank" href="{strip}{if $smarty.server['HTTPS']=='on'}https://{else}http://{/if}{$smarty.server.HTTP_HOST}{$smarty.server.BASE}/index.php?controller=AdminPdf&token={getAdminToken tab='AdminPdf'}{/strip}&submitAction=generateInvoicePDF&id_ventarapida={$cita->id_order|intval}&documento=ticket" id="imprimir_ticket">
                     <i class="icon-print"></i>
                     {l s='Ticket' d='Admin.Orderscustomers.Feature'}
                 </a>
-{*            {/if}*}
+            {/if}
         </div>
         <div  {if $cita->id_order}style="pointer-events: none"{/if} class="panel-body">
             <div class="row">
@@ -153,7 +156,7 @@
 
                     <div class="col-lg-3">
                         <div class="form-group">
-                            <label for="product_id" class="control-label required">Monto de Adelanto:</label>
+                            <label for="product_id" class="control-label required">Adelanto:</label>
                             <div class="input-group">
                                 <div class="input-group-addon">
                                     <i class="icon-money"></i>
@@ -449,7 +452,7 @@
                         }
                         $('#txtNombre').val(data.result.firstname);
                         $('#txtDireccion').val(data.result.direccion);
-                        $('#celular').val(data.result.celular);
+                        $('#celular').val(data.result.telefono_celular);
                         if (data.result.birthday !== '0000-00-00')
                             $('#birthday').val(data.result.birthday.split('-').reverse().join('/'));
 

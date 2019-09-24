@@ -121,14 +121,14 @@
         <td colspan="2">
             <table style="font-size: 9px;" width="100%">
                 <tr>
-                    <td colspan="6"></td>
-                    <td>{if $order->total_discounts > 0}Total descuentos:{/if}</td>
-                    <td style="text-align: center">{if $order->total_discounts > 0} {displayPrice currency=$order->id_currency price=$order->total_discounts} - {/if}</td>
+                    <td colspan="6" style="border-top: 1px solid black;">SON: {Tools::displaynumeroaletras($footer.total_paid_tax_incl, $moneda|upper)}</td>
+                    <td  style="border-top: 1px solid black;"><strong>Descuento:</strong></td>
+                    <td style="text-align: center; border-top: 1px solid black;">{if $order->total_discounts > 0} -{displayPrice currency=$order->id_currency price=$order->total_discounts}{else}S/0.00{/if}</td>
                 </tr>
                 <tr>
-                    <td colspan="6" style="border-top: 1px solid black;">SON: {Tools::displaynumeroaletras($footer.total_paid_tax_incl, $moneda|upper)}</td>
-                    <td  style="border-top: 1px solid black;"><strong>Op. Gravadas:</strong></td>
-                    <td style="text-align: center; border-top: 1px solid black;">{if ($order->total_paid_tax_incl - $order->total_paid_tax_excl) > 0}{displayPrice currency=$order->id_currency price=$order->total_paid_tax_excl}{else}{displayPrice currency=$order->id_currency price=0}{/if}</td>
+                    <td colspan="6"></td>
+                    <td><strong>Op. Gravadas:</strong></td>
+                    <td style="text-align: center;">{if ($order->total_paid_tax_incl - $order->total_paid_tax_excl) > 0}{displayPrice currency=$order->id_currency price=$order->total_paid_tax_excl}{else}{displayPrice currency=$order->id_currency price=0}{/if}</td>
                 </tr>
                 <tr>
                     <td colspan="6"></td>

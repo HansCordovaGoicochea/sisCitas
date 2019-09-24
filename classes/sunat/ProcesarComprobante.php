@@ -29,6 +29,10 @@ class ProcesarComprobante
             $objComprobantes->msj_sunat =  $resp_firma["msj_error"];
             $objComprobantes->update();
             return die(json_encode($resp_firma));
+        }else{
+            $objComprobantes->hash_cpe =  $resp_firma["hash_cpe"];
+            $objComprobantes->ruta_xml =  $rutas["ruta_xml"].".zip";
+            $objComprobantes->update();
         }
 
         $resp_envio = self::enviar_documento($data_comprobante['EMISOR_RUC'], $data_comprobante['EMISOR_USUARIO_SOL'], $data_comprobante['EMISOR_PASS_SOL'],  $rutas["ruta_xml"], $rutas["ruta_cdr"], $rutas['nombre_archivo'], $rutas['ruta_ws']);
@@ -70,7 +74,14 @@ class ProcesarComprobante
         $resp_firma = FirmarDocumento::firmar_xml($data_comprobante, $rutas["ruta_xml"], $rutas["ruta_firma"], $rutas["pass_firma"], $rutas["nombre_archivo"]);
 
         if ($resp_firma['result'] == "error"){
+            $objComprobantes->cod_sunat =  99999;
+            $objComprobantes->msj_sunat =  $resp_firma["msj_error"];
+            $objComprobantes->update();
             return die(json_encode($resp_firma));
+        }else{
+            $objComprobantes->hash_cpe =  $resp_firma["hash_cpe"];
+            $objComprobantes->ruta_xml =  $rutas["ruta_xml"].".zip";
+            $objComprobantes->update();
         }
 
         $resp_envio = self::enviar_documento($data_comprobante['EMISOR_RUC'], $data_comprobante['EMISOR_USUARIO_SOL'], $data_comprobante['EMISOR_PASS_SOL'],  $rutas["ruta_xml"], $rutas["ruta_cdr"], $rutas['nombre_archivo'], $rutas['ruta_ws']);

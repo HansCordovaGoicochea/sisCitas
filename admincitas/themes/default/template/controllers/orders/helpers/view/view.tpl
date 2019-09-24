@@ -104,11 +104,11 @@
                 </a>
 
                   {if !empty($certificado) && (bool)$certificado['active'] && $order->current_state == 2}
-                    <button type="button" class="btn {if $objComprobantes->tipo_documento_electronico == "Boleta"}btn-primary{elseif $objComprobantes->tipo_documento_electronico == ""}btn-primary{else}btn-default{/if} {if $order->total_paid_tax_incl == 0}hide{/if}" id="abrirCliente" data-value="Boleta">
+                    <button type="button" class="btn {if $objComprobantes->tipo_documento_electronico == "Boleta"}btn-primary{elseif $objComprobantes->tipo_documento_electronico == ""}btn-primary{else}btn-default{/if} {if $order->total_paid_tax_incl == 0}hide{/if}" id="abrirCliente" data-value="Boleta" {if $objComprobantes->id} disabled{/if}>
                       <i class="icon-file"></i>
                       {l s='Boleta Elect.' d='Admin.Orderscustomers.Feature'}
                     </button>
-                    <button type="button" class="btn {if $objComprobantes->tipo_documento_electronico == "Factura"}btn-primary{else}btn-default{/if} {if $order->total_paid_tax_incl == 0}hide{/if}" id="abrirEmpresa" data-value="Factura">
+                    <button type="button" class="btn {if $objComprobantes->tipo_documento_electronico == "Factura"}btn-primary{else}btn-default{/if} {if $order->total_paid_tax_incl == 0}hide{/if}" id="abrirEmpresa" data-value="Factura" {if $objComprobantes->id} disabled{/if}>
                       <i class="icon-file"></i>
                       {l s='Factura Elect.' d='Admin.Orderscustomers.Feature'}
                     </button>
@@ -236,15 +236,17 @@
                 {/if}
                   <div class="row " style="margin-top: 15px;" id="tickets_pdfs">
 
-                    {if $objComprobantes->ruta_ticket} <span class="badge" > <a STYLE="color: #fff" target="_blank" href="{$objComprobantes->ruta_ticket}"><strong>PDF COMPROBANTE Ticket</strong></a> </span>{/if}
-                    {if $objComprobantes->ruta_pdf_a4} <span class="badge" > <a STYLE="color: #fff" target="_blank" href="{$objComprobantes->ruta_pdf_a4}"><strong>PDF COMPROBANTE A4</strong></a> </span>{/if}
+                    {if $objComprobantes->ruta_ticket} <span class="badge" > <a STYLE="color: #fff" target="_blank" href="{$objComprobantes->ruta_ticket}"><strong>PDF COMPROBANTE Ticket</strong></a> </span>
+                      <br><br>{/if}
+                    {if $objComprobantes->ruta_pdf_a4} <span class="badge" > <a STYLE="color: #fff" target="_blank" href="{$objComprobantes->ruta_pdf_a4}"><strong>PDF COMPROBANTE A4</strong></a> </span>
+                      <br><br>{/if}
 
 
                     {if $objComprobantes->nota_baja == 'NotaCredito' || $objComprobantes->nota_baja == 'NotaCredito_fisica'}
-                      <span class="badge" >  <a STYLE="color: #fff" target="_blank" href="{$objComprobantes->ruta_pdf_a4nota}"><strong>PDF COMPROBANTE A4 NOTA DE CREDITO</strong></a> </span>
+                      <span class="badge" >  <a STYLE="color: #fff" target="_blank" href="{$objComprobantes->ruta_pdf_a4nota}"><strong>PDF COMPROBANTE A4 NOTA DE CREDITO</strong></a> </span><br><br>
                     {elseif $objComprobantes->nota_baja == 'Baja'}
                     {else}
-                      {if $objComprobantes->ruta_xml} <span class="badge" > <a STYLE="color: #fff" href="{$objComprobantes->ruta_xml}"><strong>XML COMPROBANTE</strong></a> </span>{/if}
+                      {if $objComprobantes->ruta_xml} <span class="badge" > <a STYLE="color: #fff" href="{$objComprobantes->ruta_xml}"><strong>XML COMPROBANTE</strong></a> </span><br><br>{/if}
                       {if $objComprobantes->ruta_cdr} <span class="badge" > <a STYLE="color: #fff" href="{$objComprobantes->ruta_cdr}"><strong>CDR COMPROBANTE</strong></a> </span>{/if}
                     {/if}
                   </div>
@@ -324,7 +326,8 @@
             <!-- CLIENTE -->
             {*            <div class="col-xs-12" {if $order->valid == 0}style="display: none;" {/if} {if $objComprobantes->numero_comprobante != "" && $objComprobantes->cod_sunat == 0}style="display: none;" {/if}>*}
             <div class="col-xs-12 {if $order->total_paid_tax_incl == 0}hide{/if} " {if $objComprobantes->numero_comprobante != "" && $objComprobantes->cod_sunat == 0}style="display: none;" {/if}>
-              <div class="col-lg-6 col-xs-12">
+
+              <div {if $objComprobantes->id} style="display: none" {/if} class="col-lg-6 col-xs-12">
                 <div class="form-group">
                   <label for="cb_tipo_documento" class="control-label required"><span class="label-tooltip" data-toggle="tooltip" title="" data-original-title="Tipo de documento">Tipo Doc.:</span></label>
                   <div class="">
@@ -336,7 +339,7 @@
                   </div>
                 </div>
               </div>
-              <div class="col-lg-6 col-xs-12" >
+              <div {if $objComprobantes->id} style="display: none"{/if} class="col-lg-6 col-xs-12" >
                 <div class="form-group">
                   <label for="txtNumeroDocumento" class="control-label required"><span class="label-tooltip" data-toggle="tooltip" title="" data-original-title="Número de documento">Número Doc.:</span></label>
                   <div class="">
@@ -344,7 +347,7 @@
                   </div>
                 </div>
               </div>
-              <div  id="div_datos_cliente">
+              <div {if $objComprobantes->id} style="display: none"{/if}  id="div_datos_cliente">
                 <input type="hidden" class="input_ache" name="id_customer" id="id_customer" value="{$customer->id}">
                 <br>
                 <br>
@@ -365,8 +368,11 @@
                   </div>
                 </div>
               </div>
+              {if !$objComprobantes->id}
               <br>
               <br>
+              {/if}
+
               {if !empty($certificado) && (bool)$certificado['active'] && $order->current_state == 2}
                   <button type="button" class="btn btn-default pull-right" name="submitCreateXMLFactura" id="b_compro" data-value="Boleta" {if $objComprobantes->tipo_documento_electronico == "Factura"}style="display: none;" {/if}>
                     <img src="{$img_dir}sunat.png" style="display: block; width: 30px; height: 30px;margin: 0 auto; font-size: 28px; background: transparent; background-size: 26px; background-position: 50%;" alt="" >
@@ -378,10 +384,12 @@
                   </button>
 
               {/if}
-              <button type="button" class="btn btn-default pull-right" name="submitCreateXMLFactura" id="guardarCliente" style="margin-right: 5px;">
-                <i class="process-icon-save"></i>
-                {l s='Cambiar Cliente' d='Admin.Orderscustomers.Feature'}
-              </button>
+              {if !$objComprobantes->id}
+                <button type="button" class="btn btn-default pull-right" name="submitCreateXMLFactura" id="guardarCliente" style="margin-right: 5px;">
+                  <i class="process-icon-save"></i>
+                  {l s='Cambiar Cliente' d='Admin.Orderscustomers.Feature'}
+                </button>
+              {/if}
             </div>
             {*          {/if}*}
           </div>
@@ -790,10 +798,12 @@
                           </td>
                           {if $can_edit}
                             <td>
+                              {if $order->current_state == 1}
                               <a href="{$current_index}&amp;submitDeleteVoucher&amp;id_order_cart_rule={$discount['id_order_cart_rule']}&amp;id_order={$order->id}&amp;token={$smarty.get.token|escape:'html':'UTF-8'}">
                                 <i class="icon-minus-sign"></i>
-                                {l s='Delete voucher' d='Admin.Orderscustomers.Feature'}
+                                {l s=' Eliminar descuento' d='Admin.Orderscustomers.Feature'}
                               </a>
+                              {/if}
                             </td>
                           {/if}
                         </tr>

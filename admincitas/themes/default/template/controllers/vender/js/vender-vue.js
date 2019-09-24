@@ -1019,7 +1019,7 @@ var app_vender = new Vue({
             self.tipo_doc = data.tipo_documento;
             self.cod_sunat = data.cod_sunat;
             self.fecha_nacimiento = data.birthday;
-            self.telefono_celular = data.telefono_celular;
+            self.celular_cliente = data.telefono_celular;
             self.show_forma_pago = parseInt(data.es_credito) === 1;
 
             if (data.direccion){

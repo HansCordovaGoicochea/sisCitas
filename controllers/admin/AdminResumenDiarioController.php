@@ -49,7 +49,8 @@ class AdminResumenDiarioControllerCore extends AdminController
 			)
 		);
 
-
+        $this->_orderBy = 'id_resumen_diario';
+        $this->_orderWay = 'DESC';
 		$this->fields_list = array(
                 'id_resumen_diario' => array(
                             'title' => $this->l('ID'),

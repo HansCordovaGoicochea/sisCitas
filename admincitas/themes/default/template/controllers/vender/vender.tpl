@@ -57,6 +57,9 @@
                                                 <div v-if="msg_success.length" role="alert" class="alert alert-success mb-4">
                                                     <div v-for="(val, index) in msg_success" v-html="val.msg"></div>
                                                 </div>
+                                                <div class="alert alert-info" v-if="puntos_cliente >= 6">
+                                                    <div>El cliente tiene mas de 6 puntos y puede reclamar un servicio gratis.</div>
+                                                </div>
                                                 <div>
                                                     <div class="row" v-if="!hasComprobante && total > 0 && perfil_empleado_vue != 'Colaborador'">
                                                         <div class="col-xs-6 col-lg-6 col-xl-6 text-center mb-3">
@@ -127,7 +130,7 @@
                                                                 <input type="text" class="col-sm-8 form-control" v-model="nombre_legal" :disabled="!mostrar_form_cliente" @keyup="verificarCliente">
                                                             </div>
                                                             <div class="form-group row hide">
-                                                                <div class="col-sm-4">
+                                                                <div class="col-sm-112">
                                                                     <i class="fa fa-credit-card"></i>&nbsp;
                                                                     <strong v-if="tipo_doc" v-text="tipo_doc">tipo documento</strong>
                                                                     <strong v-else>N° Documento</strong>
@@ -135,19 +138,19 @@
                                                                 <input type="number" class="col-sm-8 form-control" v-model="numero_doc" disabled>
                                                             </div>
                                                             <div class="form-group row ">
-                                                                <div class="col-sm-4">
+                                                                <div class="col-sm-12">
                                                                     <i class="fa fa-map-marker"></i>&nbsp;<strong>Dirección</strong>
                                                                 </div>
                                                                 <input type="text" class="col-sm-8 form-control" v-model="direccion_cliente">
                                                             </div>
                                                             <div class="form-group row ">
-                                                                <div class="col-sm-4">
+                                                                <div class="col-sm-12">
                                                                     <i class="fa fa-phone"></i>&nbsp;<strong>Celular/Teléfono</strong>
                                                                 </div>
                                                                 <input type="text" class="col-sm-8 form-control" v-model="celular_cliente">
                                                             </div>
                                                             <div class="form-group row ">
-                                                                <div class="col-sm-4">
+                                                                <div class="col-sm-12">
                                                                     <i class="fa fa-calendar"></i>&nbsp;<strong>Fecha Nacimiento</strong>
                                                                 </div>
                                                                 <datepicker v-model="fecha_nacimiento"></datepicker>

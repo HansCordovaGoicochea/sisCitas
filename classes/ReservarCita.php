@@ -63,5 +63,17 @@ class ReservarCitaCore extends ObjectModel
         return Db::getInstance()->executeS($sql);
 
     }
+    public static function getCitasByCliente($cliente_search)
+    {
+
+        $sql = '
+			SELECT rc.*
+			FROM `'._DB_PREFIX_.'reservar_cita` rc INNER JOIN `'._DB_PREFIX_.'customer` c
+			ON (rc.id_customer = c.id_customer)
+			 WHERE `num_document` = "'.$cliente_search.'"';
+
+        return Db::getInstance()->executeS($sql);
+
+    }
 
 }

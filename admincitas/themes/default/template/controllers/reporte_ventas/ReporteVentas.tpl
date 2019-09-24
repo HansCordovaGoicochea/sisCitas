@@ -203,6 +203,7 @@
                         </thead>
                         <tbody>
                         <!-- PRODUCTS -->
+                        {assign var='suma_efectivo' value = 0}
                         {if count($aperturas_caja.efectivo)}
                             <tr class="info">
                                 <td style="text-align: center; font-size: 1.25em" colspan="6">
@@ -224,6 +225,7 @@
                                 {assign var='total' value=0}
                                 {assign var='nro_operaciones' value=0}
                                 {foreach from=Order::getDetailsOrdersDateFromDateTO((int)$datos_fila.id_order) item='detail'}
+                                    {assign var='suma_efectivo' value = $detail.total_price_tax_incl}
                                     {assign var='total' value=$total+$detail.total_price_tax_incl}
                                     {assign var='nro_operaciones' value=$nro_operaciones+1}
                                     {if $detail.product_quantity > 0}
@@ -261,6 +263,7 @@
                             </tr>
                         {/foreach}
                         {/if}
+                        {assign var='suma_visa' value = 0}
                         {if count($aperturas_caja.visa)}
                             <tr class="info">
                                 <td style="text-align: center; font-size: 1.25em" colspan="6">
@@ -282,6 +285,7 @@
                                 {assign var='total' value=0}
                                 {assign var='nro_operaciones' value=0}
                                 {foreach from=Order::getDetailsOrdersDateFromDateTO((int)$datos_fila.id_order) item='detail'}
+                                    {assign var='suma_visa' value = $detail.total_price_tax_incl}
                                     {assign var='total' value=$total+$detail.total_price_tax_incl}
                                     {assign var='nro_operaciones' value=$nro_operaciones+1}
                                     {if $detail.product_quantity > 0}
@@ -319,6 +323,7 @@
                             </tr>
                         {/foreach}
                         {/if}
+                        {assign var='suma_izipay' value = 0}
                         {if count($aperturas_caja.izipay)}
                             <tr class="info">
                                 <td style="text-align: center; font-size: 1.25em" colspan="6">
@@ -340,6 +345,7 @@
                                 {assign var='total' value=0}
                                 {assign var='nro_operaciones' value=0}
                                 {foreach from=Order::getDetailsOrdersDateFromDateTO((int)$datos_fila.id_order) item='detail'}
+                                    {assign var='suma_izipay' value = $detail.total_price_tax_incl}
                                     {assign var='total' value=$total+$detail.total_price_tax_incl}
                                     {assign var='nro_operaciones' value=$nro_operaciones+1}
                                     {if $detail.product_quantity > 0}
@@ -377,6 +383,7 @@
                             </tr>
                         {/foreach}
                         {/if}
+                        {assign var='suma_porcobrar' value = 0}
                         {if count($aperturas_caja.porcobrar)}
                             <tr class="info">
                                 <td style="text-align: center; font-size: 1.25em" colspan="6">
@@ -387,6 +394,7 @@
                             </tr>
                         {foreach from=$aperturas_caja.porcobrar item=datos_fila}
                             {if isset($datos_fila.id_order) && (int)$datos_fila.id_order > 0}
+
                                 <tr class="success">
                                     <td style="text-align: left;" colspan="6">
                                         <strong>
@@ -398,6 +406,7 @@
                                 {assign var='total' value=0}
                                 {assign var='nro_operaciones' value=0}
                                 {foreach from=Order::getDetailsOrdersDateFromDateTO((int)$datos_fila.id_order) item='detail'}
+                                    {assign var='suma_porcobrar' value = $suma_porcobrar + $detail.total_price_tax_incl}
                                     {assign var='total' value=$total+$detail.total_price_tax_incl}
                                     {assign var='nro_operaciones' value=$nro_operaciones+1}
                                     {if $detail.product_quantity > 0}
@@ -435,7 +444,7 @@
                             </tr>
                         {/foreach}
                         {/if}
-
+                        {assign var='suma_egresos' value = 0}
                         {if count($aperturas_caja.egresos)}
                             <tr class="info">
                                 <td style="text-align: center; font-size: 1.25em" colspan="6">
@@ -449,6 +458,7 @@
                                 {assign var='total' value=0}
                                 {assign var='nro_operaciones' value=0}
                                 {foreach from=$aperturas_caja.egresos item='detail'}
+                                    {assign var='suma_egresos' value = $suma_egresos + $detail.monto}
                                     {assign var='total' value=$total+$detail.monto}
                                     {assign var='nro_operaciones' value=$nro_operaciones+1}
                                     <tr >
@@ -471,6 +481,22 @@
                                 </tr>
 
                         {/if}
+                        <tr class="warning">
+                            <td style="text-align: right;" colspan="6">Total Efectivo: {displayPrice currency=1 price=$suma_efectivo|round:2}</td>
+                        </tr>
+                        <tr class="warning">
+                            <td style="text-align: right;" colspan="6">Total Visa: {displayPrice currency=1 price=$suma_visa|round:2}</td>
+                        </tr>
+                        <tr class="warning">
+                            <td style="text-align: right;" colspan="6">Total Izipay: {displayPrice currency=1 price=$suma_izipay|round:2}</td>
+                        </tr>
+                        <tr class="warning">
+                            <td style="text-align: right;" colspan="6">Total Por Cobrar: {displayPrice currency=1 price=$suma_porcobrar|round:2}</td>
+                        </tr>
+                        <tr class="warning">
+                            <td style="text-align: right;"  colspan="6">Total Egresos: {displayPrice currency=1 price=$suma_egresos|round:2}</td>
+                        </tr>
+
                         </tbody>
                     </table>
                 </div>

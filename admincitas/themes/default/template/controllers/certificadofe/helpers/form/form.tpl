@@ -95,7 +95,10 @@
                                             </label>
                                             <div class="col-lg-9"  style="margin-bottom: 10px;">
                                                 <input type="text" name="user_sunat" id="user_sunat" value="{$objFactura->user_sunat}" class="" size="80"  autocomplete="off">
+                                                <p class="help-block"><small>RUC + Usuario. Ejemplo: 01234567890ELUSUARIO</small></p>
                                             </div>
+
+
                                         </div>
                                         <div class="form-group" >
                                             <label class="control-label col-lg-3 required">

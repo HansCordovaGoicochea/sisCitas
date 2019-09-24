@@ -57,6 +57,7 @@ class AdminOrdersControllerCore extends AdminController
         }
 
         $this->addRowAction('consultar_cdr');
+        $this->addRowAction('consultar_ticket');
         ////////////////////////
 
 //        $this->addRowAction('comunicacion_baja');
@@ -896,25 +897,7 @@ class AdminOrdersControllerCore extends AdminController
 
         $order->motivo_anulacion = Tools::getValue('motivo_anulacion');
         $order->update();
-        if (!empty($doc)) {
-            $order->setCurrentState(14, $this->context->employee->id); //estado 14 comunicacion de baja
-            $arr = Certificadofe::getCertificado();
-            $objCerti = new Certificadofe((int)$arr); // buscar el certificado
-            $numero_comprobante = $objComprobantes->numeracion_nota_baja;
-            $nombre_xml_comprobante = PS_SHOP_RUC . '-' . $numero_comprobante;
-            //creamos las RUTAS de los documentos
-            // creamos la carpeta donde se guardara el XML
-            $ruta_general_cdr = "archivos_sunat/baja/" . PS_SHOP_RUC . "/cdr/";
-            $ruta_cdr = $ruta_general_cdr;
 
-            $resp_cdr = ProcesarComprobante::consultar_envio_ticket($objCerti->user_sunat, $objCerti->pass_sunat, $objComprobantes->identificador_comunicacion, $nombre_xml_comprobante, $ruta_cdr, $objCerti->web_service_sunat);
-
-            if ($resp_cdr['respuesta'] == 'ok') {
-                $objComprobantes->mensaje_cdr = $resp_cdr['msj_sunat'];
-                $objComprobantes->ruta_cdr_otro = $resp_cdr['ruta_cdr'];
-                $objComprobantes->update();
-            }
-        }
 
         return die(Tools::jsonEncode(array('errors' => true, 'estado' => 'disponible')));
 
@@ -1165,6 +1148,109 @@ class AdminOrdersControllerCore extends AdminController
         parent::processExport($text_delimiter);
     }
 
+
+    public function displayConsultar_ticketLink($token = null, $id, $name = null)
+    {
+        $order = new Order((int)$id);
+        $doc = PosOrdercomprobantes::getComprobantesByOrderLimit($order->id);
+        $objComprobante = new PosOrdercomprobantes((int)$doc['id_pos_ordercomprobantes']);
+        if (empty($doc)){
+            return false;
+        }
+
+        if ($objComprobante->nota_baja != "ComunicacionBaja"){
+            return false;
+        }
+
+        if (!array_key_exists('Consultar_ticket', self::$cache_lang))
+            self::$cache_lang['Consultar_ticket'] = $this->l('Consultar CDR', 'Helper');
+
+        $btn_icon = '<a onclick="consultarticketcdr('.$order->id.')" title="Consultar CDR" id="consultar_ticket" class="pointer">
+                            <i class="icon-eye"></i> Consultar CDR
+                        </a>
+                             
+                            <script>
+	
+                                   function consultarticketcdr(id){
+                                        $.ajax({
+                                            type:"POST",
+                                            url: "'.$this->context->link->getAdminLink('AdminOrders').'",
+                                            async: true,
+                                            dataType: "json",
+                                            data : {
+                                                ajax: "1",
+                                                token: "'.Tools::getAdminTokenLite('AdminOrders').'",
+                                                tab: "AdminOrders",
+                                                action: "consultarTicket",
+                                                id_order: id,
+                                            },
+                                            success : function(res)
+                                            {
+                                                if (res.response === "ok"){
+                                                    $.each(res.mensaje, function(k, v) {
+                                                        $.growl.notice({ title: "", message:v});
+                                                    });
+                                                }else{
+                                                     $.each(res.mensaje, function(k, v) {
+                                                         $.growl.error({ title: "", message:v});
+                                                    });
+                                                }
+                                                
+                                            },
+                                        });
+                                    }
+                                   
+                        </script>
+                            ';
+
+        return $btn_icon;
+
+    }
+
+
+    //funcion ajax solo dando click en el boton de la lista de ver pdf
+    public function ajaxProcessConsultarticketcdr()
+    {
+        /****
+        CLASE	             DESCRIPCION	                                                         ACTIVO POR DEFECTO
+        ErrorExcepcion	     Errores entre 100 y 1999 inclusive	                                              SI
+        ErrorRechazo	     Errores entre 2000 y 3999 inclusive                                              SI
+        ErrorObservaciones	 Errores mayores a 4000	                                                          SI
+        Error2324	         Error para el error 2324.
+        Pone como aceptado un comprobante que ya fue comunicado como baja anteriormente  SI
+        Error1033	         Error para el error 1033.
+        Permite recuperar el cdr de un comprobante que ya fue enviado anteriormente	  NO
+         ****//////
+        $order = new Order((int)Tools::getValue('id_order'));
+        $doc = PosOrdercomprobantes::getComprobantesByOrderLimit($order->id);
+        if (!empty($doc)){
+            $objComprobantes = new PosOrdercomprobantes((int)$doc['id_pos_ordercomprobantes']);
+            $arr = Certificadofe::getCertificado();
+            $objCerti = new Certificadofe((int)$arr); // buscar el certificado
+            $numero_comprobante = $objComprobantes->numeracion_nota_baja;
+            $nombre_xml_comprobante = PS_SHOP_RUC . '-' . $numero_comprobante;
+            //creamos las RUTAS de los documentos
+            // creamos la carpeta donde se guardara el XML
+            $ruta_general_cdr = "archivos_sunat/baja/" . PS_SHOP_RUC . "/cdr/";
+            $ruta_cdr = $ruta_general_cdr;
+
+            $resp_cdr = ProcesarComprobante::consultar_envio_ticket($objCerti->user_sunat, $objCerti->pass_sunat, $objComprobantes->identificador_comunicacion, $nombre_xml_comprobante, $ruta_cdr, $objCerti->web_service_sunat);
+
+            if ($resp_cdr['respuesta'] == 'ok') {
+                $objComprobantes->mensaje_cdr = $resp_cdr['msj_sunat'];
+                $objComprobantes->ruta_cdr_otro = $resp_cdr['ruta_cdr'];
+                $objComprobantes->update();
+
+                $this->errors[] = $objComprobantes->mensaje_cdr;
+            }
+
+            die(Tools::jsonEncode(array('response' => 'ok', 'mensaje' => $this->errors)));
+
+        }else{
+            $this->errors[] = "No existe alguna comprobante creado";
+            die(Tools::jsonEncode(array('response' => 'error', 'mensaje' => $this->errors)));
+        }
+    }
 
     public function displayConsultar_cdrLink($token = null, $id, $name = null)
     {

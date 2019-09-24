@@ -254,7 +254,10 @@ class Apisunat_2_1
                   </cac:TaxSubtotal>
                </cac:TaxTotal>
                <cac:LegalMonetaryTotal>
-                  <cbc:LineExtensionAmount currencyID="PEN">'.round($cabecera['TOTAL_GRAVADA'],2).'</cbc:LineExtensionAmount> <!-- Total Valor de Venta sin impuesto -->
+                  <cbc:LineExtensionAmount currencyID="PEN">'.round($cabecera['SUB_TOTAL'],2).'</cbc:LineExtensionAmount> <!-- Total Valor de Venta sin impuesto -->
+                  <cbc:TaxInclusiveAmount currencyID="PEN">'.round($cabecera['TOTAL'],2).'</cbc:TaxInclusiveAmount> 
+                  <cbc:AllowanceTotalAmount currencyID="PEN">'.round($cabecera["TOTAL_DESCUENTO"], 2).'</cbc:AllowanceTotalAmount>
+                  <cbc:ChargeTotalAmount currencyID="PEN">0</cbc:ChargeTotalAmount>
                   <cbc:PayableAmount currencyID="PEN">'.round($cabecera['TOTAL'], 2).'</cbc:PayableAmount> <!-- Total Valor de Venta con impuesto -->
                </cac:LegalMonetaryTotal>
                ';
@@ -317,14 +320,13 @@ class Apisunat_2_1
             $resp["respuesta"] = "error";
             $resp["msj_error"] = "HAY PRODUCTOS SIN IGV";
         }else{
-            //        if (!file_exists($ruta)) {
 
             $doc->loadXML($xmlCPE);
             $xml_doc =  $doc->saveXML();
             $fp = fopen($ruta,"wb");
             fwrite($fp, $xml_doc);
             fclose($fp);
-//        }
+//            d("sadas");
             $resp['respuesta'] = 'OK';
             $resp['url_xml'] = $ruta;
         }

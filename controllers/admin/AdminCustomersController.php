@@ -446,6 +446,7 @@ class AdminCustomersControllerCore extends AdminController
                     'hint' => $this->trans('Dirección de residencia del cliente', array(), 'Admin.Notifications.Info').''
                 ),
                 array(
+                    'form_group_class' => 'hide',
                     'type' => 'text',
                     'label' => $this->trans('Telefono', array(), 'Admin.Global'),
                     'name' => 'telefono',

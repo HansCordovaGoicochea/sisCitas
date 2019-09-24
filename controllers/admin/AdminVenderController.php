@@ -1066,9 +1066,12 @@ class AdminVenderControllerCore extends AdminController {
 
         if ($clientes = Customer::searchClienteByDocumento(pSQL(Tools::getValue('cliente_search')), Tools::getValue('cb_tipo_documento'))) {
 
+            $reservas = ReservarCita::getCitasByCliente(pSQL(Tools::getValue('cliente_search')));
+
             $rtn = array(
                 "success" 	=> true,
-                "result" 	=> $clientes
+                "result" 	=> $clientes,
+                "reservas" 	=> $reservas
             );
             die(json_encode($rtn));
         }else{
