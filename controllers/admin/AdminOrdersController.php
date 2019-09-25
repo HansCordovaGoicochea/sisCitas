@@ -64,10 +64,6 @@ class AdminOrdersControllerCore extends AdminController
 
         parent::__construct();
 
-
-
-
-
         if (Context::getContext()->shop->getContext() != Shop::CONTEXT_SHOP && Shop::isFeatureActive()) {
             return $this->errors[] = $this->trans('Tiene que seleccionar una tienda antes.', array(), 'Admin.Orderscustomers.Notification');
         }
@@ -358,23 +354,6 @@ class AdminOrdersControllerCore extends AdminController
         //si solo si esta pagado
         $new_os = new OrderState((int)Configuration::get('PS_OS_CANCELED'), $order->id_lang);
         $old_os = $order->getCurrentOrderState();
-
-        if (Tools::getValue('id_caja') && (int)Tools::getValue('id_caja') > 0){
-            $objCaja = new PosArqueoscaja((int)Tools::getValue('id_caja'));
-            foreach ($order->getOrderPaymentCollection() as $payment){
-                if ((int)$payment->es_cuenta == 1) { // 1 es caja
-                    $monto_inicial = $objCaja->monto_operaciones;
-                    $objCaja->monto_operaciones = (float)$monto_inicial - (float)$payment->amount;
-                    $objCaja->update();
-                }
-            }
-
-            if (!empty($doc)) {
-                $objComprobantes = new PosOrdercomprobantes((int)$doc['id_pos_ordercomprobantes']);
-                $objComprobantes->devolver_monto_caja = 1;
-                $objComprobantes->update();
-            }
-        }
 
         $order->setCurrentState(Configuration::get('PS_OS_CANCELED'), $this->context->employee->id);
 
@@ -922,7 +901,7 @@ class AdminOrdersControllerCore extends AdminController
         if (!$objComprobantes->numeracion_nota_baja && $objComprobantes->numeracion_nota_baja == ""){
             $correlativo_comanda1 = NumeracionDocumento::getNumTipoDoc('ComunicacionBaja');
             if (empty($correlativo_comanda1)){
-                $this->errors[] = "No existe numeración cree una <a href='index.php?controller=AdminNumeracionDocumentos&addnumeracion_documentos&token=".Tools::getAdminTokenLite("AdminNumeracionDocumentos")."&nombre=".$objComprobantes->tipo_documento_electronico."' target='_blank'>&nbsp; -> Crear Numeración para los Comprobantes Electrónicos</a>";
+                $this->errors[] = "No existe numeración cree una <a href='index.php?controller=AdminNumeracionDocumentos&addnumeracion_documentos&token=".Tools::getAdminTokenLite("AdminNumeracionDocumentos")."&nombre=ComunicacionBaja' target='_blank'>&nbsp; -> Crear Numeración para los Comprobantes Electrónicos</a>";
                 return die(Tools::jsonEncode(array('result' => "error", 'msg' => $this->errors)));
             }
             else{

@@ -954,7 +954,83 @@ var app_vender = new Vue({
                         }
                     }else{
                         that.fillCustomer(data.result);
+                        if (data.reservas.length){
+                            let html = `
+                                <!-- Modal -->
+                                <div id="moda_reserva_cliente" class="modal fade" role="dialog">
+                                  <div class="modal-dialog modal-lg">
+                                    <!-- Modal content-->
+                                    <div class="modal-content">
+                                      <div class="modal-header">
+                                        <h4 class="modal-title">Reservas Pendientes - Cliente: `+data.result.firstname+`</h4>
+                                      </div>
+                                      <div class="modal-body">
+                                      <table class="table">
+                                          <thead>
+                                              <tr>
+                                                  <td>Fecha</td>
+                                                  <td>Hora</td>
+                                                  <td>Colaborador</td>
+                                                  <td>Servicio</td>
+                                                  <td>Adelanto</td>
+                                                  <td>&nbsp;</td>
+                                              </tr>
+                                          </thead>
+                                          <tbody>
+                                   `;
+                            var date_moment = moment(); //Get the current date
+                            $.each(data.reservas, function (indx, val) {
+                                html += `
+                                    <tr>
+                                        <td>`+moment(val.fecha_inicio).format('DD/MM/YYYY')+`</td>
+                                        <td>`+val.hora+`</td>
+                                        <td>      
+                                        <select class="form-control chosen">
+                                            <option value="">- Seleccione Colaborador -</option>`;
+                                    $.each(colaboradores, function (indx2, val2) {
+                                        if (val.id_colaborador === val2.id){
+                                            html += `
+                                            <option value="`+val2.id+`" selected >`+val2.text+`</option>
+                                        `;
+                                        }else{
+                                            html += `
+                                            <option value="`+val2.id+`" >`+val2.text+`</option>
+                                        `;
+                                        }
 
+                                    });
+                                html += `</select>
+                                           </td>
+                                        <td>`+val.product_name+`</td>
+                                        <td>S/`+val.adelanto+`</td>
+                                        <td>
+                                         <button style="margin: 3px;" class="btn btn-danger pull-right" onclick="anularVentaReserva(`+val.id_reservar_cita+`, `+val.id_colaborador+`)"><i class="fa fa-ban"></i> Anular</button>
+                                        <button style="margin: 3px;" class="btn btn-success pull-right" onclick="pasaVentaReserva(`+val.id_reservar_cita+`, `+val.id_colaborador+`)"><i class="fa fa-check"></i> Atender</button>
+                                       
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+
+                            html += `
+                                    </tbody>
+                                    </table>
+                                      </div>
+                                      <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                            `;
+                            $('#moda_reserva_cliente').remove();
+                            $('#app_vender').append(html);
+                            $('#moda_reserva_cliente').modal({ backdrop: 'static', keyboard: false, closable: false});
+                            $('#moda_reserva_cliente').modal('show');
+                            $('#moda_reserva_cliente select.chosen').each(function(k, item){
+                                $(item).chosen({ search_contains: true, width: '100%', });
+                            });
+                        }
                     }
                 },
                 error: function (error) {
@@ -1128,5 +1204,103 @@ function windowPrintAche(id_selector){
         } else {
             iframe.contentWindow.print();
         }
+    }
+}
+
+function pasaVentaReserva(id, id_colaborador) {
+    var x = confirm("¿Seguro de crear la reserva?");
+    if (x){
+        if (parseInt(id_colaborador) > 0){
+            $.ajax({
+                type:"POST",
+                url: url_ajax_reservas,
+                async: true,
+                dataType: "json",
+                data:{
+                    ajax: "1",
+                    token: token_reservas,
+                    action : "realizarVenta",
+                    id_reservar_cita: id,
+                    id_colaborador: id_colaborador,
+                },
+                beforeSend: function(){
+                    $('body').waitMe({
+                        effect: 'bounce',
+                        text: 'Guardando...',
+                        color: '#000',
+                        maxSize: '',
+                        textPos: 'vertical',
+                        fontSize: '',
+                        source: ''
+                    });
+                },
+                success: function (data) {
+                    if (data.response === 'ok'){
+
+                        // window.location.href = url_ajax_reservas+"&updatereservar_cita&id_reservar_cita="+ data.objCita.id;
+                        // $('body').waitMe('hide');
+                        location.reload();
+                    }
+                    if (data.response === 'failed'){
+                        $('#error').text(data.msg);
+                        $('#error').show();
+                    }
+                },
+                error: function (error) {
+                    console.log(error);
+                },
+                complete: function(data) {
+
+                },
+            });
+        }else{
+            $.growl.error({ title: "", message:"Tiene que seleccionar un colaborador"});
+        }
+    }else{
+        return false;
+    }
+}
+
+function anularVentaReserva(id, id_colaborador) {
+    var x = confirm("¿Seguro de anular la reserva?");
+    if (x){
+        $.ajax({
+                type:"POST",
+                url: url_ajax_reservas,
+                async: true,
+                dataType: "json",
+                data:{
+                    ajax: "1",
+                    token: token_reservas,
+                    action : "anularCita",
+                    id_reservar_cita: id,
+                    id_colaborador: id_colaborador,
+                },
+                beforeSend: function(){
+                    $('body').waitMe({
+                        effect: 'bounce',
+                        text: 'Anulando Cita...',
+                        color: '#000',
+                        maxSize: '',
+                        textPos: 'vertical',
+                        fontSize: '',
+                        source: ''
+                    });
+                },
+                success: function (data) {
+                    if (data.response === 'ok'){
+                        // window.location.href = url_ajax_reservas+"&updatereservar_cita&id_reservar_cita="+ data.objCita.id;
+                        location.reload();
+                    }
+                },
+                error: function (error) {
+                    console.log(error);
+                },
+                complete: function(data) {
+
+                },
+            });
+    }else{
+        return false;
     }
 }

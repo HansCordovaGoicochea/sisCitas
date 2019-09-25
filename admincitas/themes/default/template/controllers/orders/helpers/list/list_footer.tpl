@@ -193,14 +193,16 @@
                     },
                     success : function(res)
                     {
-                        location.reload();
-                        if (res.respuesta === 'error'){
+
+                        if (res.result === 'error' || res.respuesta === 'error'){
                             $.each(res.msg, function (i, value) {
                                 $.growl.error({ title:'', message: value })
                             })
+                        }else{
+                            location.reload();
                         }
-
                         $('body').waitMe('hide');
+
                     },
                 });
             }else{
@@ -305,7 +307,14 @@
                     },
                     success : function(res)
                     {
-                        location.reload();
+                        if (res.result === 'error' || res.respuesta === 'error'){
+                            $.each(res.msg, function (i, value) {
+                                $.growl.error({ title:'', message: value })
+                            })
+                        }else{
+                            location.reload();
+                        }
+                        $('body').waitMe('hide');
                     },
                 });
             }else{

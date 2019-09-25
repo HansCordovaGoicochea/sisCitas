@@ -67,10 +67,11 @@ class ReservarCitaCore extends ObjectModel
     {
 
         $sql = '
-			SELECT rc.*
+			SELECT rc.*, CONCAT_WS(" ", emp.firstname, emp.lastname) as colaborador
 			FROM `'._DB_PREFIX_.'reservar_cita` rc INNER JOIN `'._DB_PREFIX_.'customer` c
 			ON (rc.id_customer = c.id_customer)
-			 WHERE `num_document` = "'.$cliente_search.'"';
+			LEFT JOIN `'._DB_PREFIX_.'employee` emp ON (rc.id_colaborador = emp.id_employee)
+			 WHERE estado_actual =  0 AND `num_document` = "'.$cliente_search.'"';
 
         return Db::getInstance()->executeS($sql);
 

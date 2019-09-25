@@ -217,7 +217,7 @@
                     </div>
                     <div class="form-group col-lg-6">
                         <label for="birthday" class="control-label required">Fecha Nacimiento:</label>
-                        <input type="text" class="form-control datepicker" id="birthday" name="birthday" value="{if isset($customer->birthday) != '0000-00-00'}{$customer->birthday|date_format:"%d/%m/%Y"}{/if}">
+                        <input type="text" class="form-control datepicker" id="birthday" name="birthday" value="{if $customer->birthday != '0000-00-00'}{$customer->birthday|date_format:"%d/%m/%Y"}{/if}">
                     </div>
                     <div class="form-group col-lg-6">
                         <label for="celular" class="control-label">Celular:</label>

@@ -33,7 +33,7 @@ class AdminReservarCitaControllerCore extends AdminController
 
         $this->fields_list = array(
             'id_reservar_cita' => array('align' => 'hide', 'class' => 'hide'),
-            'fecha_inicio' => array('title' => $this->l('Fecha Apertura'),  'type' => 'date',),
+            'fecha_inicio' => array('title' => $this->l('Fecha'),  'type' => 'date',),
             'hora' => array('title' => $this->l('Hora'),  'havingFilter' => true),
             'colaborador' => array('title' => $this->l('Colaborador'),  'havingFilter' => true),
             'cliente' => array('title' => $this->l('Cliente'),  'havingFilter' => true),
@@ -275,7 +275,6 @@ class AdminReservarCitaControllerCore extends AdminController
 
     }
 
-
     public function ajaxProcessGetProductByName()
     {
 
@@ -330,6 +329,12 @@ class AdminReservarCitaControllerCore extends AdminController
 
         if(Tools::getValue('id_reservar_cita')){
             $objCita = new ReservarCita((int)Tools::getValue('id_reservar_cita'));
+            $id_colaborador_old = $objCita->id_colaborador;
+            if(Tools::getValue('id_colaborador') && (int)$id_colaborador_old != (int)Tools::getValue('id_colaborador')){
+                $objCita->id_colaborador = Tools::getValue('id_colaborador');
+                $objCita->update();
+            }
+
             $cart = new Cart();
             $cart->id_customer = $objCita->id_customer; // verificar esto del cliente
             $cart->id_address_delivery = (int)  (Address::getFirstCustomerAddressId($cart->id_customer));
@@ -488,6 +493,7 @@ class AdminReservarCitaControllerCore extends AdminController
             $this->ajaxDie(json_encode(array('response' => 'failed', 'msg' => '¡Error al Ralizadar la venta!')));
         }
     }
+
     protected function crearTicketVenta($order){
         $nombre_virtual_uri = $this->context->shop->virtual_uri;
 
@@ -536,6 +542,16 @@ class AdminReservarCitaControllerCore extends AdminController
 
         $this->confirmations[] = $order;
 
+    }
+
+    public function ajaxProcessAnularcita()
+    {
+        if(Tools::getValue('id_reservar_cita')) {
+            $objCita = new ReservarCita((int)Tools::getValue('id_reservar_cita'));
+            $objCita->estado_actual = 2;
+            $objCita->update();
+        }
+        $this->ajaxDie(json_encode(array('response' => 'ok')));
     }
 }
 

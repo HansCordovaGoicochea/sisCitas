@@ -15,6 +15,11 @@
     {foreach $colaboradores as $key => $employee}
         colaboradores[{$key}] = { id: '{$employee.id_employee|intval}', text: '{$employee.firstname|@addcslashes:'\''} {$employee.lastname|@addcslashes:'\''}' };
     {/foreach}
+
+
+    const url_ajax_reservas = "{$link->getAdminLink('AdminReservarCita')|addslashes}";
+    const token_reservas = "{getAdminToken tab='AdminReservarCita'}";
+
 </script>
 <br>
 <div id="app_vender">
@@ -108,7 +113,7 @@
                                                                             <option value="{$doc['id_tipodocumentolegal']}" data-codsunat="{$doc['cod_sunat']}">- {$doc['nombre']} -</option>
                                                                         {/foreach}
                                                                     </select>
-                                                                    <input type="text" maxlength="15" id="clientes_search" ref="numero_doc" class="clientes_search form-control" v-model="numero_doc" :disabled="id_customer != 1" placeholder="Número de documento" onkeyup="$(this).val().length >= 8 && $(this).val().length <= 15 ? $('#buscar_sunat').removeAttr('disabled') : $('#buscar_sunat').attr('disabled', 'disabled');" onkeypress="isNumberKey(event)" @keyup.enter="triggerBuscarSunat">
+                                                                    <input type="text" maxlength="8" id="clientes_search" ref="numero_doc" class="clientes_search form-control" v-model="numero_doc" :disabled="id_customer != 1" placeholder="Número de documento" onkeyup="$(this).val().length >= 8 && $(this).val().length <= 15 ? $('#buscar_sunat').removeAttr('disabled') : $('#buscar_sunat').attr('disabled', 'disabled');" onkeypress="isNumberKey(event)" @keyup.enter="triggerBuscarSunat">
                                                                     <div id="buscar_sunat" class="input-group-addon btn btn-warning pointer" v-if="id_customer == 1" @click="buscarCliente()" disabled ref="enterBuscarSunat">
                                                                         {*                                                                        <img src="{$img_dir}sunat.png" style="width: 14px; height: auto;" alt="" >&nbsp; Buscar Sunat*}
                                                                         <i class="fa fa-search"></i>

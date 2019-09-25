@@ -841,6 +841,7 @@ class PSCleaner extends Module
             'pos_gastos',
             'resumen_diario',
             'resumen_diariodetalle',
+            'log',
         );
     }
 }

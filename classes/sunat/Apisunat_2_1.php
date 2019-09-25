@@ -64,7 +64,6 @@ class Apisunat_2_1
             "TIPO_OPERACION" => "0101", //Pag. 28
             "TOTAL_GRAVADA" => Tools::truncate_number(OrderDetail::getTotalPorCodigo($order->id, '10'), 2),
             "TOTAL_INAFECTA" => Tools::truncate_number(OrderDetail::getTotalPorCodigo($order->id, '30'), 2),
-            "TOTAL_INAFECTA" => "0",
             "TOTAL_EXONERADAS" => "0",
             "TOTAL_GRATUITAS" => "0",
             "TOTAL_PERCEPCIONES" => "0",
@@ -257,7 +256,7 @@ class Apisunat_2_1
                   <cbc:LineExtensionAmount currencyID="PEN">'.round($cabecera['SUB_TOTAL'],2).'</cbc:LineExtensionAmount> <!-- Total Valor de Venta sin impuesto -->
                   <cbc:TaxInclusiveAmount currencyID="PEN">'.round($cabecera['TOTAL'],2).'</cbc:TaxInclusiveAmount> 
                   <cbc:AllowanceTotalAmount currencyID="PEN">'.round($cabecera["TOTAL_DESCUENTO"], 2).'</cbc:AllowanceTotalAmount>
-                  <cbc:ChargeTotalAmount currencyID="PEN">0</cbc:ChargeTotalAmount>
+                  <cbc:ChargeTotalAmount currencyID="PEN">0.00</cbc:ChargeTotalAmount>
                   <cbc:PayableAmount currencyID="PEN">'.round($cabecera['TOTAL'], 2).'</cbc:PayableAmount> <!-- Total Valor de Venta con impuesto -->
                </cac:LegalMonetaryTotal>
                ';
@@ -268,68 +267,88 @@ class Apisunat_2_1
             $respuesta["respuesta"] = "OK";
             foreach ($detalle as $key=>$item) {
                     $count++;
-                    if ($item->id_tax_rules_group == 1){
-                        $xmlCPE .= '<cac:InvoiceLine>
-                      <cbc:ID>'.$count.'</cbc:ID>  <!-- Número de orden del Ítem -->
-                      <cbc:InvoicedQuantity unitCode="NIU">'.(float)$item->product_quantity.'</cbc:InvoicedQuantity> <!-- unitCode: Unidad de medida por ítem Cat. 3 -->
-                      <cbc:LineExtensionAmount currencyID="PEN">'.round($item->total_price_tax_excl,2).'</cbc:LineExtensionAmount> <!-- valor cantidad * valor unitario sin impuesto -->
-                      <cac:PricingReference>
-                         <cac:AlternativeConditionPrice>
-                            <cbc:PriceAmount currencyID="PEN">'.round($item->unit_price_tax_incl,2).'</cbc:PriceAmount> <!-- Precio de venta unitario con impuesto por item y código -->
-                            <cbc:PriceTypeCode>01</cbc:PriceTypeCode> <!-- Codigo de precio Cat 16 -->
-                         </cac:AlternativeConditionPrice>
-                      </cac:PricingReference>
-                      <cac:TaxTotal>
-                         <cbc:TaxAmount currencyID="PEN">'.round(($item->total_price_tax_incl - $item->total_price_tax_excl),2).'</cbc:TaxAmount> <!-- impuesto por linea de item -->
-                         <cac:TaxSubtotal>
-                            <cbc:TaxableAmount currencyID="PEN">'.round($item->total_price_tax_excl,2).'</cbc:TaxableAmount> <!-- valor cantidad * valor unitario -->
-                            <cbc:TaxAmount currencyID="PEN">'.round(($item->total_price_tax_incl - $item->total_price_tax_excl),2).'</cbc:TaxAmount> <!--  -->
-                            <cac:TaxCategory>
-                               <cbc:Percent>'.$cabecera['PORCENTAJE_IGV'].'</cbc:Percent> <!-- Porcentaje de impuesto -->
-                               <cbc:TaxExemptionReasonCode>10</cbc:TaxExemptionReasonCode> <!--  -->
-                               <cac:TaxScheme>
-                                  <cbc:ID>1000</cbc:ID> <!-- codigo de tributo Cat. 5 -->
-                                  <cbc:Name>IGV</cbc:Name> <!-- nombre del tributo Cat. 5 -->
-                                  <cbc:TaxTypeCode>VAT</cbc:TaxTypeCode> <!-- codigo inter. del tributo Cat. 5 -->
-                               </cac:TaxScheme>
-                            </cac:TaxCategory>
-                         </cac:TaxSubtotal>
-                      </cac:TaxTotal>
-                      <cac:Item>
-                         <cbc:Description><![CDATA['.Tools::eliminar_tildes($item->product_name).']]></cbc:Description> <!-- Nombre del producto -->
-                         <cac:SellersItemIdentification>
-                            <cbc:ID>'.$item->product_id.'</cbc:ID> <!-- codigo del producto -->
-                         </cac:SellersItemIdentification>
-                      </cac:Item>
-                      <cac:Price>
-                         <cbc:PriceAmount currencyID="PEN">'.round($item->unit_price_tax_excl, 2).'</cbc:PriceAmount> <!-- Valor unitario del ítem sin impuesto -->
-                      </cac:Price>
-                   </cac:InvoiceLine>
-                   ';
-                    }
-                    else{
-                        $respuesta["respuesta"] = "error";
-                        break;
-                    }
+                    $tax_group_rule = TaxRule::getTaxRulesByGroupId(Context::getContext()->language->id, $item->id_tax_rules_group);
+
+                $xmlCPE .= '<cac:InvoiceLine>
+                  <cbc:ID>'.$count.'</cbc:ID>  <!-- Número de orden del Ítem -->
+                  <cbc:InvoicedQuantity unitCode="NIU">'.(float)$item->product_quantity.'</cbc:InvoicedQuantity> <!-- unitCode: Unidad de medida por ítem Cat. 3 -->
+                  <cbc:LineExtensionAmount currencyID="PEN">'.round(Tools::truncate_number($item->total_price_tax_excl, 2),2).'</cbc:LineExtensionAmount> <!-- valor cantidad * valor unitario sin impuesto -->
+                  <cac:PricingReference>
+                     <cac:AlternativeConditionPrice>
+                        <cbc:PriceAmount currencyID="PEN">'.round($item->unit_price_tax_incl,2).'</cbc:PriceAmount> <!-- Precio de venta unitario con impuesto por item y código -->
+                        <cbc:PriceTypeCode>01</cbc:PriceTypeCode> <!-- Codigo de precio Cat 16 -->
+                     </cac:AlternativeConditionPrice>
+                  </cac:PricingReference>
+                  <cac:TaxTotal>
+                     <cbc:TaxAmount currencyID="PEN">'.round(($item->total_price_tax_incl - $item->total_price_tax_excl),2).'</cbc:TaxAmount> <!-- impuesto por linea de item -->
+                     <cac:TaxSubtotal>
+                        <cbc:TaxableAmount currencyID="PEN">'.round(Tools::truncate_number($item->total_price_tax_excl, 2),2).'</cbc:TaxableAmount> <!-- valor cantidad * valor unitario -->
+                        <cbc:TaxAmount currencyID="PEN">'.round(($item->total_price_tax_incl - $item->total_price_tax_excl),2).'</cbc:TaxAmount> <!--  -->';
+                if (!empty($tax_group_rule) && (int)$tax_group_rule[0]['description'] == 30) {
+                    $xmlCPE .= '  <cac:TaxCategory>
+                                        <cbc:ID schemeID="UN/ECE 5305" schemeName="Tax Category Identifier" schemeAgencyName="United Nations Economic Commission for Europe">O</cbc:ID>
+                                        <cbc:Percent>' . $cabecera["PORCENTAJE_IGV"] . '</cbc:Percent>
+                                        <cbc:TaxExemptionReasonCode>30</cbc:TaxExemptionReasonCode>
+                                        <cac:TaxScheme>
+                                                <cbc:ID schemeID="UN/ECE 5153" schemeAgencyID="6">9998</cbc:ID>
+                                                <cbc:Name>INA</cbc:Name>
+                                                <cbc:TaxTypeCode>FRE</cbc:TaxTypeCode>
+                                        </cac:TaxScheme>
+                                    </cac:TaxCategory>';
+                }
+                elseif (!empty($tax_group_rule) && (int)$tax_group_rule[0]['description'] == 20) {
+                    $xmlCPE .= '  <cac:TaxCategory>
+                                       <cbc:Percent>'.$cabecera['PORCENTAJE_IGV'].'</cbc:Percent> <!-- Porcentaje de impuesto -->
+                                       <cbc:TaxExemptionReasonCode>20</cbc:TaxExemptionReasonCode> <!--  Catálogo No. 07: 10 Gravado - Operación Onerosa // 20 Exonerado - Operación Onerosa-->
+                                       <cac:TaxScheme>
+                                          <cbc:ID>9997</cbc:ID> <!-- codigo de tributo Cat. 5 -->
+                                          <cbc:Name>EXO</cbc:Name> <!-- nombre del tributo Cat. 5 -->
+                                          <cbc:TaxTypeCode>VAT</cbc:TaxTypeCode> <!-- codigo inter. del tributo Cat. 5 -->
+                                       </cac:TaxScheme>
+                                    </cac:TaxCategory>';
+                }
+                else {
+                    $xmlCPE .= '<cac:TaxCategory>
+                                   <cbc:Percent>'.$cabecera['PORCENTAJE_IGV'].'</cbc:Percent> <!-- Porcentaje de impuesto -->
+                                   <cbc:TaxExemptionReasonCode>10</cbc:TaxExemptionReasonCode> <!--  -->
+                                   <cac:TaxScheme>
+                                      <cbc:ID>1000</cbc:ID> <!-- codigo de tributo Cat. 5 -->
+                                      <cbc:Name>IGV</cbc:Name> <!-- nombre del tributo Cat. 5 -->
+                                      <cbc:TaxTypeCode>VAT</cbc:TaxTypeCode> <!-- codigo inter. del tributo Cat. 5 -->
+                                   </cac:TaxScheme>
+                                </cac:TaxCategory>';
+                }
+
+                $xmlCPE .= '
+                     </cac:TaxSubtotal>
+                  </cac:TaxTotal>
+                  <cac:Item>
+                     <cbc:Description><![CDATA['.Tools::eliminar_tildes($item->product_name).']]></cbc:Description> <!-- Nombre del producto -->
+                     <cac:SellersItemIdentification>
+                        <cbc:ID>'.$item->product_id.'</cbc:ID> <!-- codigo del producto -->
+                     </cac:SellersItemIdentification>
+                  </cac:Item>
+                  <cac:Price>
+                     <cbc:PriceAmount currencyID="PEN">'.round($item->unit_price_tax_excl, 2).'</cbc:PriceAmount> <!-- Valor unitario del ítem sin impuesto -->
+                  </cac:Price>
+               </cac:InvoiceLine>
+               ';
+
             }
 
 
         $xmlCPE .='</Invoice>';
 
-        if ($respuesta["respuesta"] == "error"){
-            $resp["respuesta"] = "error";
-            $resp["msj_error"] = "HAY PRODUCTOS SIN IGV";
-        }else{
 
-            $doc->loadXML($xmlCPE);
-            $xml_doc =  $doc->saveXML();
-            $fp = fopen($ruta,"wb");
-            fwrite($fp, $xml_doc);
-            fclose($fp);
+
+        $doc->loadXML($xmlCPE);
+        $xml_doc =  $doc->saveXML();
+        $fp = fopen($ruta,"wb");
+        fwrite($fp, $xml_doc);
+        fclose($fp);
 //            d("sadas");
-            $resp['respuesta'] = 'OK';
-            $resp['url_xml'] = $ruta;
-        }
+        $resp['respuesta'] = 'OK';
+        $resp['url_xml'] = $ruta;
 
         return $resp;
     }

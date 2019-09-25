@@ -54,7 +54,7 @@ class AdminNumeracionDocumentosControllerCore extends AdminController {
                     'label'=>$this->l('Nombre'),
                     'name'=>'nombre',
                     'required'=>true,
-
+                    'desc' => 'Boleta, Factura, NotaCredito, ComunicacionBaja, ResumenDiario',
                     ),
                 array(
                     'type'=>'text',
@@ -62,7 +62,8 @@ class AdminNumeracionDocumentosControllerCore extends AdminController {
                     'name'=>'serie',
                     'required'=>true,
                     'maxlength' => 4,
-                    'hint'=>'Para Boleta (Bxxx), para Factura (Fxxx), Nota de credito NC'
+                    'hint'=>'Para Boleta (Bxxx), para Factura (Fxxx), Nota de credito (FCxx), Comunicación Baja (RA), Resumen diario de Boletas (RC)',
+                    'desc' => 'Para Boleta (Bxxx), para Factura (Fxxx), Nota de credito (FCxx), Comunicación Baja (RA), Resumen diario de Boletas (RC)',
                     ),
                 array(
                     'type'=>'numeric',
