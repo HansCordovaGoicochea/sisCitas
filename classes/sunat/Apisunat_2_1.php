@@ -40,7 +40,7 @@ class Apisunat_2_1
             if ($tipo_comprobante == "07"){ //NOTA DE CREDITO
                 $codigo_motivo_modifica = $objComprobantes->code_motivo_nota_credito;
                 $descripcion_motivo_modifica = $notacredito_descripcion[$objComprobantes->code_motivo_nota_credito];
-                $numero_comprobante = $objComprobantes->numeracion_nota_baja;
+//                $numero_comprobante = $objComprobantes->numeracion_nota_baja;
             }else if($tipo_comprobante == "08"){ //NOTA DE DEBITO
                 $codigo_modifica = $objComprobantes->notadebito_motivo_id;
                 $descripcion_motivo_modifica =$notadebito_descripcion[$objComprobantes->notadebito_motivo_id];
