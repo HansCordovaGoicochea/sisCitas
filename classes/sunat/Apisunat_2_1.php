@@ -38,8 +38,8 @@ class Apisunat_2_1
 
         if (isset($tipo_comprobante)){
             if ($tipo_comprobante == "07"){ //NOTA DE CREDITO
-                $codigo_motivo_modifica = $objComprobantes->code_motivo_nota_credito;
-                $descripcion_motivo_modifica = $notacredito_descripcion[$objComprobantes->code_motivo_nota_credito];
+                $codigo_motivo_modifica = '0'.(int)$objComprobantes->code_motivo_nota_credito;
+                $descripcion_motivo_modifica = $notacredito_descripcion[$codigo_motivo_modifica];
 //                $numero_comprobante = $objComprobantes->numeracion_nota_baja;
             }else if($tipo_comprobante == "08"){ //NOTA DE DEBITO
                 $codigo_modifica = $objComprobantes->notadebito_motivo_id;
@@ -138,7 +138,7 @@ class Apisunat_2_1
             "ES_PORCONSUMO" => $emisor['es_porconsumo'],
         );
 
-//    d($cabecera);
+    d($cabecera);
         return $cabecera;
 
     }

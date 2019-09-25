@@ -643,6 +643,7 @@ class AdminOrdersControllerCore extends AdminController
 
         $resp = ProcesarComprobante::procesar_nota_de_credito($datos_comprobante, $objComprobanteNotaCredito, $rutas);
 
+
         if ($resp['result'] == 'error' || $resp['cod_sunat'] > 0) {
             $objComprobanteNotaCredito->cod_sunat =  $resp["cod_sunat"];
             $objComprobanteNotaCredito->msj_sunat =  $resp["msj_sunat"];
