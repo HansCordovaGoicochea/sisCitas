@@ -122,9 +122,10 @@ class AdminResumenDiarioControllerCore extends AdminController
 
             return parent::renderForm();
         }
-    public function setMedia()
+    public function setMedia($isNewTheme = false)
     {
-        parent::setMedia();
+        parent::setMedia($isNewTheme);
+
         $this->addCSS(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/css/waitMe.min.css');
         $this->addJs(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/js/waitMe.min.js');
 
@@ -171,7 +172,7 @@ class AdminResumenDiarioControllerCore extends AdminController
             }
             else{
                 //actualizar la numeracion
-                $objNC = new NumeracionDocumento((int)$correlativo_resumen['id_numeracion_comanda']);
+                $objNC = new NumeracionDocumento((int)$correlativo_resumen['id_numeracion_documentos']);
                 $numero_siguiente = $correlativo_resumen['correlativo']+1;
                 $date_now = Date('Ymd');
                 $objNC->correlativo = $numero_siguiente;
@@ -216,12 +217,12 @@ class AdminResumenDiarioControllerCore extends AdminController
                         $obj->serie_correlativo = $valor->valor_cb_comprobantes;
                         $obj->status_comprobante = $valor->cb_estado_comprobante;
                         $obj->id_currency = $objOrder->id_currency;
-                        $obj->importe_total = $valor->txt_total;
-                        $obj->importe_operaciones_gravadas = $valor->txt_subtotal;
+                        $obj->importe_total = $objOrder->total_paid_tax_incl;
+                        $obj->importe_operaciones_gravadas = Tools::truncate_number(OrderDetail::getTotalPorCodigo($objOrder->id, '10'), 2);
                         $obj->importe_operaciones_exoneradas = 0;
-                        $obj->importe_operaciones_inafectas = 0;
+                        $obj->importe_operaciones_inafectas = Tools::truncate_number(OrderDetail::getTotalPorCodigo($objOrder->id, '30'), 2);
                         $obj->importe_otras_operaciones = 0;
-                        $obj->total_igv = $valor->txt_igv;
+                        $obj->total_igv = (float)($objOrder->total_paid_tax_incl - $objOrder->total_paid_tax_excl);
                         $obj->total_impuestos_otros = 0;
 
                         if ($valor->cb_tipo_comprobante == 'NotaCredito'){
@@ -371,7 +372,7 @@ class AdminResumenDiarioControllerCore extends AdminController
                     $xml->formatOutput = true;
                     $xml_doc = $xml->saveXML();
 
-                    $nombre_archivo = $this->context->shop->ruc.'-'.$objResumenDiario->identificador_resumen_diario;
+                    $nombre_archivo = PS_SHOP_RUC.'-'.$objResumenDiario->identificador_resumen_diario;
                     $ruta_xml = "archivos_sunat/resumen/".$nombre_archivo;
                     $ruta_cdr = "archivos_sunat/resumen/";
 
@@ -539,15 +540,15 @@ class AdminResumenDiarioControllerCore extends AdminController
                         $order->setCurrentState(14, $this->context->employee->id); //estado 14 comunicacion de baja
                     }
 
-                    $resp_cdr = ProcesarComprobante::consultar_envio_ticket_resumen($objCerti->user_sunat, $objCerti->pass_sunat, $objResumenDiario->identificador_resumen_diario, $rutas['nombre_archivo'], $rutas['ruta_cdr'], $rutas['ruta_ws']);
-
-                    $objResumenDiario->cod_sunat = $resp_cdr['cod_sunat'];
-                    $objResumenDiario->mensaje_cdr = $resp_cdr['msj_sunat'];
-                    if ($resp_cdr['respuesta'] == 'ok'){
-                        $objResumenDiario->mensaje_cdr = $resp_cdr['msj_sunat'];
-                        $objResumenDiario->ruta_cdr = $resp_cdr['ruta_cdr'];
-                        $objResumenDiario->hash_cdr = $resp_cdr['hash_cdr'];
-                    }
+//                    $resp_cdr = ProcesarComprobante::consultar_envio_ticket_resumen($objCerti->user_sunat, $objCerti->pass_sunat, $objResumenDiario->identificador_resumen_diario, $rutas['nombre_archivo'], $rutas['ruta_cdr'], $rutas['ruta_ws']);
+//
+//                    $objResumenDiario->cod_sunat = $resp_cdr['cod_sunat'];
+//                    $objResumenDiario->mensaje_cdr = $resp_cdr['msj_sunat'];
+//                    if ($resp_cdr['respuesta'] == 'ok'){
+//                        $objResumenDiario->mensaje_cdr = $resp_cdr['msj_sunat'];
+//                        $objResumenDiario->ruta_cdr = $resp_cdr['ruta_cdr'];
+//                        $objResumenDiario->hash_cdr = $resp_cdr['hash_cdr'];
+//                    }
                     $objResumenDiario->update();
 
                 }
@@ -596,7 +597,7 @@ class AdminResumenDiarioControllerCore extends AdminController
     {
         $id_resumen_diario = Tools::getValue('id_resumen_diario');
         $objResumenDiario = new ResumenDiario((int)$id_resumen_diario);
-        $nombre_archivo = $this->context->shop->ruc.'-'.$objResumenDiario->identificador_resumen_diario;
+        $nombre_archivo = PS_SHOP_RUC.'-'.$objResumenDiario->identificador_resumen_diario;
 
         $arr = Certificadofe::getIdCertife(Context::getContext()->shop->id);
         if ($arr == 0){
@@ -631,10 +632,12 @@ class AdminResumenDiarioControllerCore extends AdminController
                     $objResumenDiario->mensaje_cdr = $resp_cdr['msj_sunat'];
                     $objResumenDiario->ruta_cdr = $resp_cdr['ruta_cdr'];
                     $objResumenDiario->hash_cdr = $resp_cdr['hash_cdr'];
+                    $to_return = array('respuesta' => 'ok', 'correcto' => $objResumenDiario->mensaje_cdr, 'id_resumen_diario' => $objResumenDiario->id);
+                }else{
+                    $to_return = array('respuesta' => 'error', 'correcto' => $objResumenDiario->mensaje_cdr, 'id_resumen_diario' => $objResumenDiario->id);
                 }
                 $objResumenDiario->update();
 
-                $to_return = array('errors' => true, 'correcto' => $objResumenDiario->mensaje_cdr, 'id_resumen_diario' => $objResumenDiario->id);
                 echo Tools::jsonEncode($to_return);
                 die();
             }

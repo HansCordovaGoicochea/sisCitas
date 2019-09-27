@@ -397,7 +397,8 @@ class AdminReservarCitaControllerCore extends AdminController
                     }
                 }
 
-                $objCita->estado_actual = 3; //facturado
+//                $objCita->estado_actual = 3; //facturado
+                $objCita->estado_actual = 1; //Atendido
                 $objCita->id_order = $order->id;
                 $objCita->update();
 

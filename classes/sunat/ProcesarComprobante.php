@@ -545,7 +545,7 @@ class ProcesarComprobante
             //99 = Proceso con errores
             //===================VERIFICAMOS SI HA ENVIADO CORRECTAMENTE EL COMPROBANTE=====================
             if (isset($doc->getElementsByTagName('content')->item(0)->nodeValue)) {
-                if (isset($doc->getElementsByTagName('statusCode')->item(0)->nodeValue) && (int)$doc->getElementsByTagName('statusCode')->item(0)->nodeValue !== 127){
+                if (isset($doc->getElementsByTagName('statusCode')->item(0)->nodeValue) && (int)$doc->getElementsByTagName('statusCode')->item(0)->nodeValue != 127){
                     $xmlCDR = $doc->getElementsByTagName('content')->item(0)->nodeValue;
                     file_put_contents($ruta_archivo_cdr . 'R-' . $archivo . '.zip', base64_decode($xmlCDR));
 
@@ -562,19 +562,23 @@ class ProcesarComprobante
 
                     //=============hash CDR=================
                     $doc_cdr = new DOMDocument();
-                    $doc_cdr->load(dirname(__FILE__) . '/' . $ruta_archivo_cdr . 'R-' . $archivo . '.xml');
-
-                    $mensaje['respuesta'] = 'OK';
+                    $doc_cdr->load($ruta_archivo_cdr . 'R-' . $archivo . '.xml');
+                    $mensaje['respuesta'] = 'ok';
                     $mensaje['cod_sunat'] = $doc_cdr->getElementsByTagName('ResponseCode')->item(0)->nodeValue;
                     $mensaje['msj_sunat'] = $doc_cdr->getElementsByTagName('Description')->item(0)->nodeValue;
                     $mensaje['mensaje'] = $doc_cdr->getElementsByTagName('Description')->item(0)->nodeValue;
                     $mensaje['ruta_cdr'] = $ruta_archivo_cdr . 'R-' . $archivo . '.zip';
                     $mensaje['hash_cdr'] = $doc_cdr->getElementsByTagName('DigestValue')->item(0)->nodeValue;
+
+                    //eliminamos los archivos extraidos
+                    unlink($archivo . '.xml');
+                    unlink($ruta_archivo_cdr . 'R-' . $archivo . '.xml');
                 }else{
                     $mensaje['respuesta'] = 'error';
-                    $mensaje['cod_sunat'] = (int)$doc->getElementsByTagName('statusCode')->item(0)->nodeValue;
-                    $mensaje['mensaje'] = $doc->getElementsByTagName('content')->item(0)->nodeValue;
-                    $mensaje['msj_sunat'] = $doc->getElementsByTagName('content')->item(0)->nodeValue;
+                    $resul_code_sunat = intval(preg_replace('/[^0-9]+/', '', $doc->getElementsByTagName('faultcode')->item(0)->nodeValue), 10);
+                    $mensaje['cod_sunat'] = $resul_code_sunat;
+                    $mensaje['mensaje'] = $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
+                    $mensaje['msj_sunat'] = $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
                 }
             } else {
                 $mensaje['respuesta'] = 'error';
@@ -587,7 +591,7 @@ class ProcesarComprobante
         } else {
             //echo "no responde web";
             $mensaje['respuesta'] = 'error';
-            $mensaje['cod_sunat'] = "0000";
+            $mensaje['cod_sunat'] = "9999";
             $mensaje['mensaje'] = "SUNAT ESTA FUERA SERVICIO: ";
             $mensaje['hash_cdr'] = "";
         }
@@ -648,7 +652,7 @@ class ProcesarComprobante
 
             //===================VERIFICAMOS SI HA ENVIADO CORRECTAMENTE EL COMPROBANTE=====================
             if (isset($doc->getElementsByTagName('content')->item(0)->nodeValue)) {
-                if (isset($doc->getElementsByTagName('statusCode')->item(0)->nodeValue) && (int)$doc->getElementsByTagName('statusCode')->item(0)->nodeValue == 0){
+                if (isset($doc->getElementsByTagName('statusCode')->item(0)->nodeValue) && (int)$doc->getElementsByTagName('statusCode')->item(0)->nodeValue != 127){
                     $xmlCDR = $doc->getElementsByTagName('content')->item(0)->nodeValue;
                     file_put_contents($ruta_archivo_cdr . 'R-' . $archivo . '.zip', base64_decode($xmlCDR));
 
@@ -665,19 +669,23 @@ class ProcesarComprobante
 
                     //=============hash CDR=================
                     $doc_cdr = new DOMDocument();
-                    $doc_cdr->load(dirname(__FILE__) . '/' . $ruta_archivo_cdr . 'R-' . $archivo . '.xml');
-
+                    $doc_cdr->load($ruta_archivo_cdr . 'R-' . $archivo . '.xml');
                     $mensaje['respuesta'] = 'OK';
                     $mensaje['cod_sunat'] = $doc_cdr->getElementsByTagName('ResponseCode')->item(0)->nodeValue;
                     $mensaje['msj_sunat'] = $doc_cdr->getElementsByTagName('Description')->item(0)->nodeValue;
                     $mensaje['mensaje'] = $doc_cdr->getElementsByTagName('Description')->item(0)->nodeValue;
                     $mensaje['ruta_cdr'] = $ruta_archivo_cdr . 'R-' . $archivo . '.zip';
                     $mensaje['hash_cdr'] = $doc_cdr->getElementsByTagName('DigestValue')->item(0)->nodeValue;
+
+                    //eliminamos los archivos extraidos
+                    unlink($archivo . '.xml');
+                    unlink($ruta_archivo_cdr . 'R-' . $archivo . '.xml');
                 }else{
                     $mensaje['respuesta'] = 'error';
-                    $mensaje['cod_sunat'] = (int)$doc->getElementsByTagName('statusCode')->item(0)->nodeValue;
-                    $mensaje['mensaje'] = $doc->getElementsByTagName('content')->item(0)->nodeValue;
-                    $mensaje['msj_sunat'] = $doc->getElementsByTagName('content')->item(0)->nodeValue;
+                    $resul_code_sunat = intval(preg_replace('/[^0-9]+/', '', $doc->getElementsByTagName('faultcode')->item(0)->nodeValue), 10);
+                    $mensaje['cod_sunat'] = $resul_code_sunat;
+                    $mensaje['mensaje'] = $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
+                    $mensaje['msj_sunat'] = $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
                 }
             } else {
                 $mensaje['respuesta'] = 'error';
@@ -690,7 +698,7 @@ class ProcesarComprobante
         } else {
             //echo "no responde web";
             $mensaje['respuesta'] = 'error';
-            $mensaje['cod_sunat'] = "0000";
+            $mensaje['cod_sunat'] = "9999";
             $mensaje['mensaje'] = "SUNAT ESTA FUERA SERVICIO: ";
             $mensaje['hash_cdr'] = "";
         }

@@ -338,6 +338,15 @@ class PSCleaner extends Module
                 $customer->add();
                 $customer->updateGroup(array($customer->id_default_group));
 
+                Tools::deleteDir(_PS_ADMIN_DIR_.'/archivos_sunat/'.PS_SHOP_RUC);
+                Tools::deleteDir(_PS_ADMIN_DIR_.'/archivos_sunat/baja/'.PS_SHOP_RUC);
+                Tools::deleteDir(_PS_ADMIN_DIR_.'/archivos_sunat/notacredito/'.PS_SHOP_RUC);
+                Tools::deleteDir(_PS_ADMIN_DIR_.'/archivos_sunat/resumen/'.PS_SHOP_RUC);
+
+                Tools::deleteFilesInDir(_PS_ADMIN_DIR_.'/documentos_pdf/');
+                Tools::deleteFilesInDir(_PS_ADMIN_DIR_.'/documentos_pdf_a4/');
+                Tools::deleteDir(_PS_ADMIN_DIR_.'/documentos_pdf_a4/notas/');
+
                 break;
         }
         self::clearAllCaches();
@@ -481,7 +490,8 @@ class PSCleaner extends Module
                     )
                 ),
                 'submit' => array(
-                    'title' => $this->trans('Delete orders & customers', array(), 'Modules.Pscleaner.Admin') . ' y <small>crear el cliente 1 por defecto</small>',
+//                    'title' => $this->trans('Delete orders & customers', array(), 'Modules.Pscleaner.Admin') . ' y <small>crear el cliente 1 por defecto</small>',
+                    'title' => $this->trans('Delete orders & customers', array(), 'Modules.Pscleaner.Admin') ,
                     'class' => 'btn btn-default pull-right',
                     'name' => 'submitTruncateSales',
                     'id' => 'submitTruncateSales',
@@ -489,32 +499,36 @@ class PSCleaner extends Module
             )
         );
 
-        $fields_form_3 = array(
-            'form' => array(
-                'legend' => array(
-                    'title' => $this->trans('Functional integrity constraints', array(), 'Modules.Pscleaner.Admin'),
-                    'icon' => 'icon-cogs'
-                ),
-                'submit' => array(
-                    'title' => $this->trans('Check & fix', array(), 'Modules.Pscleaner.Admin'),
-                    'class' => 'btn btn-default pull-right',
-                    'name' => 'submitCheckAndFix',
+
+            $fields_form_3 = array(
+                'form' => array(
+                    'legend' => array(
+                        'title' => $this->trans('Functional integrity constraints', array(), 'Modules.Pscleaner.Admin'),
+                        'icon' => 'icon-cogs'
+                    ),
+                    'submit' => array(
+                        'title' => $this->trans('Check & fix', array(), 'Modules.Pscleaner.Admin'),
+                        'class' => 'btn btn-default pull-right',
+                        'name' => 'submitCheckAndFix',
+                    )
                 )
-            )
-        );
-        $fields_form_4 = array(
-            'form' => array(
-                'legend' => array(
-                    'title' => $this->trans('Database cleaning', array(), 'Modules.Pscleaner.Admin'),
-                    'icon' => 'icon-cogs'
-                ),
-                'submit' => array(
-                    'title' => $this->trans('Clean & Optimize', array(), 'Modules.Pscleaner.Admin'),
-                    'class' => 'btn btn-default pull-right',
-                    'name' => 'submitCleanAndOptimize',
+            );
+
+            $fields_form_4 = array(
+                'form' => array(
+                    'legend' => array(
+                        'title' => $this->trans('Database cleaning', array(), 'Modules.Pscleaner.Admin'),
+                        'icon' => 'icon-cogs'
+                    ),
+                    'submit' => array(
+                        'title' => $this->trans('Clean & Optimize', array(), 'Modules.Pscleaner.Admin'),
+                        'class' => 'btn btn-default pull-right',
+                        'name' => 'submitCleanAndOptimize',
+                    )
                 )
-            )
-        );
+            );
+
+
 
         $helper = new HelperForm();
         $helper->module = $this;
@@ -534,8 +548,12 @@ class PSCleaner extends Module
             'languages' => $this->context->controller->getLanguages(),
             'id_language' => $this->context->language->id
         );
+        if (Profile::getProfile(Context::getContext()->employee->id_profile)['name'] == 'SuperAdmin'){
+            return $helper->generateForm(array($fields_form_1, $fields_form_2, $fields_form_3, $fields_form_4));
+        }else{
+            return $helper->generateForm(array($fields_form_1, $fields_form_2));
+        }
 
-        return $helper->generateForm(array($fields_form_1, $fields_form_2, $fields_form_3, $fields_form_4));
     }
 
     public function getConfigFieldsValues()

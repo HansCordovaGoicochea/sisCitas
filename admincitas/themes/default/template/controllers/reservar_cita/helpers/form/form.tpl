@@ -96,8 +96,7 @@
         <div class="panel-heading">
             <i class="icon-table"></i>&nbsp;Cita
 {*            {if $cita->id && $nombre_access != 'Colaborador' && $nombre_access != 'Recepcionista' && $existeCajasAbiertas && $cita->estado_actual == 0}*}
-            {if $cita->id}
-
+            {if $cita->id && $nombre_access != 'Recepcionista'}
                 <a class="btn badge pull-right" style="{if $cita->id_order} display: none; {/if} background-color: #72c279; color: #fff" id="pasarVenta">
                     <i class="icon-money"></i>  Atender
                 </a>
@@ -114,7 +113,7 @@
             <div class="row">
                 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
                     <div class="form-group col-lg-6 ">
-                        <label for="id_colaborador" class="control-label required">{l s='Colaborador:' d='Admin.Orderscustomers.Feature'}</label>
+                        <label for="id_colaborador" class="control-label">{l s='Colaborador:' d='Admin.Orderscustomers.Feature'}</label>
                         <select name="id_colaborador" id="id_colaborador" class="chosen">
                             <option value="">{l s='-- Elija un Colaborador --' d='Admin.Actions'}</option>
                             {foreach $colaboradores as $employee}
@@ -292,46 +291,51 @@
     $('#pasarVenta').click(function () {
         var x = confirm("¿Seguro de crear la venta?");
         if (x){
-            $.ajax({
-                type:"POST",
-                url: "{$link->getAdminLink('AdminReservarCita')|escape:'html':'UTF-8'}",
-                async: true,
-                dataType: "json",
-                data:{
-                    ajax: "1",
-                    token: "{getAdminToken tab='AdminReservarCita'}",
-                    action : "realizarVenta",
-                    id_reservar_cita: '{$cita->id|intval}',
-                },
-                beforeSend: function(){
-                    $('body').waitMe({
-                        effect: 'bounce',
-                        text: 'Guardando...',
-                        color: '#000',
-                        maxSize: '',
-                        textPos: 'vertical',
-                        fontSize: '',
-                        source: ''
-                    });
-                },
-                success: function (data) {
-                    if (data.response === 'ok'){
-                        {*window.location.href = "{$link->getAdminLink('AdminOrders')|escape:'UTF-8'}&id_order=" + data.order.id + "&vieworder";*}
-                        window.location.href = "{$link->getAdminLink('AdminReservarCita')|escape:'UTF-8'}&updatereservar_cita&id_reservar_cita="+ data.objCita.id;
-                        $('body').waitMe('hide');
-                    }
-                    if (data.response === 'failed'){
-                        $('#error').text(data.msg);
-                        $('#error').show();
-                    }
-                },
-                error: function (error) {
-                    console.log(error);
-                },
-                complete: function(data) {
+            if ($('#id_colaborador :selected').val() !== ""){
+                $.ajax({
+                    type:"POST",
+                    url: "{$link->getAdminLink('AdminReservarCita')|escape:'html':'UTF-8'}",
+                    async: true,
+                    dataType: "json",
+                    data:{
+                        ajax: "1",
+                        token: "{getAdminToken tab='AdminReservarCita'}",
+                        action : "realizarVenta",
+                        id_reservar_cita: '{$cita->id|intval}',
+                        id_colaborador: $('#id_colaborador :selected').val(),
+                    },
+                    beforeSend: function(){
+                        $('body').waitMe({
+                            effect: 'bounce',
+                            text: 'Guardando...',
+                            color: '#000',
+                            maxSize: '',
+                            textPos: 'vertical',
+                            fontSize: '',
+                            source: ''
+                        });
+                    },
+                    success: function (data) {
+                        if (data.response === 'ok'){
+                            {*window.location.href = "{$link->getAdminLink('AdminOrders')|escape:'UTF-8'}&id_order=" + data.order.id + "&vieworder";*}
+                            window.location.href = "{$link->getAdminLink('AdminReservarCita')|escape:'UTF-8'}&updatereservar_cita&id_reservar_cita="+ data.objCita.id;
+                            $('body').waitMe('hide');
+                        }
+                        if (data.response === 'failed'){
+                            $('#error').text(data.msg);
+                            $('#error').show();
+                        }
+                    },
+                    error: function (error) {
+                        console.log(error);
+                    },
+                    complete: function(data) {
 
-                },
-            });
+                    },
+                });
+            }else{
+                jAlert('Debe Seleccionar un colaborador')
+            }
         }else{
             return false;
         }
@@ -375,6 +379,7 @@
                     if (res.respuesta === 'ok'){
                         $('#id_reservar_cita').val(res.cita.id);
                         $.growl.notice({ title: "", message:"Guardado Correctamente"});
+                        window.location.href = "{$link->getAdminLink('AdminReservarCita')|addslashes}";
                         {*window.location.href = "{$link->getAdminLink('AdminReservarCita')|addslashes}&updatereservar_cita&id_reservar_cita="+res.cita.id;*}
                     }else{
                         $.growl.error({ title: "", message:"Error al guardar"});

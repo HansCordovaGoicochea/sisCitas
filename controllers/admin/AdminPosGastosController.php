@@ -91,7 +91,8 @@ class AdminPosGastosControllerCore extends AdminController
 
         $list_type_documento = array(
             array('id' => 'factura', 'value' => 'factura', 'label' => 'Factura'),
-            array('id' => 'boleta', 'value' => 'boleta', 'label' => 'Boleta')
+            array('id' => 'boleta', 'value' => 'boleta', 'label' => 'Boleta'),
+            array('id' => 'recibo', 'value' => 'recibo', 'label' => 'Recibo')
         );
 
         $this->fields_form = array(

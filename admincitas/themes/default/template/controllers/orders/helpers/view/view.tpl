@@ -77,7 +77,7 @@
           <span class="badge">N° Pedido: {$order->nro_ticket}</span>
           <div class="panel-heading-action">
             <div class="btn-group">
-              {if $objComprobantes->tipo_documento_electronico == 'NotaCredito' }<span class="badge">Nota de Credito</span>{elseif $objComprobantes->nota_baja == 'Baja'}<span class="badge">Comunicación de Baja</span>{/if}
+              {if $objComprobantes->tipo_documento_electronico == 'NotaCredito' }<span class="badge">Nota de Credito</span>{elseif $objComprobantes->nota_baja == 'ComunicacionBaja'}<span class="badge">Comunicación de Baja</span>{/if}
               <i class="icon-credit-card hidden-xs"></i>
               <span class="hidden-xs">{l s='Venta' d='Admin.Global'}</span>
               <span class="badge hidden-xs">{$objComprobantes->fecha_envio_comprobante|date_format:"%d/%m/%Y"}</span>
@@ -128,7 +128,7 @@
                       <div class="modal-content" id="modal-formyo">
                         <div class="modal-header">
                           <button type="button" class="close" data-dismiss="modal">&times;</button>
-                          <h4 class="modal-title">Enviar Email {if $objComprobantes->nota_baja == 'NotaCredito' }Nota de Credito{elseif $objComprobantes->nota_baja == 'Baja'}Comunicación de Baja{/if}</h4>
+                          <h4 class="modal-title">Enviar Email {if $objComprobantes->nota_baja == 'NotaCredito' }Nota de Credito{elseif $objComprobantes->nota_baja == 'ComunicacionBaja'}Comunicación de Baja{/if}</h4>
                         </div>
                         <div class="modal-body">
                           {*<div id="correos_clienteyo">*}
@@ -150,7 +150,7 @@
 
                             {if $objComprobantes->nota_baja == 'NotaCredito' }
                               <span class="badge" >  <a STYLE="color: #fff" target="_blank" href="{$objComprobantes->ruta_pdf_a4nota}"><strong>PDF COMPROBANTE A4 NOTA DE CREDITO</strong></a> </span>
-                            {elseif $objComprobantes->nota_baja == 'Baja'}
+                            {elseif $objComprobantes->nota_baja == 'ComunicacionBaja'}
                             {else}
                               {if $objComprobantes->ruta_xml} <span class="badge" > <a STYLE="color: #fff" href="{$objComprobantes->ruta_xml}"><strong>XML COMPROBANTE</strong></a> </span>{/if}
                               {if $objComprobantes->ruta_cdr} <span class="badge" > <a STYLE="color: #fff" href="{$objComprobantes->ruta_cdr}"><strong>CDR COMPROBANTE</strong></a> </span>{/if}
@@ -244,7 +244,7 @@
 
                     {if $objComprobantes->nota_baja == 'NotaCredito' || $objComprobantes->nota_baja == 'NotaCredito_fisica'}
                       <span class="badge" >  <a STYLE="color: #fff" target="_blank" href="{$objComprobantes->ruta_pdf_a4nota}"><strong>PDF COMPROBANTE A4 NOTA DE CREDITO</strong></a> </span><br><br>
-                    {elseif $objComprobantes->nota_baja == 'Baja'}
+                    {elseif $objComprobantes->nota_baja == 'ComunicacionBaja'}
                     {else}
                       {if $objComprobantes->ruta_xml} <span class="badge" > <a STYLE="color: #fff" href="{$objComprobantes->ruta_xml}"><strong>XML COMPROBANTE</strong></a> </span><br><br>{/if}
                       {if $objComprobantes->ruta_cdr} <span class="badge" > <a STYLE="color: #fff" href="{$objComprobantes->ruta_cdr}"><strong>CDR COMPROBANTE</strong></a> </span>{/if}

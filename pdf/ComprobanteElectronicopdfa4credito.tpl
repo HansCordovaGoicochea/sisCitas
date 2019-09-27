@@ -38,7 +38,7 @@
                             <br>
                             <span>NOTA DE CREDITO <br> ELECTRONICA</span>
                             <br>
-                            <span>{$comprobante->numeracion_nota_baja}</span>
+                            <span>{$comprobante->numero_comprobante}</span>
                         </h1>
                         {*</div>*}
                     </td>

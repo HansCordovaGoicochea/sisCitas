@@ -55,7 +55,7 @@
 							</div>
 							<div class="row">
 								<div class="form-group">
-									<label for="fecha_generacion" class="control-label col-lg-3 col-xs-12"><span class="label-tooltip" data-toggle="tooltip" title="" data-original-title="Fecha de generacion del resumen diario">F. Generación:</span></label>
+									<label for="fecha_generacion" class="control-label col-lg-3 col-xs-12"><span class="label-tooltip" data-toggle="tooltip" title="" data-original-title="Fecha de generación del resumen diario">F. Generación:</span></label>
 									<div class="input-group date col-lg-4 col-xs-12" id="calendar">
                                         {if $objResumenDiario->fecha_generacion_resumen_diario == ''}{$new_date_inicio = date('d/m/Y')}
                                         {elseif $objResumenDiario->fecha_generacion_resumen_diario != ''}{$new_date_inicio = getdate()}
@@ -112,7 +112,7 @@
 						<th>
 							<h4></h4>
 						</th>
-						<th>
+						<th width="10%">
 							<h4>#</h4>
 						</th>
 						<th width="18%">
@@ -124,16 +124,16 @@
 						<th width="15%">
 							<h4>Comprobante</h4>
 						</th>
-						<th>
-							<h4>SubTotal</h4>
-						</th>
-						<th>
-							<h4>Impuesto</h4>
-						</th>
-						<th>
-							<h4>Total</h4>
-						</th>
-						<th width="10%">
+{*						<th>*}
+{*							<h4>SubTotal</h4>*}
+{*						</th>*}
+{*						<th>*}
+{*							<h4>Impuesto</h4>*}
+{*						</th>*}
+{*						<th>*}
+{*							<h4>Total</h4>*}
+{*						</th>*}
+						<th >
 							<h4>Estado</h4>
 						</th>
 						<th width="15%">
@@ -151,11 +151,11 @@
 								<td></td>
 								<td></td>
 								<td></td>
-								<td></td>
-								<td></td>
-								<td></td>
-								<td></td>
-								<td></td>
+{*								<td></td>*}
+{*								<td></td>*}
+{*								<td></td>*}
+{*								<td></td>*}
+{*								<td></td>*}
 								<td></td>
 						</tr>
 					</tbody>
@@ -266,7 +266,7 @@
             }
         }
 
-        function FilasSeccion(i, id_resumen_diario_detalle='',tipo_comprobante='',id_pos_ordercomprobantes=0, estado=0, motivo='', devolver_montos='',subtotal=0,igv=0,total=0) {
+        function FilasSeccion(i, id_resumen_diario_detalle='',tipo_comprobante='',id_pos_ordercomprobantes=0, estado=3, motivo='', devolver_montos='',subtotal=0,igv=0,total=0) {
 //        var i = 1;
 //        var row;
 // alert(id_producto);
@@ -290,24 +290,24 @@
                 '<input type="text" name="txt_codigo_documento_'+i+'" id="txt_codigo_documento_'+i+'" maxlength="2" class="validar"/>' +
                 '</td>' +
                 '<td>' +
-                '<div class="col-xs-10">' +
-                '<select name="cb_comprobantes_'+i+'" id="cb_comprobantes_'+i+'" class="form-control chosen validarcb"  onchange="traerDatos('+i+', this);">\n' +
+                '<div >' +
+                '<select name="cb_comprobantes_'+i+'" id="cb_comprobantes_'+i+'" class="form-control chosen validarcb">\n' +
                 	'<option value="0">- Seleccionar -</option>\n' +
                 '</select>\n' +
                 '</div>' +
                 '</td>' +
-                '<td>' +
-                '<input type="number" name="txt_subtotal_'+i+'" id="txt_subtotal_'+i+'"  class="form-control subtotal validarnum" value="'+subtotal+'">'+
-                '</td>' +
-                '<td>' +
-                '<input type="number" name="txt_igv_'+i+'" id="txt_igv_'+i+'"  class="form-control igv validarnum" value="'+igv+'">'+
-                '</td>' +
-                '<td>' +
-                '<input type="number" name="txt_total_'+i+'" id="txt_total_'+i+'"  class="form-control total validarnum" value="'+total+'">'+
-                '</td>' +
+                // '<td>' +
+                // '<input type="number" name="txt_subtotal_'+i+'" id="txt_subtotal_'+i+'"  class="form-control subtotal validarnum" value="'+subtotal+'">'+
+                // '</td>' +
+                // '<td>' +
+                // '<input type="number" name="txt_igv_'+i+'" id="txt_igv_'+i+'"  class="form-control igv validarnum" value="'+igv+'">'+
+                // '</td>' +
+                // '<td>' +
+                // '<input type="number" name="txt_total_'+i+'" id="txt_total_'+i+'"  class="form-control total validarnum" value="'+total+'">'+
+                // '</td>' +
                 '<td>' +
                 '<select name="cb_estado_comprobante_'+i+'" id="cb_estado_comprobante_'+i+'" class="form-control validarcb">\n' +
-                '<option value="0">- Seleccione -</option>\n' +
+                // '<option value="0">- Seleccione -</option>\n' +
                 // '<option value="1">- Adicionar -</option>\n' +
                 // '<option value="2">- Modificar -</option>\n' +
                 '<option value="3">- Anular -</option>\n' +
@@ -342,7 +342,7 @@
             if (id_pos_ordercomprobantes > 0){
                 setTimeout(function() {
                     $('#cb_comprobantes_'+i+'').val(id_pos_ordercomprobantes).trigger('change').trigger("chosen:updated");
-
+                    $('.adminresumendiario').waitMe('hide');
                 },1500);
             }
 
@@ -431,7 +431,7 @@
 					$('#txt_subtotal_'+i+'').val(parseFloat(res.Objcomprobante.total_paid_tax_excl).toFixed(2));
 					$('#txt_igv_'+i+'').val(igv.toFixed(2));
 					$('#txt_total_'+i+'').val(parseFloat(res.Objcomprobante.total_paid_tax_incl).toFixed(2));
-                    $('.adminresumendiario').waitMe('hide');
+
                 }
             }).done(function(){
 
@@ -598,13 +598,12 @@
                                 });
                             }
                             $.growl.notice({ title: ""+res.correcto+"",message: "" });
-                            {*window.location.replace("{$link->getAdminLink('AdminFacturaCompras')|addslashes}");*}
-                            $('.adminresumendiario').waitMe('hide');
+                            window.location.replace("{$link->getAdminLink('AdminResumenDiario')|addslashes}");
                         }
 
                     }
                     }).done(function(){
-
+                        $('.adminresumendiario').waitMe('hide');
                     });
 
                 }
@@ -629,7 +628,13 @@
                     id_resumen_diario: $('#txt_id_resumen_diario').val(),
                 },
                 success:  function (res) {
+                    if (res.respuesta == 'error'){
+                        $.growl.error({ title: res.correcto, message: '' })
+                    }
 
+                    if (res.respuesta == 'ok'){
+                        $.growl.notice({ title: res.correcto, message: '' })
+                    }
                 }
             }).done(function(){
 

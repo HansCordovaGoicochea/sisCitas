@@ -55,6 +55,7 @@ Context::getContext()->smarty->assign(array(
     'js_def' => array(
         'baseAdminDir' => __PS_BASE_URI__.basename(_PS_ADMIN_DIR_).'/',
         'baseDir' => __PS_BASE_URI__,
+        'perfil_usuario' => Profile::getProfile(Context::getContext()->employee->id_profile)['name'],
     )
 ));
 echo Context::getContext()->smarty->fetch($header_tpl);

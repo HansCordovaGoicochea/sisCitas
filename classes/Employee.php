@@ -214,6 +214,17 @@ class EmployeeCore extends ObjectModel
     public function add($autoDate = true, $nullValues = true)
     {
         $this->last_passwd_gen = date('Y-m-d H:i:s', strtotime('-'.Configuration::get('PS_PASSWD_TIME_BACK').'minutes'));
+
+        if($this->id_profile == 3){
+            $this->default_tab = 135;
+        }
+
+        if($this->id_profile == 4){
+            $this->default_tab = 130;
+        }
+        if($this->id_profile == 5){
+            $this->default_tab = 4;
+        }
         $this->saveOptin();
         $this->updateTextDirection();
 
@@ -246,6 +257,19 @@ class EmployeeCore extends ObjectModel
         }
 
         $this->updateTextDirection();
+
+        if($this->id_profile == 3){
+            $this->default_tab = 135;
+        }
+
+        if($this->id_profile == 4){
+            $this->default_tab = 130;
+        }
+
+        if($this->id_profile == 5){
+            $this->default_tab = 4;
+        }
+
 
         return parent::update($nullValues);
     }

@@ -465,7 +465,7 @@ class AdminSunatPendienteControllerCore extends AdminController
             $objComprobanteNotaCredito = new PosOrdercomprobantes($doc_notacredito['id_pos_ordercomprobantes']);
         }else{
             $objComprobanteNotaCredito = new PosOrdercomprobantes();
-            $objComprobanteNotaCredito->fecha_envio_comprobante = date('Y-m-d');
+            $objComprobanteNotaCredito->fecha_envio_comprobante = date('Y-m-d H:i:s');
         }
 
         $tienda_actual = new Shop((int)$this->context->shop->id); //
@@ -1318,7 +1318,7 @@ class AdminSunatPendienteControllerCore extends AdminController
         if (!empty($doc)){
             $objComprobante = new PosOrdercomprobantes((int)$doc['id_pos_ordercomprobantes']);
             $shop = Context::getContext()->shop;
-            $RUC= $shop->ruc;
+            $RUC= PS_SHOP_RUC;
 
             $webservice_consulta = $this->service_consulta_sunat;
             $arr = Certificadofe::getIdCertife(Context::getContext()->shop->id);
@@ -5164,7 +5164,7 @@ class AdminSunatPendienteControllerCore extends AdminController
                     $objComprobantes = new PosOrdercomprobantes($doc['id_pos_ordercomprobantes']);
                 }else{
                     $objComprobantes = new PosOrdercomprobantes();
-                    $objComprobantes->fecha_envio_comprobante = date('Y-m-d');
+                    $objComprobantes->fecha_envio_comprobante = date('Y-m-d H:i:s');
                 }
 
                 // comprobanr si ya existe una numeracion para el comprobante

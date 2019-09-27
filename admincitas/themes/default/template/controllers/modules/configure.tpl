@@ -54,7 +54,7 @@
 </script>
 <div class="page-bar toolbarBox">
 	<div class="btn-toolbar">
-		<ul class="nav nav-pills pull-right">
+		<ul class="nav nav-pills pull-right hide">
 			<li>
 				<a id="desc-module-back" class="toolbar_btn" href="{url entity='sf' route='admin_module_manage'}">
 					<i class="process-icon-back"></i>

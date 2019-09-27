@@ -598,7 +598,7 @@ class AdminVenderControllerCore extends AdminController {
         $objComprobantes->sub_total = $order->total_paid_tax_excl;
         $objComprobantes->impuesto = (float)($order->total_paid_tax_incl - $order->total_paid_tax_excl);
         $objComprobantes->total = $order->total_paid_tax_incl;
-        $objComprobantes->fecha_envio_comprobante = date('Y-m-d');
+        $objComprobantes->fecha_envio_comprobante = date('Y-m-d H:i:s');
 
         $prods = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('SELECT * FROM `'._DB_PREFIX_.'order_detail` od WHERE od.`id_order` = '.(int)$order->id);
 

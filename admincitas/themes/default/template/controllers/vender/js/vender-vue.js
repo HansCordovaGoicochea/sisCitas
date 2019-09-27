@@ -958,7 +958,7 @@ var app_vender = new Vue({
                             let html = `
                                 <!-- Modal -->
                                 <div id="moda_reserva_cliente" class="modal fade" role="dialog">
-                                  <div class="modal-dialog modal-lg">
+                                  <div class="modal-dialog modal-lg">v
                                     <!-- Modal content-->
                                     <div class="modal-content">
                                       <div class="modal-header">
@@ -985,7 +985,7 @@ var app_vender = new Vue({
                                         <td>`+moment(val.fecha_inicio).format('DD/MM/YYYY')+`</td>
                                         <td>`+val.hora+`</td>
                                         <td>      
-                                        <select class="form-control chosen">
+                                        <select class="form-control chosen " id="select_colaborador_`+val.id_reservar_cita+`">
                                             <option value="">- Seleccione Colaborador -</option>`;
                                     $.each(colaboradores, function (indx2, val2) {
                                         if (val.id_colaborador === val2.id){
@@ -1004,8 +1004,8 @@ var app_vender = new Vue({
                                         <td>`+val.product_name+`</td>
                                         <td>S/`+val.adelanto+`</td>
                                         <td>
-                                         <button style="margin: 3px;" class="btn btn-danger pull-right" onclick="anularVentaReserva(`+val.id_reservar_cita+`, `+val.id_colaborador+`)"><i class="fa fa-ban"></i> Anular</button>
-                                        <button style="margin: 3px;" class="btn btn-success pull-right" onclick="pasaVentaReserva(`+val.id_reservar_cita+`, `+val.id_colaborador+`)"><i class="fa fa-check"></i> Atender</button>
+<!--                                         <button style="margin: 3px;" class="btn btn-danger pull-right" onclick="anularVentaReserva(`+val.id_reservar_cita+`, `+val.id_colaborador+`)"><i class="fa fa-ban"></i> Anular</button>-->
+                                        <button style="margin: 3px;" class="btn btn-success pull-right" onclick="pasaVentaReserva(`+val.id_reservar_cita+`)"><i class="fa fa-check"></i> Atender</button>
                                        
                                         </td>
                                     </tr>
@@ -1207,7 +1207,9 @@ function windowPrintAche(id_selector){
     }
 }
 
-function pasaVentaReserva(id, id_colaborador) {
+function pasaVentaReserva(id) {
+
+    let id_colaborador = $('#select_colaborador_'+id+' :selected').val();
     var x = confirm("¿Seguro de crear la reserva?");
     if (x){
         if (parseInt(id_colaborador) > 0){
@@ -1239,7 +1241,16 @@ function pasaVentaReserva(id, id_colaborador) {
 
                         // window.location.href = url_ajax_reservas+"&updatereservar_cita&id_reservar_cita="+ data.objCita.id;
                         // $('body').waitMe('hide');
-                        location.reload();
+                        // location.reload();
+
+                        let html_buttons = '';
+                        html_buttons += '<input type="button" class="btn btn-warning" value="Ticket Venta - '+data.order.nro_ticket+'" style="margin: 5px;" onclick="windowPrintAche(\'PDFtoTicket\')">';
+                        let iframes = '<iframe id="PDFtoTicket" src="'+data.order.ruta_ticket_normal+'" style="display: none;"></iframe>';
+                        $('#alertmessage').after(iframes);
+                        $('.alertmessage').append(html_buttons);
+                        $('.alertmessage').css('display', 'grid');
+                        $('body').waitMe('hide');
+                        $('#moda_reserva_cliente').modal('close');
                     }
                     if (data.response === 'failed'){
                         $('#error').text(data.msg);

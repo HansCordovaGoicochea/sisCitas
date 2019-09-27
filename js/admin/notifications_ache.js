@@ -43,10 +43,21 @@ function notiInsertOnBackOfficeDOM(json) {
     var nbOrders = parseInt(json.order.total);
     var nbCitasMessages = parseInt(json.citas.total);
     var nbCumples = parseInt(json.cumples.total);
-    var notifications_total = nbCitasMessages + nbCumples + nbOrders;
+
     // $('#ache_notif').remove();
+
+    let class_hide = '';
+
+    if (perfil_usuario === 'Recepcionista'){
+        class_hide = 'hide';
+        var notifications_total = nbCitasMessages + nbCumples;
+    }else{
+        var notifications_total = nbCitasMessages + nbCumples + nbOrders;
+    }
+
     if (0 < $('ul.header-list').length) {
         // PrestaShop 1.7 - Default theme
+
 
         let html_base = `
         <li id="notification" class="dropdown">
@@ -68,7 +79,7 @@ function notiInsertOnBackOfficeDOM(json) {
 						<a class="nav-link" data-toggle="tab" data-type="cumples" href="#cumples-notifications" role="tab" id="cumples-tab">Prox. Cumpl.<span id="cumples_notif_value"></span></a>
 					</li>
 					
-					<li class="nav-item" style="width: 33.33%!important;">
+					<li class="nav-item `+class_hide+`" style="width: 33.33%!important;">
 						<a class="nav-link" data-toggle="tab" data-type="cobrar" href="#cobrar-notifications" role="tab" id="cobrar-tab">Por Cobrar<span id="cobrar_notif_value"></span></a>
 					</li>
 
@@ -101,18 +112,17 @@ function notiInsertOnBackOfficeDOM(json) {
                         </footer>
 					</div>
 					<div class="tab-pane empty" id="cobrar-notifications" role="tabpanel">
-                        <p class="no-notification" style="bottom: 20px;">
-                             No hay cuentas por cobrar. :)<br>
-                         </p>
-						<div class="notification-elements" style="padding-bottom: 25px;"></div>
-                        <footer class="panel-footer" id="footer_cobrar" style=" position: absolute; left: 0; bottom: 0; width: 100%; background-color: #d1dee2; color: white; text-align: center;height: 25px!important; display: flex; align-items: center; justify-content: center;">
-                            <i class="fa fa-money" style="color: #25b9d7!important;"></i>&nbsp;
-                            <a href="` + baseAdminDir + `index.php?tab=AdminCuentasCobrar&token=` + token_admin_cuentascobrar + `">Ver cuentas por cobrar 
-                            <i class="material-icons" style="color: #25b9d7!important;">chevron_right</i></a>
-                        </footer>
-					</div>
-
-				</div>
+                                    <p class="no-notification" style="bottom: 20px;">
+                                         No hay cuentas por cobrar. :)<br>
+                                     </p>
+                                    <div class="notification-elements" style="padding-bottom: 25px;"></div>
+                                    <footer class="panel-footer" id="footer_cobrar" style=" position: absolute; left: 0; bottom: 0; width: 100%; background-color: #d1dee2; color: white; text-align: center;height: 25px!important; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fa fa-money" style="color: #25b9d7!important;"></i>&nbsp;
+                                        <a href="` + baseAdminDir + `index.php?tab=AdminCuentasCobrar&token=` + token_admin_cuentascobrar + `">Ver cuentas por cobrar 
+                                        <i class="material-icons" style="color: #25b9d7!important;">chevron_right</i></a>
+                                    </footer>
+                    </div>
+               </div>
 			</div>
 		</div>
 	</li>
@@ -140,7 +150,7 @@ function notiInsertOnBackOfficeDOM(json) {
 						<a class="nav-link" data-toggle="tab" data-type="cumples" href="#cumples-notifications" role="tab" id="cumples-tab">Prox. Cumpl.<span id="cumples_notif_value"></span></a>
 					</li>
 					
-					<li class="nav-item" style="width: 33.33%!important;">
+					<li class="nav-item `+class_hide+`" style="width: 33.33%!important;">
 						<a class="nav-link" data-toggle="tab" data-type="cobrar" href="#cobrar-notifications" role="tab" id="cobrar-tab">Por Cobrar<span id="cobrar_notif_value"></span></a>
 					</li>
 

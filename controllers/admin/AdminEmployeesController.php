@@ -279,6 +279,7 @@ class AdminEmployeesControllerCore extends AdminController
 
         $this->fields_form['input'] = array_merge($this->fields_form['input'], array(
             array(
+                'form_group_class' => 'hide',
                 'type' => 'default_tab',
                 'label' => $this->trans('Default page', array(), 'Admin.Advparameters.Feature'),
                 'name' => 'default_tab',

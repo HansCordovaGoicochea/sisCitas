@@ -68,13 +68,13 @@
 		function hideFieldsPagos() {
 			$("#numero_doc_iden").parent().parent().hide();
 			$("#nombre_empresa").parent().parent().hide();
-			$( "#factura, #boleta" ).parent().parent().parent().parent().hide();
+			$( "#factura, #boleta, #recibo" ).parent().parent().parent().parent().hide();
 			$("#numero_comprobante").parent().parent().hide();
 		}
 		function showFieldsPagos() {
 			$("#numero_doc_iden").parent().parent().show();
 			$("#nombre_empresa").parent().parent().show();
-			$( "#factura, #boleta" ).parent().parent().parent().parent().show();
+			$( "#factura, #boleta, #recibo" ).parent().parent().parent().parent().show();
 			$("#numero_comprobante").parent().parent().show();
 		}
 

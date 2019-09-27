@@ -248,7 +248,7 @@
 	</style>
 
 	{block name="preTable"}{/block}
-	<div class="table-responsive-row clearfix{if isset($use_overflow) && $use_overflow} overflow-y{/if}" style="overflow: auto; min-height: 400px;">
+	<div class="table-responsive-row clearfix{if isset($use_overflow) && $use_overflow} overflow-y{/if}">
 		<table id="table-{if $table_id}{$table_id}{elseif $table}{$table}{/if}" class="table{if $table_dnd} tableDnD{/if} {$table}" >
 			<thead>
 				<tr class="nodrag nodrop">

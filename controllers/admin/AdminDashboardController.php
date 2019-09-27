@@ -266,8 +266,17 @@ class AdminDashboardControllerCore extends AdminController
                     $date_to = date('Y-12-t', strtotime('-1 year'));
                     break;
             }
+
+
             $this->context->employee->stats_date_from = $date_from;
             $this->context->employee->stats_date_to = $date_to;
+            $this->context->employee->update();
+            $this->context->cookie->__set('stats_date_update', strtotime(date('Y-m-d')));
+            $this->context->cookie->write();
+        }
+
+        if ($this->context->employee->stats_date_to < date('Y-m-d')){
+            $this->context->employee->stats_date_to = date('Y-m-d');
             $this->context->employee->update();
             $this->context->cookie->__set('stats_date_update', strtotime(date('Y-m-d')));
             $this->context->cookie->write();

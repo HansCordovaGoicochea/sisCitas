@@ -456,7 +456,7 @@ class AdminOrdersControllerCore extends AdminController
             $objComprobanteNotaCredito = new PosOrdercomprobantes($doc_notacredito['id_pos_ordercomprobantes']);
         }else{
             $objComprobanteNotaCredito = new PosOrdercomprobantes();
-            $objComprobanteNotaCredito->fecha_envio_comprobante = date('Y-m-d');
+            $objComprobanteNotaCredito->fecha_envio_comprobante = date('Y-m-d H:i:s');
         }
 
         $tienda_actual = new Shop((int)$this->context->shop->id); //
@@ -877,7 +877,38 @@ class AdminOrdersControllerCore extends AdminController
 
         $order->motivo_anulacion = Tools::getValue('motivo_anulacion');
         $order->update();
+        if (!empty($doc)) {
+            $order->setCurrentState(14, $this->context->employee->id); //estado 14 comunicacion de baja
 
+            $arr = Certificadofe::getCertificado();
+            $objCerti = new Certificadofe((int)$arr); // buscar el certificado
+            $numero_comprobante = $objComprobantes->numeracion_nota_baja;
+            $nombre_xml_comprobante = PS_SHOP_RUC . '-' . $numero_comprobante;
+            //creamos las RUTAS de los documentos
+            // creamos la carpeta donde se guardara el XML
+            $ruta_general_cdr = "archivos_sunat/baja/" . PS_SHOP_RUC . "/cdr/";
+            $ruta_cdr = $ruta_general_cdr;
+
+//            $resp_cdr = ProcesarComprobante::consultar_envio_ticket($objCerti->user_sunat, $objCerti->pass_sunat, $objComprobantes->identificador_comunicacion, $nombre_xml_comprobante, $ruta_cdr, $objCerti->web_service_sunat);
+//
+//            if ($resp_cdr['respuesta'] == 'ok') {
+//                $objComprobantes->mensaje_cdr = $resp_cdr['msj_sunat'];
+//                $objComprobantes->ruta_cdr_otro = $resp_cdr['ruta_cdr'];
+//                $objComprobantes->update();
+//
+//                $this->errors[] = $objComprobantes->mensaje_cdr;
+//                die(Tools::jsonEncode(array('response' => 'ok', 'mensaje' => $this->errors)));
+//
+//            }else{
+//                $objComprobantes->cod_sunat_otro = $resp_cdr['cod_sunat'];
+//                $objComprobantes->mensaje_cdr = $resp_cdr['msj_sunat'];
+//                $objComprobantes->update();
+//
+//                $this->errors[] = $objComprobantes->mensaje_cdr;
+//                die(Tools::jsonEncode(array('response' => 'error', 'mensaje' => $this->errors)));
+//
+//            }
+        }
 
         return die(Tools::jsonEncode(array('errors' => true, 'estado' => 'disponible')));
 
@@ -1161,7 +1192,7 @@ class AdminOrdersControllerCore extends AdminController
                                                 ajax: "1",
                                                 token: "'.Tools::getAdminTokenLite('AdminOrders').'",
                                                 tab: "AdminOrders",
-                                                action: "consultarTicket",
+                                                action: "consultarticketcdr",
                                                 id_order: id,
                                             },
                                             success : function(res)
@@ -1222,9 +1253,17 @@ class AdminOrdersControllerCore extends AdminController
                 $objComprobantes->update();
 
                 $this->errors[] = $objComprobantes->mensaje_cdr;
-            }
+                die(Tools::jsonEncode(array('response' => 'ok', 'mensaje' => $this->errors)));
 
-            die(Tools::jsonEncode(array('response' => 'ok', 'mensaje' => $this->errors)));
+            }else{
+                $objComprobantes->cod_sunat_otro = $resp_cdr['cod_sunat'];
+                $objComprobantes->mensaje_cdr = $resp_cdr['msj_sunat'];
+                $objComprobantes->update();
+
+                $this->errors[] = $objComprobantes->mensaje_cdr;
+                die(Tools::jsonEncode(array('response' => 'error', 'mensaje' => $this->errors)));
+
+            }
 
         }else{
             $this->errors[] = "No existe alguna comprobante creado";
@@ -1310,7 +1349,7 @@ class AdminOrdersControllerCore extends AdminController
         if (!empty($doc)){
             $objComprobante = new PosOrdercomprobantes((int)$doc['id_pos_ordercomprobantes']);
             $shop = Context::getContext()->shop;
-            $RUC= $shop->ruc;
+            $RUC= PS_SHOP_RUC;
 
             $webservice_consulta = $this->service_consulta_sunat;
             $arr = Certificadofe::getIdCertife(Context::getContext()->shop->id);
@@ -1357,7 +1396,7 @@ class AdminOrdersControllerCore extends AdminController
                 // El comprobante existe pero está rechazado. 2
                 // El comprobante existe existe pero está de baja. 3
 
-                if($objComprobante->nota_baja == "Baja"){
+                if($objComprobante->nota_baja == "ComunicacionBaja"){
                     $status = $client->getStatus($params);
 
                     $arr = Certificadofe::getCertificado();
@@ -1371,16 +1410,23 @@ class AdminOrdersControllerCore extends AdminController
 
                     $resp_cdr = ProcesarComprobante::consultar_envio_ticket($objCerti->user_sunat, $objCerti->pass_sunat,  $objComprobante->identificador_comunicacion, $nombre_xml_comprobante, $ruta_cdr, $objCerti->web_service_sunat);
 
-                    if ($resp_cdr['respuesta'] == 'ok'){
-                        $objComprobante->mensaje_cdr = $resp_cdr['msj_sunat'];
+                    $this->errors[] = $status->status->statusMessage;
+                    $objComprobante->cod_sunat_otro = $resp_cdr['cod_sunat'];
+                    $objComprobante->mensaje_cdr = $resp_cdr['msj_sunat'];
+
+                    if ($resp_cdr['respuesta'] == 'ok') {
                         $objComprobante->ruta_cdr_otro = $resp_cdr['ruta_cdr'];
                         $objComprobante->update();
-
-                        $this->errors[] = $resp_cdr['msj_sunat'];
+                        $this->errors[] = $objComprobante->mensaje_cdr;
+                        die(Tools::jsonEncode(array('response' => 'ok', 'mensaje' => $this->errors)));
+                    }else{
+                        $objComprobante->update();
+                        $this->errors[] = $objComprobante->mensaje_cdr;
+                        die(Tools::jsonEncode(array('response' => 'error', 'mensaje' => $this->errors)));
                     }
 
-                    $this->errors[] = $status->status->statusMessage;
-                    die(Tools::jsonEncode(array('response' => 'ok', 'mensaje' => $this->errors)));
+
+
                 }
 
                 $statusCDR = $client->getStatusCdr($params);
@@ -1390,7 +1436,7 @@ class AdminOrdersControllerCore extends AdminController
 
                     $filename_zip = $RUC."-".$tipo_comprobante."-".$serie."-".$numeracion;
 
-                    if ($objComprobante->nota_baja == "NotaCredito"){
+                    if ($objComprobante->tipo_documento_electronico == "NotaCredito"){
                         $url_cdr = 'archivos_sunat/notacredito/'.$RUC.'/R-'.$filename_zip.".zip";
                     }else{
                         $url_cdr = 'archivos_sunat/'.$RUC.'/R-'.$filename_zip.".zip";
@@ -1435,7 +1481,7 @@ class AdminOrdersControllerCore extends AdminController
                     }
                     zip_close($zip);
 
-                    if ($objComprobante->nota_baja == "NotaCredito"){
+                    if ($objComprobante->tipo_documento_electronico == "NotaCredito"){
                         $url = 'archivos_sunat/notacredito/'.$RUC.'/R-'.$filename_zip.".zip";
                         $url_xml = 'archivos_sunat/notacredito/'.$RUC.'/'.$filename_zip.".zip";
                         $objComprobante->ruta_cdr = $url;
@@ -5153,7 +5199,7 @@ class AdminOrdersControllerCore extends AdminController
                     $objComprobantes = new PosOrdercomprobantes($doc['id_pos_ordercomprobantes']);
                 }else{
                     $objComprobantes = new PosOrdercomprobantes();
-                    $objComprobantes->fecha_envio_comprobante = date('Y-m-d');
+                    $objComprobantes->fecha_envio_comprobante = date('Y-m-d H:i:s');
                 }
 
                 // comprobanr si ya existe una numeracion para el comprobante
