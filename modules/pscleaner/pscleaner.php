@@ -339,9 +339,9 @@ class PSCleaner extends Module
                 $customer->updateGroup(array($customer->id_default_group));
 
                 Tools::deleteDir(_PS_ADMIN_DIR_.'/archivos_sunat/'.PS_SHOP_RUC);
-                Tools::deleteDir(_PS_ADMIN_DIR_.'/archivos_sunat/baja/'.PS_SHOP_RUC);
-                Tools::deleteDir(_PS_ADMIN_DIR_.'/archivos_sunat/notacredito/'.PS_SHOP_RUC);
-                Tools::deleteDir(_PS_ADMIN_DIR_.'/archivos_sunat/resumen/'.PS_SHOP_RUC);
+                Tools::deleteDir(_PS_ADMIN_DIR_.'/archivos_sunat/baja/');
+                Tools::deleteDir(_PS_ADMIN_DIR_.'/archivos_sunat/notacredito/');
+                Tools::deleteDir(_PS_ADMIN_DIR_.'/archivos_sunat/resumen/');
 
                 Tools::deleteFilesInDir(_PS_ADMIN_DIR_.'/documentos_pdf/');
                 Tools::deleteFilesInDir(_PS_ADMIN_DIR_.'/documentos_pdf_a4/');
@@ -438,7 +438,8 @@ class PSCleaner extends Module
                     array(
                         'type' => 'switch',
                         'is_bool' => true,
-                        'label' => $this->trans('I understand that all the catalog data will be removed without possible rollback: products, features, categories, tags, images, prices, attachments, scenes, stocks, attribute groups and values, manufacturers, suppliers...', array(), 'Modules.Pscleaner.Admin'),
+//                        'label' => $this->trans('Entiendo que todos los datos del catálogo serán eliminados sin la posibilidad de vuelta atrás: productos, características, categorías, etiquetas, imágenes, precios, adjuntos, escenas, stock de productos, grupos de atributos y valores, fabricantes, proveedores...', array(), 'Modules.Pscleaner.Admin'),
+                        'label' => $this->trans('Entiendo que todos los datos del catálogo serán eliminados sin la posibilidad de vuelta atrás: productos, categorías, imágenes...', array(), 'Modules.Pscleaner.Admin'),
                         'name' => 'checkTruncateCatalog',
                         'values' => array(
                             array(
@@ -473,7 +474,8 @@ class PSCleaner extends Module
                     array(
                         'type' => 'switch',
                         'is_bool' => true,
-                        'label' => $this->trans('I understand that all the orders and customers will be removed without possible rollback: customers, carts, orders, connections, guests, messages, stats...', array(), 'Modules.Pscleaner.Admin'),
+//                        'label' => $this->trans('I understand that all the orders and customers will be removed without possible rollback: customers, carts, orders, connections, guests, messages, stats...', array(), 'Modules.Pscleaner.Admin'),
+                        'label' => $this->trans('Entiendo que todos las ventas, reservas y clientes serán eliminados sin posibilidad de vuelta atrás ...', array(), 'Modules.Pscleaner.Admin'),
                         'name' => 'checkTruncateSales',
                         'values' => array(
                             array(
