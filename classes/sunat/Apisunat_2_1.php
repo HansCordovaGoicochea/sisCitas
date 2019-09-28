@@ -138,7 +138,7 @@ class Apisunat_2_1
             "ES_PORCONSUMO" => $emisor['es_porconsumo'],
         );
 
-    d($cabecera);
+//    d($cabecera);
         return $cabecera;
 
     }

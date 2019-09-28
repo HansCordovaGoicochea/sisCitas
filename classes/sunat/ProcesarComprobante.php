@@ -582,10 +582,9 @@ class ProcesarComprobante
                 }
             } else {
                 $mensaje['respuesta'] = 'error';
-                $resul_code_sunat = intval(preg_replace('/[^0-9]+/', '', $doc->getElementsByTagName('faultcode')->item(0)->nodeValue), 10);
-                $mensaje['cod_sunat'] = $resul_code_sunat;
-                $mensaje['mensaje'] = $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
-                $mensaje['msj_sunat'] = $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
+                $mensaje['cod_sunat'] = (int)$doc->getElementsByTagName('statusCode')->item(0)->nodeValue;
+                $mensaje['mensaje'] = $doc->getElementsByTagName('content')->item(0)->nodeValue;
+                $mensaje['msj_sunat'] = $doc->getElementsByTagName('content')->item(0)->nodeValue;
 //                $mensaje['hash_cdr'] = "";
             }
         } else {
@@ -682,10 +681,9 @@ class ProcesarComprobante
                     unlink($ruta_archivo_cdr . 'R-' . $archivo . '.xml');
                 }else{
                     $mensaje['respuesta'] = 'error';
-                    $resul_code_sunat = intval(preg_replace('/[^0-9]+/', '', $doc->getElementsByTagName('faultcode')->item(0)->nodeValue), 10);
-                    $mensaje['cod_sunat'] = $resul_code_sunat;
-                    $mensaje['mensaje'] = $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
-                    $mensaje['msj_sunat'] = $doc->getElementsByTagName('faultstring')->item(0)->nodeValue;
+                    $mensaje['cod_sunat'] = (int)$doc->getElementsByTagName('statusCode')->item(0)->nodeValue;
+                    $mensaje['mensaje'] = $doc->getElementsByTagName('content')->item(0)->nodeValue;
+                    $mensaje['msj_sunat'] = $doc->getElementsByTagName('content')->item(0)->nodeValue;
                 }
             } else {
                 $mensaje['respuesta'] = 'error';
