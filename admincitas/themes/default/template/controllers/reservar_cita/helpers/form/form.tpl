@@ -155,7 +155,7 @@
 
                     <div class="col-lg-3">
                         <div class="form-group">
-                            <label for="product_id" class="control-label required">Adelanto:</label>
+                            <label for="product_id" class="control-label">Adelanto:</label>
                             <div class="input-group">
                                 <div class="input-group-addon">
                                     <i class="icon-money"></i>
@@ -215,8 +215,8 @@
                         <input type="text" class="form-control" id="txtDireccion" name="txtDireccion" value="{$customer->direccion}">
                     </div>
                     <div class="form-group col-lg-6">
-                        <label for="birthday" class="control-label required">Fecha Nacimiento:</label>
-                        <input type="text" class="form-control datepicker" id="birthday" name="birthday" value="{if $customer->birthday != '0000-00-00'}{$customer->birthday|date_format:"%d/%m/%Y"}{/if}">
+                        <label for="birthday" class="control-label">Fecha Nacimiento:</label>
+                        <input type="text" class="form-control datepicker" id="birthday" name="birthday" value="{if $customer->birthday && $customer->birthday != '0000-00-00'}{$customer->birthday|date_format:"%d/%m/%Y"}{/if}">
                     </div>
                     <div class="form-group col-lg-6">
                         <label for="celular" class="control-label">Celular:</label>

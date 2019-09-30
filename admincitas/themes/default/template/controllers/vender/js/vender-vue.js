@@ -958,7 +958,7 @@ var app_vender = new Vue({
                             let html = `
                                 <!-- Modal -->
                                 <div id="moda_reserva_cliente" class="modal fade" role="dialog">
-                                  <div class="modal-dialog modal-lg">v
+                                  <div class="modal-dialog modal-lg">
                                     <!-- Modal content-->
                                     <div class="modal-content">
                                       <div class="modal-header">
@@ -1025,7 +1025,7 @@ var app_vender = new Vue({
                             `;
                             $('#moda_reserva_cliente').remove();
                             $('#app_vender').append(html);
-                            $('#moda_reserva_cliente').modal({ backdrop: 'static', keyboard: false, closable: false});
+                            $('#moda_reserva_cliente').modal({ backdrop: 'static' });
                             $('#moda_reserva_cliente').modal('show');
                             $('#moda_reserva_cliente select.chosen').each(function(k, item){
                                 $(item).chosen({ search_contains: true, width: '100%', });
@@ -1094,7 +1094,7 @@ var app_vender = new Vue({
             self.numero_doc = data.num_document;
             self.tipo_doc = data.tipo_documento;
             self.cod_sunat = data.cod_sunat;
-            self.fecha_nacimiento = data.birthday;
+            self.fecha_nacimiento = data.birthday && data.birthday !== '0000-00-00' ? data.birthday : '';
             self.celular_cliente = data.telefono_celular;
             self.show_forma_pago = parseInt(data.es_credito) === 1;
 
@@ -1250,7 +1250,7 @@ function pasaVentaReserva(id) {
                         $('.alertmessage').append(html_buttons);
                         $('.alertmessage').css('display', 'grid');
                         $('body').waitMe('hide');
-                        $('#moda_reserva_cliente').modal('close');
+                        $('#moda_reserva_cliente').modal('hide');
                     }
                     if (data.response === 'failed'){
                         $('#error').text(data.msg);

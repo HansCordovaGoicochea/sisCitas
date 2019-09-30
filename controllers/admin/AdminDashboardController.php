@@ -275,12 +275,12 @@ class AdminDashboardControllerCore extends AdminController
             $this->context->cookie->write();
         }
 
-        if ($this->context->employee->stats_date_to < date('Y-m-d')){
-            $this->context->employee->stats_date_to = date('Y-m-d');
-            $this->context->employee->update();
-            $this->context->cookie->__set('stats_date_update', strtotime(date('Y-m-d')));
-            $this->context->cookie->write();
-        }
+//        if ($this->context->employee->stats_date_to < date('Y-m-d')){
+//            $this->context->employee->stats_date_to = date('Y-m-d');
+//            $this->context->employee->update();
+//            $this->context->cookie->__set('stats_date_update', strtotime(date('Y-m-d')));
+//            $this->context->cookie->write();
+//        }
 
         $calendar_helper = new HelperCalendar();
 

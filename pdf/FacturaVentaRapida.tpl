@@ -19,7 +19,7 @@
     <tr>
         <th style="text-align: center">
             <strong>
-                <img src="{$logo}" style="width:5cm;height: 3cm;" /><br>
+                <img src="{$logo}" style="width:5cm;height: 3cm;" />
             </strong>
         </th>
     </tr>
@@ -57,6 +57,10 @@
     <tr>
         <td colspan="4" style="">
             <table width="100%">
+                <tr>
+                    <td style="text-align: right;" colspan="3">DESCUENTO:</td>
+                    <td style="text-align: center;">{if $order->total_discounts > 0} -{displayPrice currency=$order->id_currency price=$order->total_discounts}{else}S/0.00{/if}</td>
+                </tr>
                 <tr>
                 <td colspan="3" style="text-align: right">SubTotal:</td>
                 <td style="text-align: center" >{displayPrice currency=$order->id_currency price=$footer.products_before_discounts_tax_excl}</td>

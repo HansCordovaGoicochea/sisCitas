@@ -1566,8 +1566,8 @@ class AdminControllerCore extends Controller
 
         $this->addPageHeaderToolBarModulesListButton();
 
-        $this->context->smarty->assign('help_link', 'https://help.prestashop.com/'.Language::getIsoById($this->context->employee->id_lang).'/doc/'
-            .Tools::getValue('controller').'?version='._PS_VERSION_.'&country='.Language::getIsoById($this->context->employee->id_lang));
+//        $this->context->smarty->assign('help_link', 'https://help.prestashop.com/'.Language::getIsoById($this->context->employee->id_lang).'/doc/'
+//            .Tools::getValue('controller').'?version='._PS_VERSION_.'&country='.Language::getIsoById($this->context->employee->id_lang));
     }
 
     /**
@@ -2103,6 +2103,7 @@ class AdminControllerCore extends Controller
         $this->initTabModuleList();
         $this->initPageHeaderToolbar();
 
+//        d($this->page_header_toolbar_title);
         $this->context->smarty->assign(array(
             'maintenance_mode' => !(bool)Configuration::get('PS_SHOP_ENABLE'),
             'debug_mode' => (bool)_PS_MODE_DEV_,
@@ -3221,6 +3222,7 @@ class AdminControllerCore extends Controller
                     $whereClause;
             }
 
+//            d($this->_listsql);
             $this->_list = Db::getInstance()->executeS($this->_listsql, true, false);
 
             if ($this->_list === false) {

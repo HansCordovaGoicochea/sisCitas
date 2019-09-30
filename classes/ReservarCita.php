@@ -77,4 +77,19 @@ class ReservarCitaCore extends ObjectModel
 
     }
 
+    public static function getDateFromDateTOAdelantos($shop, $date_from, $date_to )
+    {
+//        d($id_caja);
+        $sql =
+            'select * from tm_reservar_cita rc
+                WHERE rc.id_shop = ' . $shop . ' and rc.fecha_inicio >= \'' . $date_from . '\' and rc.fecha_inicio <= \'' . $date_to . '\' AND estado_actual = 0 AND adelanto > 0 order by id_reservar_cita desc
+                ';
+//
+//        var_dump($sql);
+//        echo '<br/>';
+//        d($sql);
+
+        return Db::getInstance()->executeS($sql);
+    }
+
 }

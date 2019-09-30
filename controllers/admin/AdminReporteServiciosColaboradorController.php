@@ -32,16 +32,16 @@ class AdminReporteServiciosColaboradorControllerCore extends AdminController
         parent::__construct();
 
 
-        $this->_join .= 'LEFT JOIN `'._DB_PREFIX_.'employee` ea ON (ea.`id_employee` = a.`id_colaborador`)';
-        $this->_join .= 'LEFT JOIN `'._DB_PREFIX_.'orders` o ON (o.`id_order` = a.`id_order` AND o.`id_shop` = '.$this->context->shop->id.')';
-        $this->_join .= 'LEFT JOIN `'._DB_PREFIX_.'customer` ec ON (ec.`id_customer` = o.`id_customer`)';
+        $this->_join .= 'LEFT JOIN `'._DB_PREFIX_.'employee` ea ON (ea.`id_employee` = a.`id_colaborador`) ';
+        $this->_join .= 'LEFT JOIN `'._DB_PREFIX_.'orders` o ON (o.`id_order` = a.`id_order` AND o.`id_shop` = '.$this->context->shop->id.') ';
+        $this->_join .= 'LEFT JOIN `'._DB_PREFIX_.'customer` ec ON (ec.`id_customer` = o.`id_customer`) ';
 
         $this->_select .= 'CONCAT_WS(" ",ea.firstname, ea.lastname) as colaborador, ec.firstname as cliente, o.date_add as fecha, SUM(product_quantity) as cantidad, sum(a.total_price_tax_incl) as total_servicio';
         $this->_where = ' AND a.id_colaborador = '. Tools::getValue('id_colaborador').' AND valid = 1 AND o.date_add BETWEEN '.Tools::getValue('fi').' AND '.Tools::getValue('ff');
 
 
-        $this->_orderBy = 'o.date_add';
-        $this->_orderWay = 'DESC';
+//        $this->_orderBy = 'o.date_add';
+//        $this->_orderWay = 'DESC';
         $this->_group = ' group by a.product_id';
 //        $this->list_simple_header = true;
 //        $this->allow_export = true;
@@ -89,6 +89,29 @@ class AdminReporteServiciosColaboradorControllerCore extends AdminController
         );
 
     }
+
+//    public function renderList()
+//    {
+//        //retrieve datas list
+//        $this->getList($this->context->language->id);
+//        $total_ps = 0;
+//        $total_importe = 0;
+//
+//        foreach ($this->_list as $k => $v) {
+//            $total_ps += $this->_list[$k]['cantidad'];
+//            $total_importe += $this->_list[$k]['total_servicio'];
+//        }
+//
+//
+////        $helper = new HelperList($this);
+////        $helper->title = 'Prod./Serv.: '. $total_ps .' - Importe: '. Tools::displayPrice($total_importe, 1);
+////        d($helper->title);
+//
+//
+//        return parent::renderList();
+//    }
+
+
     public function initToolbar()
     {
         parent::initToolbar();
@@ -106,7 +129,20 @@ class AdminReporteServiciosColaboradorControllerCore extends AdminController
                 'desc' => $this->l('Back to list', null, null, false),
                 'icon' => 'process-icon-back'
             );
+        $this->getList($this->context->language->id);
+        $total_ps = 0;
+        $total_importe = 0;
 
+        foreach ($this->_list as $k => $v) {
+            $total_ps += $this->_list[$k]['cantidad'];
+            $total_importe += $this->_list[$k]['total_servicio'];
+        }
+
+
+//        array_pop($this->toolbar_title);
+//        $this->toolbar_title[] = 'Prod./Serv.: 6 - Importe: S/121.00';
+        $this->page_header_toolbar_title = 'Prod./Serv.: '. $total_ps .' - Importe: '. Tools::displayPrice($total_importe, 1);
+//d($this->page_header_toolbar_title);
     }
 
 }

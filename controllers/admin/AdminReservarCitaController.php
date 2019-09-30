@@ -327,6 +327,7 @@ class AdminReservarCitaControllerCore extends AdminController
 
     public function ajaxProcessRealizarVenta(){
 
+//        d(Tools::getAllValues());
         if(Tools::getValue('id_reservar_cita')){
             $objCita = new ReservarCita((int)Tools::getValue('id_reservar_cita'));
             $id_colaborador_old = $objCita->id_colaborador;
@@ -378,23 +379,23 @@ class AdminReservarCitaControllerCore extends AdminController
                 $order->id_pos_caja = $last_caja['id_pos_caja'];
                 $order->id_employee = $this->context->employee->id;
                 $order->id_colaborador = $objCita->id_colaborador;
+
                 $col = new Employee((int)$objCita->id_colaborador);
                 $order->colaborador_name = $col->firstname.' '. $col->lastname;
                 $order->update();
 
                 $ordeD = OrderDetailCore::getList($order->id);
                 foreach ($ordeD as $k => $val) {
-                    foreach(Tools::getValue('productos') as $key=>$product) {
+//                    foreach(Tools::getValue('productos') as $key=>$product) {
                         $oderDetalle = new OrderDetail((int)$val['id_order_detail']);
-                        if ($oderDetalle->product_id === $product['id']){
+                        if ($oderDetalle->product_id === $objCita->product_id){
 //                            $oderDetalle->product_name = $product['title'];
                             $oderDetalle->id_colaborador = $objCita->id_colaborador;
-                            $objCola = new Employee((int)$objCita->id_colaborador);
-                            $oderDetalle->colaborador_name = $objCola->firstname.' '.$objCola->lastname;
+                            $oderDetalle->colaborador_name = $col->firstname.' '. $col->lastname;
                             $oderDetalle->es_servicio = 1;
                             $oderDetalle->update();
                         }
-                    }
+//                    }
                 }
 
 //                $objCita->estado_actual = 3; //facturado
