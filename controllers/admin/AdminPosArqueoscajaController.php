@@ -44,11 +44,19 @@ class AdminPosArqueoscajaControllerCore extends AdminController
         ( SELECT SUM(op.amount)
 FROM tm_orders o INNER JOIN tm_order_payment op
 ON (o.reference = op.order_reference)
-where o.current_state in (1, 2) AND op.date_add BETWEEN a.fecha_apertura AND IF(a.fecha_cierre = 0, CURRENT_TIMESTAMP(), a.fecha_cierre) ) as ventas, 
+where o.current_state in (1, 2)  AND tipo_pago = 1 AND op.date_add BETWEEN a.fecha_apertura AND IF(a.fecha_cierre = 0, CURRENT_TIMESTAMP(), a.fecha_cierre) ) as ventas, 
         ( SELECT SUM(monto)
 FROM tm_pos_gastos
 where fecha BETWEEN a.fecha_apertura AND IF(a.fecha_cierre = 0, CURRENT_TIMESTAMP(), a.fecha_cierre) ) as gastos,       
-        a.id_pos_arqueoscaja as id_button_cierre
+        a.id_pos_arqueoscaja as id_button_cierre,
+        ((monto_apertura + ( SELECT SUM(op.amount)
+FROM tm_orders o INNER JOIN tm_order_payment op
+ON (o.reference = op.order_reference)
+where o.current_state in (1, 2)  AND tipo_pago = 1 AND op.date_add BETWEEN a.fecha_apertura AND IF(a.fecha_cierre = 0, CURRENT_TIMESTAMP(), a.fecha_cierre) )) - IFNULL(( SELECT SUM(monto)
+FROM tm_pos_gastos
+where fecha BETWEEN a.fecha_apertura AND IF(a.fecha_cierre = 0, CURRENT_TIMESTAMP(), a.fecha_cierre) ), 0)) as cierre_sistema
+        
+        
         ';
 
         $this->_where = Shop::addSqlRestriction(false, 'a');
@@ -61,6 +69,7 @@ where fecha BETWEEN a.fecha_apertura AND IF(a.fecha_cierre = 0, CURRENT_TIMESTAM
             'ventas' => array('title' => $this->l('Ventas'),  'type' => 'price',  'havingFilter' => true, 'remove_onclick' => true),
             'gastos' => array('title' => $this->l('
             Gastos'),  'type' => 'price',  'havingFilter' => true, 'remove_onclick' => true),
+            'cierre_sistema' => array('title' => $this->l('Saldo Caja'),  'type' => 'price', 'remove_onclick' => true),
             'monto_cierre' => array('title' => $this->l('Cierre real'),  'type' => 'price', 'remove_onclick' => true),
             'fecha_cierre' => array('title' => $this->l('Fecha Cierre'),  'type' => 'datetime', 'remove_onclick' => true),
 //            'estado_caja' => array('title' => $this->l('Estado'), 'align' => 'center', 'class' => 'fixed-width-sm', ),
@@ -75,7 +84,7 @@ where fecha BETWEEN a.fecha_apertura AND IF(a.fecha_cierre = 0, CURRENT_TIMESTAM
 
         $this->_orderBy = 'fecha_apertura';
         $this->_orderWay = 'DESC';
-        
+
     }
     public function displayCerrar_cajaLink($token = null, $id)
     {

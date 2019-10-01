@@ -169,8 +169,8 @@ class OrderCore extends ObjectModel
     public $round_mode;
 
     /**
-    * @var int Round type method used for this order
-    */
+     * @var int Round type method used for this order
+     */
     public $round_type;
 
     public $id_employee;
@@ -770,12 +770,12 @@ class OrderCore extends ObjectModel
     }
 
     /**
-    * Check if order contains (only) virtual products
-    *
-    * @param bool $strict If false return true if there are at least one product virtual
-    * @return bool true if is a virtual order or false
-    *
-    */
+     * Check if order contains (only) virtual products
+     *
+     * @param bool $strict If false return true if there are at least one product virtual
+     * @return bool true if is a virtual order or false
+     *
+     */
     public function isVirtual($strict = true)
     {
         $products = $this->getProducts(false, false, false, false);
@@ -952,8 +952,8 @@ class OrderCore extends ObjectModel
                 FROM `'._DB_PREFIX_.'orders`
                 WHERE DATE_ADD(date_upd, INTERVAL -1 DAY) <= \''.pSQL($date_to).'\' AND date_upd >= \''.pSQL($date_from).'\'
                     '.Shop::addSqlRestriction()
-                    .($type ? ' AND `'.bqSQL($type).'_number` != 0' : '')
-                    .($id_customer ? ' AND id_customer = '.(int)$id_customer : '');
+            .($type ? ' AND `'.bqSQL($type).'_number` != 0' : '')
+            .($id_customer ? ' AND id_customer = '.(int)$id_customer : '');
         $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
 
         $orders = array();
@@ -1002,9 +1002,9 @@ class OrderCore extends ObjectModel
                 FROM `'._DB_PREFIX_.'orders`
                 WHERE DATE_ADD(invoice_date, INTERVAL -1 DAY) <= \''.pSQL($date_to).'\' AND invoice_date >= \''.pSQL($date_from).'\'
                     '.Shop::addSqlRestriction()
-                    .($type ? ' AND `'.bqSQL($type).'_number` != 0' : '')
-                    .($id_customer ? ' AND id_customer = '.(int)$id_customer : '').
-                ' ORDER BY invoice_date ASC';
+            .($type ? ' AND `'.bqSQL($type).'_number` != 0' : '')
+            .($id_customer ? ' AND id_customer = '.(int)$id_customer : '').
+            ' ORDER BY invoice_date ASC';
         $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
 
         $orders = array();
@@ -1105,7 +1105,7 @@ class OrderCore extends ObjectModel
         $sql = 'SELECT COUNT(`id_order`) AS nb
                 FROM `'._DB_PREFIX_.'orders`
                 WHERE `id_customer` = '.(int)$id_customer
-                    .Shop::addSqlRestriction();
+            .Shop::addSqlRestriction();
         $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow($sql);
 
         return isset($result['nb']) ? $result['nb'] : 0;
@@ -1251,7 +1251,7 @@ class OrderCore extends ObjectModel
         } else {
             $getNumberSql = '(SELECT new_number FROM (SELECT (MAX(`number`) + 1) AS new_number
                 FROM `'._DB_PREFIX_.'order_invoice`'.(Configuration::get('PS_INVOICE_RESET') ?
-                ' WHERE DATE_FORMAT(`date_add`, "%Y") = '.(int)date('Y') : '').') AS result)';
+                    ' WHERE DATE_FORMAT(`date_add`, "%Y") = '.(int)date('Y') : '').') AS result)';
             $getNumberSqlRow = Db::getInstance()->getRow($getNumberSql);
             $newInvoiceNumber = $getNumberSqlRow['new_number'];
             $sql .= $newInvoiceNumber;
@@ -2055,8 +2055,8 @@ class OrderCore extends ObjectModel
             foreach ($taxes_infos as $tax_infos) {
                 if (!isset($tmp_tax_infos[$tax_infos['rate']])) {
                     $tmp_tax_infos[$tax_infos['rate']] = array('total_amount' => 0,
-                                                                'name' => 0,
-                                                                'total_price_tax_excl' => 0);
+                        'name' => 0,
+                        'total_price_tax_excl' => 0);
                 }
 
                 $tmp_tax_infos[$tax_infos['rate']]['total_amount'] += $tax_infos['total_amount'];
@@ -2604,7 +2604,7 @@ class OrderCore extends ObjectModel
 FROM tm_order_payment op
 where o.reference = op.order_reference AND op.date_add BETWEEN \'' . $date_from . '\' AND  \'' . $date_to . '\' AND op.tipo_pago = 1) as pagos
                 FROM tm_orders o inner join tm_order_payment op ON (o.reference = op.order_reference) LEFT JOIN tm_pos_ordercomprobantes po ON (po.id_order = o.id_order) LEFT JOIN tm_customer c ON (c.id_customer = o.id_customer)
-                WHERE o.id_shop = ' . $shop . ' and o.date_add >= \'' . $date_from . '\' and o.date_add <= \'' . $date_to . '\' AND o.current_state in (2) AND tipo_pago = 1 group by o.id_order order by o.id_order desc
+                WHERE o.id_shop = ' . $shop . ' and o.date_add >= \'' . $date_from . '\' and o.date_add <= \'' . $date_to . '\' AND o.current_state in (1, 2) AND tipo_pago = 1 group by o.id_order order by o.id_order desc
                 ';
 //
 //        var_dump($sql);
@@ -2623,7 +2623,7 @@ where o.reference = op.order_reference AND op.date_add BETWEEN \'' . $date_from 
 FROM tm_order_payment op
 where o.reference = op.order_reference AND op.date_add BETWEEN \'' . $date_from . '\' AND  \'' . $date_to . '\' AND op.tipo_pago = 2) as pagos
                 FROM tm_orders o inner join tm_order_payment op ON (o.reference = op.order_reference) LEFT JOIN tm_pos_ordercomprobantes po ON (po.id_order = o.id_order) LEFT JOIN tm_customer c ON (c.id_customer = o.id_customer)
-                WHERE o.id_shop = ' . $shop . ' and o.date_add >= \'' . $date_from . '\' and o.date_add <= \'' . $date_to . '\' AND o.current_state in (2) AND tipo_pago = 2 order by o.id_order desc
+                WHERE o.id_shop = ' . $shop . ' and o.date_add >= \'' . $date_from . '\' and o.date_add <= \'' . $date_to . '\' AND o.current_state in (1,2) AND tipo_pago = 2 order by o.id_order desc
                 ';
 //
 //        var_dump($sql);
@@ -2642,7 +2642,7 @@ where o.reference = op.order_reference AND op.date_add BETWEEN \'' . $date_from 
 FROM tm_order_payment op
 where o.reference = op.order_reference AND op.date_add BETWEEN \'' . $date_from . '\' AND  \'' . $date_to . '\' AND op.tipo_pago = 3) as pagos
                 FROM tm_orders o inner join tm_order_payment op ON (o.reference = op.order_reference) LEFT JOIN tm_pos_ordercomprobantes po ON (po.id_order = o.id_order) LEFT JOIN tm_customer c ON (c.id_customer = o.id_customer)
-                WHERE o.id_shop = ' . $shop . ' and o.date_add >= \'' . $date_from . '\' and o.date_add <= \'' . $date_to . '\' AND o.current_state in (2) AND tipo_pago = 3 order by o.id_order desc
+                WHERE o.id_shop = ' . $shop . ' and o.date_add >= \'' . $date_from . '\' and o.date_add <= \'' . $date_to . '\' AND o.current_state in (1,2) AND tipo_pago = 3 order by o.id_order desc
                 ';
 //
 //        var_dump($sql);
