@@ -82,7 +82,7 @@ class AdminNotificationAcheControllerCore extends AdminController{
                 break;
             case 'order':
                 $sql = '
-					SELECT SQL_CALC_FOUND_ROWS o.`id_order`, o.`id_customer`, o.`total_paid`, o.`id_currency`, o.`date_upd`, c.`firstname` as cliente
+					SELECT SQL_CALC_FOUND_ROWS o.`id_order`, o.`id_customer`, (o.`total_paid` - o.`total_paid_real`) as total_paid, o.`id_currency`, o.`date_upd`, c.`firstname` as cliente
 					FROM `'._DB_PREFIX_.'orders` as o
 					LEFT JOIN `'._DB_PREFIX_.'customer` as c ON (c.`id_customer` = o.`id_customer`)
 					WHERE o.current_state in (1)'. Shop::addSqlRestriction(false, 'o').'

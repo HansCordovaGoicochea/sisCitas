@@ -371,7 +371,7 @@
                                         <td style="text-align: right;">Totales</td>
                                         <td style="text-align: center;">{displayPrice currency=$datos_fila.id_currency price=$total|round:2}</td>
                                         <td style="text-align: center;">{displayPrice currency=$datos_fila.id_currency price=$datos_fila.pagos|round:2}</td>
-                                        <td style="text-align: center;">S/ 0.00</td>
+                                        <td style="text-align: center;"> - - </td>
                                         {*                                    <td style="text-align: right;"></td>*}
                                     </tr>
                                 {/if}
@@ -504,7 +504,7 @@
                                 {assign var='total' value=$total+$detail.adelanto}
                                 {assign var='nro_operaciones' value=$nro_operaciones+1}
                                 <tr >
-                                    <td style="text-align: left;">{$detail.fecha_inicio|date_format:"%d/%m/%Y %I:%M %p"}</td>
+                                    <td style="text-align: left;">{$detail.date_upd|date_format:"%d/%m/%Y %I:%M %p"}</td>
                                     <td style="text-align: left;">{$detail.product_name}</td>
                                     <td style="text-align: center;">- -</td>
                                     <td style="text-align: center;">{displayPrice currency=1 price=$detail.adelanto|round:2}</td>

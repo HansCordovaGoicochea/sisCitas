@@ -7,11 +7,15 @@
 <body>
 <table style="width: 7.4cm; font-size: 8px; color: #000;" cellpadding="1" cellspacing="1">
     <tr>
-        <td style="text-align: center"><img src="{$logo}" style="width:5cm;height: 3cm;" /></td>
+        <th style="text-align: center">
+            <strong>
+                <img src="{$logo}" style="width:5cm;height: 3cm;" />
+            </strong>
+        </th>
     </tr>
     <tr style="text-align: center">
         <td >
-            <span><h3>{$PS_SHOP_RAZON_SOCIAL|upper}</h3></span><br>
+            <span>{$PS_SHOP_RAZON_SOCIAL|upper}</span><br>
             <span>RUC: {$PS_SHOP_RUC}</span><br>
             <span>{$comprobante->tipo_documento_electronico|cat:' Electronica'|upper} {$comprobante->numero_comprobante}</span>
         </td>

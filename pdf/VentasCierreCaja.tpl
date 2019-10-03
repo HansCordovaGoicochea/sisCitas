@@ -233,7 +233,7 @@
                             {assign var='total' value=0}
                             {assign var='nro_operaciones' value=0}
                             {foreach from=Order::getDetailsOrdersDateFromDateTO((int)$datos_fila.id_order) item='detail'}
-                                {assign var='suma_porcobrar' value = $suma_porcobrar + $detail.total_price_tax_incl}
+                                {assign var='suma_porcobrar' value = $suma_porcobrar + $detail.pagos}
                                 {assign var='total' value=$total+$detail.total_price_tax_incl}
                                 {assign var='nro_operaciones' value=$nro_operaciones+1}
                                 {if $detail.product_quantity > 0}
@@ -363,7 +363,7 @@
                     <td style="text-align: right;"  colspan="6">Total Adelantos: {displayPrice currency=1 price=$suma_adelantos|round:2}</td>
                 </tr>
                 <tr class="warning">
-                    <td style="text-align: right;"  colspan="6">Saldo en Caja (Apertura + Efectivo + Adelanto - Egresos): {displayPrice currency=1 price=($suma_adelantos + $suma_efectivo + $operacion_caja->monto_apertura) - $suma_egresos|round:2}</td>
+                    <td style="text-align: right; font-size: 1.75em;"  colspan="6">Saldo en Caja: {displayPrice currency=1 price=($suma_adelantos + $suma_efectivo + $operacion_caja->monto_apertura) - $suma_egresos|round:2}</td>
                 </tr>
                 </tbody>
             </table>

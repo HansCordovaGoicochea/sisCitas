@@ -82,7 +82,7 @@ class ReservarCitaCore extends ObjectModel
 //        d($id_caja);
         $sql =
             'select * from tm_reservar_cita rc
-                WHERE rc.id_shop = ' . $shop . ' and rc.fecha_inicio >= \'' . $date_from . '\' and rc.fecha_inicio <= \'' . $date_to . '\' AND estado_actual = 0 AND adelanto > 0 order by id_reservar_cita desc
+                WHERE rc.id_shop = ' . $shop . ' and rc.date_upd >= \'' . $date_from . '\' and rc.date_upd <= \'' . $date_to . '\' AND estado_actual = 0 AND adelanto > 0 order by id_reservar_cita desc
                 ';
 //
 //        var_dump($sql);

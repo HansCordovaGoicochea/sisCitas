@@ -2604,7 +2604,7 @@ class OrderCore extends ObjectModel
 FROM tm_order_payment op
 where o.reference = op.order_reference AND op.date_add BETWEEN \'' . $date_from . '\' AND  \'' . $date_to . '\' AND op.tipo_pago = 1) as pagos
                 FROM tm_orders o inner join tm_order_payment op ON (o.reference = op.order_reference) LEFT JOIN tm_pos_ordercomprobantes po ON (po.id_order = o.id_order) LEFT JOIN tm_customer c ON (c.id_customer = o.id_customer)
-                WHERE o.id_shop = ' . $shop . ' and o.date_add >= \'' . $date_from . '\' and o.date_add <= \'' . $date_to . '\' AND o.current_state in (1, 2) AND tipo_pago = 1 group by o.id_order order by o.id_order desc
+                WHERE o.id_shop = ' . $shop . ' and op.date_add >= \'' . $date_from . '\' and op.date_add <= \'' . $date_to . '\' AND o.current_state in (1, 2) AND tipo_pago = 1 group by o.id_order order by o.id_order desc
                 ';
 //
 //        var_dump($sql);
@@ -2623,7 +2623,7 @@ where o.reference = op.order_reference AND op.date_add BETWEEN \'' . $date_from 
 FROM tm_order_payment op
 where o.reference = op.order_reference AND op.date_add BETWEEN \'' . $date_from . '\' AND  \'' . $date_to . '\' AND op.tipo_pago = 2) as pagos
                 FROM tm_orders o inner join tm_order_payment op ON (o.reference = op.order_reference) LEFT JOIN tm_pos_ordercomprobantes po ON (po.id_order = o.id_order) LEFT JOIN tm_customer c ON (c.id_customer = o.id_customer)
-                WHERE o.id_shop = ' . $shop . ' and o.date_add >= \'' . $date_from . '\' and o.date_add <= \'' . $date_to . '\' AND o.current_state in (1,2) AND tipo_pago = 2 order by o.id_order desc
+                WHERE o.id_shop = ' . $shop . ' and op.date_add >= \'' . $date_from . '\' and op.date_add <= \'' . $date_to . '\' AND o.current_state in (1,2) AND tipo_pago = 2 order by o.id_order desc
                 ';
 //
 //        var_dump($sql);
@@ -2642,7 +2642,7 @@ where o.reference = op.order_reference AND op.date_add BETWEEN \'' . $date_from 
 FROM tm_order_payment op
 where o.reference = op.order_reference AND op.date_add BETWEEN \'' . $date_from . '\' AND  \'' . $date_to . '\' AND op.tipo_pago = 3) as pagos
                 FROM tm_orders o inner join tm_order_payment op ON (o.reference = op.order_reference) LEFT JOIN tm_pos_ordercomprobantes po ON (po.id_order = o.id_order) LEFT JOIN tm_customer c ON (c.id_customer = o.id_customer)
-                WHERE o.id_shop = ' . $shop . ' and o.date_add >= \'' . $date_from . '\' and o.date_add <= \'' . $date_to . '\' AND o.current_state in (1,2) AND tipo_pago = 3 order by o.id_order desc
+                WHERE o.id_shop = ' . $shop . ' and op.date_add >= \'' . $date_from . '\' and op.date_add <= \'' . $date_to . '\' AND o.current_state in (1,2) AND tipo_pago = 3 order by o.id_order desc
                 ';
 //
 //        var_dump($sql);

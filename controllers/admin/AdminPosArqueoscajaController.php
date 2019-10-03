@@ -19,6 +19,7 @@ class AdminPosArqueoscajaControllerCore extends AdminController
 //        $this->addRowAction('edit');
 //        $this->addRowAction('delete');
         $this->addRowAction('cerrar_caja');
+        $this->allow_export = true;
 
         parent::__construct();
 
@@ -41,10 +42,12 @@ class AdminPosArqueoscajaControllerCore extends AdminController
         CONCAT_WS(" ",ea.firstname, ea.lastname) as empleado_cierre, 
         IF(a.estado = 1, "Arqueo Abierto", "Arqueo Cerrado") estado_caja, 
         estado, 
-        ( SELECT SUM(op.amount)
+        (( SELECT SUM(op.amount)
 FROM tm_orders o INNER JOIN tm_order_payment op
 ON (o.reference = op.order_reference)
-where o.current_state in (1, 2)  AND tipo_pago = 1 AND op.date_add BETWEEN a.fecha_apertura AND IF(a.fecha_cierre = 0, CURRENT_TIMESTAMP(), a.fecha_cierre) ) as ventas, 
+where o.current_state in (1, 2)  AND tipo_pago = 1 AND op.date_add BETWEEN a.fecha_apertura AND IF(a.fecha_cierre = 0, CURRENT_TIMESTAMP(), a.fecha_cierre) ) + 
+IFNULL((select SUM(rc.adelanto) from tm_reservar_cita rc WHERE rc.date_upd BETWEEN a.fecha_apertura AND IF(a.fecha_cierre = 0, CURRENT_TIMESTAMP(), a.fecha_cierre) AND estado_actual = 0 AND adelanto > 0), 0)) 
+ as ventas, 
         ( SELECT SUM(monto)
 FROM tm_pos_gastos
 where fecha BETWEEN a.fecha_apertura AND IF(a.fecha_cierre = 0, CURRENT_TIMESTAMP(), a.fecha_cierre) ) as gastos,       
@@ -52,7 +55,7 @@ where fecha BETWEEN a.fecha_apertura AND IF(a.fecha_cierre = 0, CURRENT_TIMESTAM
         ((monto_apertura + ( SELECT SUM(op.amount)
 FROM tm_orders o INNER JOIN tm_order_payment op
 ON (o.reference = op.order_reference)
-where o.current_state in (1, 2)  AND tipo_pago = 1 AND op.date_add BETWEEN a.fecha_apertura AND IF(a.fecha_cierre = 0, CURRENT_TIMESTAMP(), a.fecha_cierre) )) - IFNULL(( SELECT SUM(monto)
+where o.current_state in (1, 2)  AND tipo_pago = 1 AND op.date_add BETWEEN a.fecha_apertura AND IF(a.fecha_cierre = 0, CURRENT_TIMESTAMP(), a.fecha_cierre) ) + IFNULL((select SUM(rc.adelanto) from tm_reservar_cita rc WHERE rc.date_upd BETWEEN a.fecha_apertura AND IF(a.fecha_cierre = 0, CURRENT_TIMESTAMP(), a.fecha_cierre) AND estado_actual = 0 AND adelanto > 0), 0)) - IFNULL(( SELECT SUM(monto)
 FROM tm_pos_gastos
 where fecha BETWEEN a.fecha_apertura AND IF(a.fecha_cierre = 0, CURRENT_TIMESTAMP(), a.fecha_cierre) ), 0)) as cierre_sistema
         
@@ -66,9 +69,8 @@ where fecha BETWEEN a.fecha_apertura AND IF(a.fecha_cierre = 0, CURRENT_TIMESTAM
             'fecha_apertura' => array('title' => $this->l('Fecha Apertura'),  'type' => 'datetime', 'remove_onclick' => true),
             'empleado_apertura' => array('title' => $this->l('Cajero'),  'havingFilter' => true, 'remove_onclick' => true),
             'monto_apertura' => array('title' => $this->l('Monto Apertura'),  'type' => 'price', 'remove_onclick' => true),
-            'ventas' => array('title' => $this->l('Ventas'),  'type' => 'price',  'havingFilter' => true, 'remove_onclick' => true),
-            'gastos' => array('title' => $this->l('
-            Gastos'),  'type' => 'price',  'havingFilter' => true, 'remove_onclick' => true),
+            'ventas' => array('title' => $this->l('Ingresos'),  'type' => 'price',  'havingFilter' => true, 'remove_onclick' => true),
+            'gastos' => array('title' => $this->l('Egresos'),  'type' => 'price',  'havingFilter' => true, 'remove_onclick' => true),
             'cierre_sistema' => array('title' => $this->l('Saldo Caja'),  'type' => 'price', 'remove_onclick' => true),
             'monto_cierre' => array('title' => $this->l('Cierre real'),  'type' => 'price', 'remove_onclick' => true),
             'fecha_cierre' => array('title' => $this->l('Fecha Cierre'),  'type' => 'datetime', 'remove_onclick' => true),

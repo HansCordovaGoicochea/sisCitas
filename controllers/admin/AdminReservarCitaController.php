@@ -486,7 +486,8 @@ class AdminReservarCitaControllerCore extends AdminController
                 }
 
                 $this->crearTicketVenta($order);
-                $this->ajaxDie(json_encode(array('response' => 'ok', 'order' => $order, 'cart' => $this->context->cart, 'objCita' => $objCita)));
+                $link_venta =  $this->context->link->getAdminLink('AdminOrders').'&vieworder&id_order='.$order->id;
+                $this->ajaxDie(json_encode(array('response' => 'ok', 'order' => $order, 'cart' => $this->context->cart, 'objCita' => $objCita, 'link_venta' => $link_venta)));
             }else{
                 $this->ajaxDie(json_encode(array('response' => 'failed', 'msg' => '¡Error al Ralizadar la venta!')));
             }
