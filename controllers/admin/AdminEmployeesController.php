@@ -85,6 +85,7 @@ class AdminEmployeesControllerCore extends AdminController
             'firstname' => array('title' => $this->trans('First name', array(), 'Admin.Global')),
             'lastname' => array('title' => $this->trans('Last name', array(), 'Admin.Global')),
             'email' => array('title' => $this->trans('Email address', array(), 'Admin.Global')),
+            'telefono_celular' => array('title' => $this->trans('Telf.', array(), 'Admin.Global')),
             'profile' => array('title' => $this->trans('Profile', array(), 'Admin.Advparameters.Feature'), 'type' => 'select', 'list' => $this->profiles_array,
                 'filter_key' => 'pl!name', 'class' => 'fixed-width-lg'),
             'active' => array('title' => $this->trans('Active', array(), 'Admin.Global'), 'align' => 'center', 'active' => 'status',
@@ -257,6 +258,14 @@ class AdminEmployeesControllerCore extends AdminController
                     'label' => $this->trans('Email address', array(), 'Admin.Global'),
                     'name' => 'email',
                     'required' => true,
+                    'autocomplete' => false
+                ),
+                array(
+                    'type' => 'text',
+                    'class' => 'fixed-width-xl',
+                    'prefix' => '<i class="icon-phone"></i>',
+                    'label' => $this->trans('Teléfono/Celular', array(), 'Admin.Global'),
+                    'name' => 'telefono_celular',
                     'autocomplete' => false
                 ),
             ),

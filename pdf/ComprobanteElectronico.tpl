@@ -27,11 +27,11 @@
     <tr>
         <td><strong>Señor(es): </strong>
 
-                {if $customer->id == 1}
-                    <span></span>
-                {else}
-                    <span>{$customer->firstname}</span>
-                {/if}
+            {if $customer->id == 1}
+                <span></span>
+            {else}
+                <span>{$customer->firstname}</span>
+            {/if}
 
         </td>
     </tr>
@@ -44,18 +44,18 @@
             {else}
                 <span>{$customer->num_document}</span>
             {/if}
-            </td>
+        </td>
 
     </tr>
     <tr>
         <td><strong>Dirección:</strong>
 
-                {if $customer->id == 1}
-                    <span></span>
-                {else}
-                    <span>{$customer->direccion}</span>
-                {/if}
-            </td>
+            {if $customer->id == 1}
+                <span></span>
+            {else}
+                <span>{$customer->direccion}</span>
+            {/if}
+        </td>
     </tr>
 </table>
 <table style="width: 7.4cm; font-size: 8px; color: #000;" cellpadding="1" cellspacing="1">

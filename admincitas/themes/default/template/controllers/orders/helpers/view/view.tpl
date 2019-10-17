@@ -83,10 +83,10 @@
               <span class="badge hidden-xs">{$objComprobantes->fecha_envio_comprobante|date_format:"%d/%m/%Y"}</span>
               <span class="badge hidden-xs" id="numero_comprobante_return">{if isset($objComprobantes->numero_comprobante) && $objComprobantes->numero_comprobante}{l s="#" d='Admin.Orderscustomers.Feature'}{$objComprobantes->numero_comprobante}{/if}</span>
 
-              <a class="btn btn-default{if !$previousOrder} disabled{/if}" href="{strip}{if $smarty.server['HTTPS']=='on'}https://{else}http://{/if}{$smarty.server.HTTP_HOST}{$smarty.server.BASE}/{$currentIndex|escape:'html':'UTF-8'}&token={$smarty.get.token|escape:'html':'UTF-8'}{/strip}&amp;vieworder&amp;id_order={$previousOrder|intval}">
+              <a class="btn btn-default{if !$previousOrder} disabled{/if}" href="{$link->getAdminLink('AdminOrders')|escape:'html':'UTF-8'}&amp;vieworder&amp;id_order={$previousOrder|intval}">
                 <i class="icon-backward"></i>
               </a>
-              <a class="btn btn-default{if !$nextOrder} disabled{/if}" href="{strip}{if $smarty.server['HTTPS']=='on'}https://{else}http://{/if}{$smarty.server.HTTP_HOST}{$smarty.server.BASE}/{$currentIndex|escape:'html':'UTF-8'}&token={$smarty.get.token|escape:'html':'UTF-8'}{/strip}&amp;vieworder&amp;id_order={$nextOrder|intval}">
+              <a class="btn btn-default{if !$nextOrder} disabled{/if}" href="{$link->getAdminLink('AdminOrders')|escape:'html':'UTF-8'}&amp;vieworder&amp;id_order={$nextOrder|intval}">
                 <i class="icon-forward"></i>
               </a>
             </div>
@@ -98,7 +98,7 @@
             <div class="col-xs-12">
               <!-- Orders Actions -->
               <div class="well hidden-print">
-                <a class="btn btn-default" target="_blank" href="{strip}{if $smarty.server['HTTPS']=='on'}https://{else}http://{/if}{$smarty.server.HTTP_HOST}{$smarty.server.BASE}/index.php?controller=AdminPdf&token={getAdminToken tab='AdminPdf'}{/strip}&submitAction=generateInvoicePDF&id_ventarapida={$order->id|intval}&documento=ticket" id="imprimir_ticket">
+                <a class="btn btn-default" target="_blank" href="{$link->getAdminLink('AdminPdf')|escape:'html':'UTF-8'}&submitAction=generateInvoicePDF&id_ventarapida={$order->id|intval}&documento=ticket" id="imprimir_ticket">
                   <i class="icon-print"></i>
                   {l s='Ticket' d='Admin.Orderscustomers.Feature'}
                 </a>
@@ -184,7 +184,7 @@
                       var htmlmensaje='';
                       $.ajax({
                         type:"POST",
-                        url: "{strip}{if $smarty.server['HTTPS']=='on'}https://{else}http://{/if}{$smarty.server.HTTP_HOST}{$smarty.server.BASE}/{$currentIndex|escape:'html':'UTF-8'}&token={$smarty.get.token|escape:'html':'UTF-8'}{/strip}",
+                        url: "{$link->getAdminLink('AdminOrders')|escape:'html':'UTF-8'}",
                         async: true,
                         dataType: "json",
                         data : {
@@ -273,7 +273,7 @@
                             <td style="background-color:{$row['color']};color:{$row['text-color']}">{dateFormat date=$row['date_add'] full=true}</td>
                             <td style="background-color:{$row['color']};color:{$row['text-color']}" class="text-right">
                               {if $row['send_email']|intval}
-                                <a class="btn btn-default" href="{strip}{if $smarty.server['HTTPS']=='on'}https://{else}http://{/if}{$smarty.server.HTTP_HOST}{$smarty.server.BASE}/{$currentIndex|escape:'html':'UTF-8'}&token={$smarty.get.token|escape:'html':'UTF-8'}{/strip}&amp;vieworder&amp;id_order={$order->id|intval}&amp;sendStateEmail={$row['id_order_state']|intval}&amp;id_order_history={$row['id_order_history']|intval}" title="{l s='Resend this email to the customer' d='Admin.Orderscustomers.Help'}">
+                                <a class="btn btn-default" href="{$link->getAdminLink('AdminOrders')|escape:'html':'UTF-8'}&amp;vieworder&amp;id_order={$order->id|intval}&amp;sendStateEmail={$row['id_order_state']|intval}&amp;id_order_history={$row['id_order_history']|intval}" title="{l s='Resend this email to the customer' d='Admin.Orderscustomers.Help'}">
                                   <i class="icon-mail-reply"></i>
                                   {l s='Resend email' d='Admin.Orderscustomers.Feature'}
                                 </a>
@@ -288,7 +288,7 @@
                             <td>{dateFormat date=$row['date_add'] full=true}</td>
                             <td class="text-right">
                               {if $row['send_email']|intval}
-                                <a class="btn btn-default" href="{strip}{if $smarty.server['HTTPS']=='on'}https://{else}http://{/if}{$smarty.server.HTTP_HOST}{$smarty.server.BASE}/{$currentIndex|escape:'html':'UTF-8'}&token={$smarty.get.token|escape:'html':'UTF-8'}{/strip}&amp;vieworder&amp;id_order={$order->id|intval}&amp;sendStateEmail={$row['id_order_state']|intval}&amp;id_order_history={$row['id_order_history']|intval}" title="{l s='Resend this email to the customer' d='Admin.Orderscustomers.Help'}">
+                                <a class="btn btn-default" href="{$link->getAdminLink('AdminOrders')|escape:'html':'UTF-8'}&amp;vieworder&amp;id_order={$order->id|intval}&amp;sendStateEmail={$row['id_order_state']|intval}&amp;id_order_history={$row['id_order_history']|intval}" title="{l s='Resend this email to the customer' d='Admin.Orderscustomers.Help'}">
                                   <i class="icon-mail-reply"></i>
                                   {l s='Resend email' d='Admin.Orderscustomers.Feature'}
                                 </a>
@@ -1239,7 +1239,7 @@
       // alert($(this).data("value"));
       $.ajax({
         type:"POST",
-        url: "{strip}{if $smarty.server['HTTPS']=='on'}https://{else}http://{/if}{$smarty.server.HTTP_HOST}{$smarty.server.BASE}/{$currentIndex|escape:'html':'UTF-8'}&token={$smarty.get.token|escape:'html':'UTF-8'}{/strip}",
+        url: "{$link->getAdminLink('AdminOrders')|escape:'html':'UTF-8'}",
         async: true,
         dataType: "json",
         data : {
@@ -1324,7 +1324,7 @@
       // alert($(this).data("value"));
       $.ajax({
         type:"POST",
-        url: "{strip}{if $smarty.server['HTTPS']=='on'}https://{else}http://{/if}{$smarty.server.HTTP_HOST}{$smarty.server.BASE}/{$currentIndex|escape:'html':'UTF-8'}&token={$smarty.get.token|escape:'html':'UTF-8'}{/strip}",
+        url: "{$link->getAdminLink('AdminOrders')|escape:'html':'UTF-8'}",
         async: true,
         dataType: "json",
         data : {
@@ -1460,7 +1460,7 @@
         $.ajax({
           type: "POST",
           // url: "index.php?controller=AdminCustomers&token=" + token_admin_customers,
-          url: "{strip}{if $smarty.server['HTTPS']=='on'}https://{else}http://{/if}{$smarty.server.HTTP_HOST}{$smarty.server.BASE}/index.php?controller=AdminCustomers&token={getAdminToken tab='AdminCustomers'}{/strip}",
+          url: "{$link->getAdminLink('AdminCustomers')|escape:'html':'UTF-8'}",
           async: true,
           dataType: "json",
           data: {
@@ -1533,7 +1533,7 @@
 
             $.ajax({
               type: "POST",
-              url: "{strip}{if $smarty.server['HTTPS']=='on'}https://{else}http://{/if}{$smarty.server.HTTP_HOST}{$smarty.server.BASE}/index.php?controller=AdminCustomers&token={getAdminToken tab='AdminCustomers'}{/strip}",
+              url: "{$link->getAdminLink('AdminCustomers')|escape:'html':'UTF-8'}",
               async: true,
               dataType: "json",
               data: {

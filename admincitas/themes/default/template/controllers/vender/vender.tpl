@@ -328,10 +328,14 @@
                         </button>
                     </div>
                     <div class="col-md-4 mb-2 col-lg-4 col-xl-4 col-sm-12" v-if="!order.id && !hasComprobante">
-                        <button type="button" class="btn w-100 btn-primary btn-sm" :disabled="guardandoEnviar || cart.length  == 0  || bloquear_error" @click="agregarVenta(2)" style="text-transform: none;">
+                        <button type="button" class="btn w-100 btn-primary btn-sm" :disabled="guardandoEnviar || cart.length  == 0 || bloquear_error" @click="agregarVenta(2)" style="text-transform: none;" v-if="!order_bycliente.id">
                             <i class="fa fa-spinner fa-spin fa-lg" v-if="guardandoEnviar"></i>
                             <i class="fa fa-file" v-else></i>
                             Realizar venta
+                        </button>
+                        <button type="button" class="btn w-100 btn-primary btn-sm" :disabled="guardandoEnviar || cart.length  == 0 || bloquear_error" @click="addProductos(order_bycliente)" style="text-transform: none;" v-else>
+                            <i class="fa fa-spinner fa-spin fa-lg" v-if="guardandoEnviar"></i>
+                            <i class="icon-save" v-else></i>&nbsp; Actualizar Venta
                         </button>
                     </div>
                     <div v-else>
@@ -385,7 +389,6 @@
     @media (max-width: 767px) {
         .footer_ache_veder{
             padding: 0px;
-
         }
     }
 </style>

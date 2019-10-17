@@ -2685,4 +2685,16 @@ WHERE o.id_order = '.$id_order.' AND o.id_shop = '.Context::getContext()->shop->
 
         return Db::getInstance()->executeS($sql);
     }
+
+    public static function getOrdersIdByCustomerNow($id_customer)
+    {
+        $sql = 'SELECT `id_order`
+                FROM `'._DB_PREFIX_.'orders`
+                WHERE DATE(date_add) = DATE(NOW())'.
+                    Shop::addSqlRestriction()
+            .($id_customer ? ' AND id_customer = '.(int)$id_customer : ''). ' ORDER BY 1 desc';
+
+        $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($sql);
+        return $result;
+    }
 }

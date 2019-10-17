@@ -128,10 +128,10 @@ Vue.component('selectdos', {
                     }else{
                         return {
                             results: $.map(data, function (obj) {
-                                return {
-                                    id: "",
-                                    text: "No se encontraron resultados",
-                                };
+                            	return {
+                            		id: "",
+                            		text: "No se encontraron resultados",
+                            	};
                             })
                         }
                     }
@@ -217,10 +217,10 @@ Vue.component('selectdos', {
                 "<div class='select2-result-repository__meta'>" +
                 "<div class='select2-result-repository__title'></div>" +
                 "<div class='select2-result-repository__description'></div>" +
-                '<div class="select2-result-repository__statistics">' +
-                '<div class="select2-result-repository__forks"><i class="fa fa-list-ol"></i> </div>' +
-                '<div class="select2-result-repository__stargazers"><i class="fa fa-money"></i></div>' +
-                '</div>' +
+                    '<div class="select2-result-repository__statistics">' +
+                        '<div class="select2-result-repository__forks"><i class="fa fa-list-ol"></i> </div>' +
+                        '<div class="select2-result-repository__stargazers"><i class="fa fa-money"></i></div>' +
+                    '</div>' +
                 "</div>" +
                 "</div>"
             );
@@ -406,6 +406,9 @@ var app_vender = new Vue({
             email_cliente_envio: "",
 
             monto_deuda: 0,
+
+            //////
+            order_bycliente: []
         };
     },
     ready: function() {
@@ -480,14 +483,14 @@ var app_vender = new Vue({
         },
         verificarCliente(){
             // console.log(this.nombre_legal.length);
-            this.bloquear_error = this.nombre_legal.length < 4;
-            if (this.hasComprobante && this.tipo_comprobante === 'Factura' && this.numero_doc.length === 8){
-                this.msg_errores = [];
-                this.mostrarErrores();
-                this.msg_errores.push({
-                    msg: "Debe indicar un cliente con RUC"
-                });
-            }
+          this.bloquear_error = this.nombre_legal.length < 4;
+          if (this.hasComprobante && this.tipo_comprobante === 'Factura' && this.numero_doc.length === 8){
+              this.msg_errores = [];
+              this.mostrarErrores();
+              this.msg_errores.push({
+                  msg: "Debe indicar un cliente con RUC"
+              });
+          }
         },
         borrarErrores(){
             this.mostrar_adventencia = false;
@@ -533,7 +536,7 @@ var app_vender = new Vue({
                 this.hasComprobante = false;
                 this.tipo_comprobante = "";
 
-                this.borrarErrores();
+               this.borrarErrores();
             }else{
                 this.hasComprobante = true;
                 this.tipo_comprobante = tipo;
@@ -713,104 +716,104 @@ var app_vender = new Vue({
             // if (self.cart.length && self.nombre_legal && self.numero_doc){
             if (self.cart.length){
                 $.ajax({
-                    type:"POST",
-                    url: url_ajax_vender,
-                    async: true,
-                    dataType: "json",
-                    data:{
-                        ajax: "1",
-                        token: token_vender,
-                        action : "realizarVenta",
-                        productos: self.cart,
-                        tipo_venta: tipo_venta,
-                        hasComprobante: self.hasComprobante,
-                        tipo_comprobante: self.tipo_comprobante,
-                        id_customer: self.id_customer,
-                        fecha_nacimiento: self.fecha_nacimiento,
-                        cb_tipo_documento: self.cb_tipo_documento,
-                        celular_cliente: self.celular_cliente,
-                        nombre_legal: self.nombre_legal,
-                        numero_doc: self.numero_doc,
-                        direccion_cliente: self.direccion_cliente,
-                        array_pagos: self.pagos,
-                        puntos_cliente: self.puntos_cliente,
-                        id_colaborador_general: self.id_colaborador_general,
-                        colaborador_name_general: self.colaborador_name_general,
-                    },
-                    beforeSend: function(){
-                        self.guardandoEnviar = true;
-                        $('body').waitMe({
-                            effect: 'bounce',
-                            text: 'Guardando...',
-                            color: '#000',
-                            maxSize: '',
-                            textPos: 'vertical',
-                            fontSize: '',
-                            source: ''
-                        });
-                    },
-                    success: function (data) {
-                        self.guardandoEnviar = false;
-                        if (data.result === 'error'){
-                            $.each(data.msg, function (index, value) {
-                                self.mostrar_adventencia = true;
-                                self.msg_errores.push({
-                                    msg: value,
-                                })
-                            })
-                        }
-                        if (data.response === 'ok'){
-                            // if (data.reload === 'ok'){
-                            //     location.reload();
-                            // }
-                            self.order = data.order;
-                            let html_buttons = '';
-
-                            if (self.perfil_empleado_vue !== 'Colaborador'){
-                                html_buttons += '<a class="btn btn-primary" style="margin: 5px;" target="_blank" href="'+data.link_venta+'">Venta</a>';
-                            }
-
-
-                            html_buttons += '<input type="button" class="btn btn-warning" value="Ticket Venta - '+data.order.nro_ticket+'" style="margin: 5px;" onclick="windowPrintAche(\'PDFtoTicket\')">';
-                            let iframes = '<iframe id="PDFtoTicket" src="'+data.order.ruta_ticket_normal+'" style="display: none;"></iframe>';
-
-                            $('#alertmessage').after(iframes);
-                            $('.alertmessage').append(html_buttons);
-                            $('.alertmessage').css('display', 'grid');
-
-                            $("#toolbar_caja_soles").fadeOut("slow", function() {
-                                $(this).text(data.caja_actual.monto_operaciones).fadeIn("slow");
-                            });
-
-                            self.cart = [];
-                            self.is_active_tab_pago = false;
-                            $('#left-panel').css('pointer-events', 'none');
-                            $('.sales-add-edit-payments').css('pointer-events', 'none');
-                            $('.tabla_lista_venta').css('pointer-events', 'none');
-
-                            if (self.hasComprobante){
-                                $.growl.warning({
-                                    title: '',
-                                    message: 'Generando y Enviando XML del comprobante Por Favor espere Un Momento...!',
-                                    fixed: true,
-                                    size: "large",
-                                    duration: 5000,
-                                    location: 'tl'
+                            type:"POST",
+                            url: url_ajax_vender,
+                            async: true,
+                            dataType: "json",
+                            data:{
+                                ajax: "1",
+                                token: token_vender,
+                                action : "realizarVenta",
+                                productos: self.cart,
+                                tipo_venta: tipo_venta,
+                                hasComprobante: self.hasComprobante,
+                                tipo_comprobante: self.tipo_comprobante,
+                                id_customer: self.id_customer,
+                                fecha_nacimiento: self.fecha_nacimiento,
+                                cb_tipo_documento: self.cb_tipo_documento,
+                                celular_cliente: self.celular_cliente,
+                                nombre_legal: self.nombre_legal,
+                                numero_doc: self.numero_doc,
+                                direccion_cliente: self.direccion_cliente,
+                                array_pagos: self.pagos,
+                                puntos_cliente: self.puntos_cliente,
+                                id_colaborador_general: self.id_colaborador_general,
+                                colaborador_name_general: self.colaborador_name_general,
+                            },
+                            beforeSend: function(){
+                                self.guardandoEnviar = true;
+                                $('body').waitMe({
+                                    effect: 'bounce',
+                                    text: 'Guardando...',
+                                    color: '#000',
+                                    maxSize: '',
+                                    textPos: 'vertical',
+                                    fontSize: '',
+                                    source: ''
                                 });
-                                self.enviarComprobanteSunat();
-                            }
-                        }
+                            },
+                            success: function (data) {
+                                self.guardandoEnviar = false;
+                                if (data.result === 'error'){
+                                    $.each(data.msg, function (index, value) {
+                                        self.mostrar_adventencia = true;
+                                        self.msg_errores.push({
+                                            msg: value,
+                                        })
+                                    })
+                                }
+                                if (data.response === 'ok'){
+                                    // if (data.reload === 'ok'){
+                                    //     location.reload();
+                                    // }
+                                    self.order = data.order;
+                                    let html_buttons = '';
 
-                    },
-                    error: function (error) {
-                        console.log(error);
-                    },
-                    complete: function(data) {
-                        // location.reload();
-                        $('body').waitMe('hide');
+                                    if (self.perfil_empleado_vue !== 'Colaborador'){
+                                        html_buttons += '<a class="btn btn-primary" style="margin: 5px;" target="_blank" href="'+data.link_venta+'">Venta</a>';
+                                    }
 
-                    },
-                });
+
+                                    html_buttons += '<input type="button" class="btn btn-warning" value="Ticket Venta - '+data.order.nro_ticket+'" style="margin: 5px;" onclick="windowPrintAche(\'PDFtoTicket\')">';
+                                    let iframes = '<iframe id="PDFtoTicket" src="'+data.order.ruta_ticket_normal+'" style="display: none;"></iframe>';
+
+                                    $('#alertmessage').after(iframes);
+                                    $('.alertmessage').append(html_buttons);
+                                    $('.alertmessage').css('display', 'grid');
+
+                                    $("#toolbar_caja_soles").fadeOut("slow", function() {
+                                        $(this).text(data.caja_actual.monto_operaciones).fadeIn("slow");
+                                    });
+
+                                    self.cart = [];
+                                    self.is_active_tab_pago = false;
+                                    $('#left-panel').css('pointer-events', 'none');
+                                    $('.sales-add-edit-payments').css('pointer-events', 'none');
+                                    $('.tabla_lista_venta').css('pointer-events', 'none');
+
+                                    if (self.hasComprobante){
+                                        $.growl.warning({
+                                            title: '',
+                                            message: 'Generando y Enviando XML del comprobante Por Favor espere Un Momento...!',
+                                            fixed: true,
+                                            size: "large",
+                                            duration: 5000,
+                                            location: 'tl'
+                                        });
+                                        self.enviarComprobanteSunat();
+                                    }
+                                }
+
+                            },
+                            error: function (error) {
+                                console.log(error);
+                            },
+                            complete: function(data) {
+                                // location.reload();
+                                $('body').waitMe('hide');
+
+                            },
+                        });
             }else{
                 $.growl.error({ title: 'No existen productos para vender!', message: '',});
             }
@@ -954,6 +957,10 @@ var app_vender = new Vue({
                         }
                     }else{
                         that.fillCustomer(data.result);
+                        if (data.order){
+                            that.order_bycliente = data.order;
+                            that.id_colaborador = data.order.id_colaborador;
+                        }
                         if (data.reservas.length){
                             let html = `
                                 <!-- Modal -->
@@ -987,18 +994,18 @@ var app_vender = new Vue({
                                         <td>      
                                         <select class="form-control chosen " id="select_colaborador_`+val.id_reservar_cita+`">
                                             <option value="">- Seleccione Colaborador -</option>`;
-                                $.each(colaboradores, function (indx2, val2) {
-                                    if (val.id_colaborador === val2.id){
-                                        html += `
+                                    $.each(colaboradores, function (indx2, val2) {
+                                        if (val.id_colaborador === val2.id){
+                                            html += `
                                             <option value="`+val2.id+`" selected >`+val2.text+`</option>
                                         `;
-                                    }else{
-                                        html += `
+                                        }else{
+                                            html += `
                                             <option value="`+val2.id+`" >`+val2.text+`</option>
                                         `;
-                                    }
+                                        }
 
-                                });
+                                    });
                                 html += `</select>
                                            </td>
                                         <td>`+val.product_name+`</td>
@@ -1161,6 +1168,72 @@ var app_vender = new Vue({
             }
 
         },
+        addProductos(order) {
+            var self = this;
+
+            $.ajax({
+                type:"POST",
+                url: url_ajax_vender,
+                async: true,
+                dataType: "json",
+                data:{
+                    ajax: "1",
+                    token: token_vender,
+                    tab: "AdminVender",
+                    action : "AddProductOnOrder",
+                    order: order,
+                    productos: self.cart,
+                },
+                beforeSend: function(){
+                    self.guardandoEnviar = true;
+                    $('body').waitMe({
+                        effect: 'bounce',
+                        text: 'Guardando...',
+                        color: '#000',
+                        maxSize: '',
+                        textPos: 'vertical',
+                        fontSize: '',
+                        source: ''
+                    });
+                },
+                success: function (data) {
+                    self.guardandoEnviar = false;
+                    if (data.success === 'ok'){
+                        $.growl.notice({ title:data.result, message:'' });
+                        self.order = data.order;
+                        let html_buttons = '';
+                        if (self.perfil_empleado_vue !== 'Colaborador'){
+                            html_buttons += '<a class="btn btn-primary" style="margin: 5px;" target="_blank" href="'+data.link_venta+'">Venta</a>';
+                        }
+
+
+                        html_buttons += '<input type="button" class="btn btn-warning" value="Ticket Venta - '+data.order.nro_ticket+'" style="margin: 5px;" onclick="windowPrintAche(\'PDFtoTicket\')">';
+                        let iframes = '<iframe id="PDFtoTicket" src="'+data.order.ruta_ticket_normal+'" style="display: none;"></iframe>';
+
+                        $('#alertmessage').after(iframes);
+                        $('.alertmessage').append(html_buttons);
+                        $('.alertmessage').css('display', 'grid');
+
+                        self.cart = [];
+                        self.is_active_tab_pago = false;
+                        $('#left-panel').css('pointer-events', 'none');
+                        $('.sales-add-edit-payments').css('pointer-events', 'none');
+                        $('.tabla_lista_venta').css('pointer-events', 'none');
+                    }else{
+                        $.growl.error({ title:data.result, message:'' })
+                    }
+
+
+                },
+                error: function (error) {
+                    // console.log(error);
+                },
+                complete: function (data) {
+                    $('body').waitMe('hide');
+                }
+            });
+
+        },
     },
     mounted() {
         let self = this;
@@ -1281,41 +1354,41 @@ function anularVentaReserva(id, id_colaborador) {
     var x = confirm("¿Seguro de anular la reserva?");
     if (x){
         $.ajax({
-            type:"POST",
-            url: url_ajax_reservas,
-            async: true,
-            dataType: "json",
-            data:{
-                ajax: "1",
-                token: token_reservas,
-                action : "anularCita",
-                id_reservar_cita: id,
-                id_colaborador: id_colaborador,
-            },
-            beforeSend: function(){
-                $('body').waitMe({
-                    effect: 'bounce',
-                    text: 'Anulando Cita...',
-                    color: '#000',
-                    maxSize: '',
-                    textPos: 'vertical',
-                    fontSize: '',
-                    source: ''
-                });
-            },
-            success: function (data) {
-                if (data.response === 'ok'){
-                    // window.location.href = url_ajax_reservas+"&updatereservar_cita&id_reservar_cita="+ data.objCita.id;
-                    location.reload();
-                }
-            },
-            error: function (error) {
-                console.log(error);
-            },
-            complete: function(data) {
+                type:"POST",
+                url: url_ajax_reservas,
+                async: true,
+                dataType: "json",
+                data:{
+                    ajax: "1",
+                    token: token_reservas,
+                    action : "anularCita",
+                    id_reservar_cita: id,
+                    id_colaborador: id_colaborador,
+                },
+                beforeSend: function(){
+                    $('body').waitMe({
+                        effect: 'bounce',
+                        text: 'Anulando Cita...',
+                        color: '#000',
+                        maxSize: '',
+                        textPos: 'vertical',
+                        fontSize: '',
+                        source: ''
+                    });
+                },
+                success: function (data) {
+                    if (data.response === 'ok'){
+                        // window.location.href = url_ajax_reservas+"&updatereservar_cita&id_reservar_cita="+ data.objCita.id;
+                        location.reload();
+                    }
+                },
+                error: function (error) {
+                    console.log(error);
+                },
+                complete: function(data) {
 
-            },
-        });
+                },
+            });
     }else{
         return false;
     }

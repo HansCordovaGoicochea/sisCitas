@@ -42,7 +42,7 @@ class AdminReservarCitaControllerCore extends AdminController
             'adelanto' => array('title' => $this->l('Monto Adelantado'),  'search' => false,  'type' => 'price'),
             'estado' => array('title' => $this->l('Estado'),  'havingFilter' => true, 'color' => 'color'),
         );
-        
+
     }
 
     public function displayAnularcitaLink($token = null, $id)
@@ -387,14 +387,14 @@ class AdminReservarCitaControllerCore extends AdminController
                 $ordeD = OrderDetailCore::getList($order->id);
                 foreach ($ordeD as $k => $val) {
 //                    foreach(Tools::getValue('productos') as $key=>$product) {
-                        $oderDetalle = new OrderDetail((int)$val['id_order_detail']);
-                        if ($oderDetalle->product_id === $objCita->product_id){
+                    $oderDetalle = new OrderDetail((int)$val['id_order_detail']);
+                    if ($oderDetalle->product_id === $objCita->product_id){
 //                            $oderDetalle->product_name = $product['title'];
-                            $oderDetalle->id_colaborador = $objCita->id_colaborador;
-                            $oderDetalle->colaborador_name = $col->firstname.' '. $col->lastname;
-                            $oderDetalle->es_servicio = 1;
-                            $oderDetalle->update();
-                        }
+                        $oderDetalle->id_colaborador = $objCita->id_colaborador;
+                        $oderDetalle->colaborador_name = $col->firstname.' '. $col->lastname;
+                        $oderDetalle->es_servicio = 1;
+                        $oderDetalle->update();
+                    }
 //                    }
                 }
 
@@ -405,84 +405,84 @@ class AdminReservarCitaControllerCore extends AdminController
 
                 if ($objCita->adelanto > 0){
 
-                        $amount = str_replace(',', '.', $objCita->adelanto);
-                        $vuelto_pago = 0;
-                        $ultimopago = 0;
-                        foreach ($order->getOrderPaymentCollection() as $payment){
-                            $ultimopago += $payment->amount;
-                        }
+                    $amount = str_replace(',', '.', $objCita->adelanto);
+                    $vuelto_pago = 0;
+                    $ultimopago = 0;
+                    foreach ($order->getOrderPaymentCollection() as $payment){
+                        $ultimopago += $payment->amount;
+                    }
 
-                        if ($amount > $order->total_paid){
-                            $vuelto_pago = $amount - $order->total_paid;
-                            $amount = $order->total_paid;
+                    if ($amount > $order->total_paid){
+                        $vuelto_pago = $amount - $order->total_paid;
+                        $amount = $order->total_paid;
+                    } else {
+                        $ultimopago_final = $order->total_paid - $ultimopago ;
+                        if($amount > $ultimopago_final){
+                            $vuelto_pago = $amount - $ultimopago_final;
+                            $amount = $ultimopago_final;
+                        }
+                    }
+
+                    $currency = new Currency($order->id_currency);
+                    $order_invoice = null;
+
+                    if (!Validate::isLoadedObject($order)) {
+                        $this->errors[] = $this->trans('The order cannot be found', array(), 'Admin.Orderscustomers.Notification');
+                    } elseif (!Validate::isNegativePrice($amount) || !(float)$amount) {
+                        $this->errors[] = $this->trans('The amount is invalid.', array(), 'Admin.Orderscustomers.Notification');
+                    } elseif (!Validate::isLoadedObject($currency)) {
+                        $this->errors[] = $this->trans('The selected currency is invalid.', array(), 'Admin.Orderscustomers.Notification');
+                    } elseif (!Validate::isDate($order->date_add)) {
+                        $this->errors[] = $this->trans('The date is invalid', array(), 'Admin.Orderscustomers.Notification');
+                    } else {
+                        if (!$order->addOrderPayment($amount, "Efectivo", null, $currency, $order->date_add, $order_invoice, $vuelto_pago, 1, null, $this->context->employee->id)) {
+                            $this->errors[] = $this->trans('An error occurred during payment.', array(), 'Admin.Orderscustomers.Notification');
+
                         } else {
-                            $ultimopago_final = $order->total_paid - $ultimopago ;
-                            if($amount > $ultimopago_final){
-                                $vuelto_pago = $amount - $ultimopago_final;
-                                $amount = $ultimopago_final;
+                            $suma_pagos = 0;
+
+                            foreach ($order->getOrderPaymentCollection() as $payment) {
+                                $suma_pagos += $payment->amount;
                             }
-                        }
 
-                        $currency = new Currency($order->id_currency);
-                        $order_invoice = null;
+                            if ($suma_pagos >= $order->total_paid_tax_incl){
+                                //pago correcto
+                                $order_state = new OrderState((int)ConfigurationCore::get('PS_OS_PAYMENT'), (int)$this->context->language->id);
+                                $current_order_state = $order->getCurrentOrderState();
 
-                        if (!Validate::isLoadedObject($order)) {
-                            $this->errors[] = $this->trans('The order cannot be found', array(), 'Admin.Orderscustomers.Notification');
-                        } elseif (!Validate::isNegativePrice($amount) || !(float)$amount) {
-                            $this->errors[] = $this->trans('The amount is invalid.', array(), 'Admin.Orderscustomers.Notification');
-                        } elseif (!Validate::isLoadedObject($currency)) {
-                            $this->errors[] = $this->trans('The selected currency is invalid.', array(), 'Admin.Orderscustomers.Notification');
-                        } elseif (!Validate::isDate($order->date_add)) {
-                            $this->errors[] = $this->trans('The date is invalid', array(), 'Admin.Orderscustomers.Notification');
-                        } else {
-                            if (!$order->addOrderPayment($amount, "Efectivo", null, $currency, $order->date_add, $order_invoice, $vuelto_pago, 1, null, $this->context->employee->id)) {
-                                $this->errors[] = $this->trans('An error occurred during payment.', array(), 'Admin.Orderscustomers.Notification');
+                                if ($current_order_state->id != $order_state->id) {
+                                    // Create new OrderHistory
+                                    $history = new OrderHistory();
+                                    $history->id_order = $order->id;
+                                    $history->id_employee = (int)$this->context->employee->id;
 
-                            } else {
-                                $suma_pagos = 0;
+                                    $use_existings_payment = false;
+                                    if (!$order->hasInvoice()) {
+                                        $use_existings_payment = true;
+                                    }
+                                    $history->changeIdOrderState((int)$order_state->id, $order, $use_existings_payment);
 
-                                foreach ($order->getOrderPaymentCollection() as $payment) {
-                                    $suma_pagos += $payment->amount;
-                                }
-
-                                if ($suma_pagos >= $order->total_paid_tax_incl){
-                                    //pago correcto
-                                    $order_state = new OrderState((int)ConfigurationCore::get('PS_OS_PAYMENT'), (int)$this->context->language->id);
-                                    $current_order_state = $order->getCurrentOrderState();
-
-                                    if ($current_order_state->id != $order_state->id) {
-                                        // Create new OrderHistory
-                                        $history = new OrderHistory();
-                                        $history->id_order = $order->id;
-                                        $history->id_employee = (int)$this->context->employee->id;
-
-                                        $use_existings_payment = false;
-                                        if (!$order->hasInvoice()) {
-                                            $use_existings_payment = true;
-                                        }
-                                        $history->changeIdOrderState((int)$order_state->id, $order, $use_existings_payment);
-
-                                        // Save all changes
-                                        if ($history->addWithemail(true)) {
-                                            // synchronizes quantities if needed..
-                                            if (Configuration::get('PS_ADVANCED_STOCK_MANAGEMENT')) {
-                                                foreach ($order->getProducts() as $product) {
-                                                    if (StockAvailable::dependsOnStock($product['product_id'])) {
-                                                        StockAvailable::synchronize($product['product_id'], (int)$product['id_shop']);
-                                                    }
+                                    // Save all changes
+                                    if ($history->addWithemail(true)) {
+                                        // synchronizes quantities if needed..
+                                        if (Configuration::get('PS_ADVANCED_STOCK_MANAGEMENT')) {
+                                            foreach ($order->getProducts() as $product) {
+                                                if (StockAvailable::dependsOnStock($product['product_id'])) {
+                                                    StockAvailable::synchronize($product['product_id'], (int)$product['id_shop']);
                                                 }
                                             }
                                         }
                                     }
                                 }
-
-                                $obj_caja = new PosArqueoscaja((int)$last_caja['id_pos_arqueoscaja']);
-                                $monto_temp = $obj_caja->monto_operaciones;
-                                $obj_caja->monto_operaciones = $monto_temp + $amount;
-                                $obj_caja->update();
-
                             }
+
+                            $obj_caja = new PosArqueoscaja((int)$last_caja['id_pos_arqueoscaja']);
+                            $monto_temp = $obj_caja->monto_operaciones;
+                            $obj_caja->monto_operaciones = $monto_temp + $amount;
+                            $obj_caja->update();
+
                         }
+                    }
                 }
 
                 $this->crearTicketVenta($order);

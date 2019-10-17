@@ -27,7 +27,7 @@
 
 
 {block name=override_header}
-	<ul class="breadcrumb cat_bar2">
+	<ul class="breadcrumb cat_bar2 hide">
 		{assign var=i value=0}
 		{foreach $categories_tree key=key item=category}
 		<li>

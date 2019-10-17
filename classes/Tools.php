@@ -885,7 +885,7 @@ class ToolsCore
         }
 
         if (!Validate::isDate($date) || !Validate::isBool($full)) {
-            throw new PrestaShopException('Invalid date');
+//            throw new PrestaShopException('Invalid date');
         }
 
         $context = Context::getContext();

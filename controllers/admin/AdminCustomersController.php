@@ -682,7 +682,7 @@ class AdminCustomersControllerCore extends AdminController
             'months' => $this->getFieldValue($obj, 'birthday') ? $birthday[1] : 0,
             'days' => $this->getFieldValue($obj, 'birthday') ? $birthday[2] : 0,
             'passwd' => $this->getFieldValue($obj, 'passwd') ? $this->getFieldValue($obj, 'passwd') : '123456789',
-            'num_document' => $this->getFieldValue($obj, 'num_document') ? $this->getFieldValue($obj, 'num_document') : '-',
+//            'num_document' => $this->getFieldValue($obj, 'num_document') ? $this->getFieldValue($obj, 'num_document') : '0',
         );
 
 //        d($this);
@@ -1232,9 +1232,9 @@ class AdminCustomersControllerCore extends AdminController
         }
     }
 
-    public function setMedia()
+    public function setMedia($isNewTheme = false)
     {
-        parent::setMedia();
+        parent::setMedia($isNewTheme);
 
         $this->addCSS(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/css/waitMe.min.css');
         $this->addJs(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/js/waitMe.min.js');

@@ -99,9 +99,10 @@ class AdminReporteVentasControllerCore extends AdminController {
        parent::display();
    }
 
-    public function setMedia()
+    public function setMedia($isNewTheme = false)
     {
-        parent::setMedia();
+        parent::setMedia($isNewTheme);
+
         $this->addJS(_PS_JS_DIR_.'jszip.min.js');
         $this->addJS(_PS_JS_DIR_.'shieldui-all.min.js');
         $this->addCSS(_PS_CSS_DIR_.'all.min.css');

@@ -30,7 +30,7 @@
       <i class="material-icons">add_shopping_cart</i>
     </div>
 
-    {{ '[1]Añade tu primer producto[/1]'|trans({}, 'Admin.Catalog.Feature')|
+   {{ '[1]Añade tu primer producto[/1]'|trans({}, 'Admin.Catalog.Feature')|
       replace({
       '[1]': '<div class="mt-1"><a class="btn btn-primary" id="product_empty_list_add_btn" href="'~ path('admin_product_new') ~'">',
       '[/1]': '</a></div>',

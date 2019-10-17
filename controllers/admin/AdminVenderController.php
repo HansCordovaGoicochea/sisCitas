@@ -95,9 +95,9 @@ class AdminVenderControllerCore extends AdminController {
    }
 
 
-    public function setMedia()
+    public function setMedia($isNewTheme = false)
     {
-        parent::setMedia();
+        parent::setMedia($isNewTheme);
 
         $this->addCSS(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/css/waitMe.min.css');
         $this->addJs(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/js/waitMe.min.js');
@@ -1068,10 +1068,16 @@ class AdminVenderControllerCore extends AdminController {
 
             $reservas = ReservarCita::getCitasByCliente(pSQL(Tools::getValue('cliente_search')));
 
+            $id_order = Order::getOrdersIdByCustomerNow($clientes['id_customer']);
+            $order = false;
+            if ((int)$id_order > 0){
+                $order = new Order((int)$id_order);
+            }
             $rtn = array(
                 "success" 	=> true,
                 "result" 	=> $clientes,
-                "reservas" 	=> $reservas
+                "reservas" 	=> $reservas,
+                "order" 	=> $order,
             );
             die(json_encode($rtn));
         }else{
@@ -1088,6 +1094,155 @@ class AdminVenderControllerCore extends AdminController {
 
         $context = Context::getContext();
         $context->cookie->__set("admin_caja",Tools::getValue('id_pos_arqueoscaja'));
+
+    }
+
+    public function ajaxProcessAddProductOnOrder()
+    {
+
+        $var_order = Tools::getValue('order');
+        $productos = Tools::getValue('productos');
+
+        $order = new Order((int)$var_order['id']);
+        //order detail
+        $order_detail = OrderDetail::getList($order->id);
+//                d($order_detail);
+        $childids = array_column($order_detail, 'product_id');
+
+        $crear_cart = false;
+        foreach($productos as $key=>$product){
+            if(in_array($product['id'], $childids)) {
+                //el producto esta en la orden
+
+                $value2 = Db::getInstance()->getRow('SELECT * FROM `'._DB_PREFIX_.'order_detail` WHERE `product_id` = '.(int)$product['id'].' and `id_order` = '.(int)$order->id);
+                $cart = new Cart((int)$order->id_cart);
+                $productToAdd = new Product((int)($product['id']), true, (int)($this->context->language->id));
+                $updateQuantity = $cart->updateQty((int)($product['quantity']), (int)($product['id']),null, false, 'up', 0 , new Shop((int)$cart->id_shop));
+
+                $order_detail2 = new OrderDetail((int)$value2['id_order_detail']);
+                $cart_product_quantity = (float)$product['quantity'] + (float)$value2['product_quantity'];
+
+                $product_price_tax_incl = Tools::ps_round($product['price'], 2);
+                $product_price_tax_excl = Tools::ps_round(((float)($product['price'])/1.18), 2);
+                $total_products_tax_incl = $product_price_tax_incl * $cart_product_quantity;
+                $total_products_tax_excl = $product_price_tax_excl * $cart_product_quantity;
+
+                // Calculate differences of price (Before / After)
+                $diff_price_tax_incl = $total_products_tax_incl - $order_detail2->total_price_tax_incl;
+                $diff_price_tax_excl = $total_products_tax_excl - $order_detail2->total_price_tax_excl;
+
+
+                if ($diff_price_tax_incl != 0 && $diff_price_tax_excl != 0) {
+                    $order_detail2->unit_price_tax_excl = $product_price_tax_excl;
+                    $order_detail2->unit_price_tax_incl = $product_price_tax_incl;
+
+                    $order_detail2->total_price_tax_incl += $diff_price_tax_incl;
+                    $order_detail2->total_price_tax_excl += $diff_price_tax_excl;
+
+                    // Apply changes on Order
+                    $order = new Order($order_detail2->id_order);
+                    $order->total_products += $diff_price_tax_excl;
+                    $order->total_products_wt += $diff_price_tax_incl;
+
+                    $order->total_paid += $diff_price_tax_incl;
+                    $order->total_paid_tax_excl += $diff_price_tax_excl;
+                    $order->total_paid_tax_incl += $diff_price_tax_incl;
+
+                    $order->update();
+                }
+
+                $old_quantity = $order_detail2->product_quantity;
+
+                $order_detail2->product_quantity = $cart_product_quantity;
+                $order_detail2->reduction_percent = 0;
+
+                // update taxes
+                $order_detail2->updateTaxAmount($order);
+
+                // Save order detail
+                $order_detail2->update();
+
+                // Update product available quantity
+                StockAvailable::updateQuantity($order_detail2->product_id, $order_detail2->product_attribute_id, ($old_quantity - $order_detail2->product_quantity), $order->id_shop);
+
+            }
+            else{
+                // Create new cart
+                $cart = new Cart();
+                $cart->id_shop_group = $order->id_shop_group;
+                $cart->id_shop = $order->id_shop;
+                $cart->id_customer = $order->id_customer;
+                $cart->id_carrier = $order->id_carrier;
+                $cart->id_address_delivery = $order->id_address_delivery;
+                $cart->id_address_invoice = $order->id_address_invoice;
+                $cart->id_currency = $order->id_currency;
+                $cart->id_lang = $order->id_lang;
+                $cart->secure_key = $order->secure_key;
+
+                // Save new cart
+                $cart->add();
+
+                $productToAdd = new Product((int)($product['id']), true, (int)($this->context->language->id));
+                $updateQuantity = $cart->updateQty((int)($product['quantity']), (int)($product['id']),null, false, 'up', 0 , new Shop((int)$cart->id_shop));
+                // Create Order detail information
+                // Total method
+                $total_method = Cart::BOTH_WITHOUT_SHIPPING;
+                $use_taxes = true;
+                $order_detail = new OrderDetail();
+                $order_detail->createList($order, $cart, $order->getCurrentOrderState(), $cart->getProducts(), (isset($order_invoice) ? $order_invoice->id : 0), $use_taxes, 0);
+
+                // update totals amount of order
+                $order->total_products += (float)$cart->getOrderTotal(false, Cart::ONLY_PRODUCTS);
+                $order->total_products_wt += (float)$cart->getOrderTotal($use_taxes, Cart::ONLY_PRODUCTS);
+
+                $order->total_paid += Tools::ps_round((float)($cart->getOrderTotal(true, $total_method)), 2);
+                $order->total_paid_tax_excl += Tools::ps_round((float)($cart->getOrderTotal(false, $total_method)), 2);
+                $order->total_paid_tax_incl += Tools::ps_round((float)($cart->getOrderTotal($use_taxes, $total_method)), 2);
+
+                if (isset($order_invoice) && Validate::isLoadedObject($order_invoice)) {
+                    $order->total_shipping = $order_invoice->total_shipping_tax_incl;
+                    $order->total_shipping_tax_incl = $order_invoice->total_shipping_tax_incl;
+                    $order->total_shipping_tax_excl = $order_invoice->total_shipping_tax_excl;
+                }
+                // discount
+                $order->total_discounts += (float)abs($cart->getOrderTotal(true, Cart::ONLY_DISCOUNTS));
+                $order->total_discounts_tax_excl += (float)abs($cart->getOrderTotal(false, Cart::ONLY_DISCOUNTS));
+                $order->total_discounts_tax_incl += (float)abs($cart->getOrderTotal(true, Cart::ONLY_DISCOUNTS));
+
+                // Save changes of order
+                $order->update();
+
+                StockAvailable::synchronize($product['id']);
+                // Update Tax lines
+                $order_detail->updateTaxAmount($order);
+
+
+            }
+        }
+        unset($product);
+
+        $ordeD = OrderDetail::getList($order->id);
+        foreach ($ordeD as $k => $val) {
+            foreach($productos as $key=>$product) {
+                $oderDetalle = new OrderDetail((int)$val['id_order_detail']);
+                if ($oderDetalle->product_id === $product['id']){
+//                            $oderDetalle->product_name = $product['title'];
+                    $oderDetalle->id_colaborador = $product['id_colaborador'];
+                    $oderDetalle->colaborador_name = $product['colaborador_name'];
+                    $oderDetalle->es_servicio = (int)$product['es_servicio'];
+                    $oderDetalle->update();
+                }
+            }
+        }
+
+        //crear ticket venta
+        $this->crearTicketVenta($order);
+
+        die(json_encode(array(
+            'success' => "ok",
+            'result' => "Guardado",
+            'order' => $order
+        )));
 
     }
 
