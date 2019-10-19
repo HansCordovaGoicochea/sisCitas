@@ -262,7 +262,19 @@ class AdminCustomersControllerCore extends AdminController
             );
         }
 
+
+
         parent::initPageHeaderToolbar();
+
+        if ($this->display == 'view') {
+            $this->page_header_toolbar_btn['back_to_list'] = array(
+                'href' => Context::getContext()->link->getAdminLink('AdminCustomers'),
+                'desc' => $this->l('Back to list', null, null, false),
+                'icon' => 'process-icon-back'
+            );
+        }
+
+
     }
 
     public function initProcess()

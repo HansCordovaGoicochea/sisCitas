@@ -237,7 +237,7 @@ class AdminEmailsControllerCore extends AdminController
         $this->addJs(_PS_JS_DIR_.'/admin/email.js');
 
         Media::addJsDefL('textMsg', $this->trans('This is a test message. Your server is now configured to send email.', array(), 'Admin.Advparameters.Feature'));
-        Media::addJsDefL('textSubject', $this->trans('Test message -- Prestashop', array(), 'Admin.Advparameters.Feature'));
+        Media::addJsDefL('textSubject', $this->trans('Mensaje de prueba', array(), 'Admin.Advparameters.Feature'));
         Media::addJsDefL('textSendOk', $this->trans('A test email has been sent to the email address you provided.', array(), 'Admin.Advparameters.Feature'));
         Media::addJsDefL('textSendError', $this->trans('Error: Please check your configuration', array(), 'Admin.Advparameters.Feature'));
         Media::addJsDefL('token_mail', $this->token);

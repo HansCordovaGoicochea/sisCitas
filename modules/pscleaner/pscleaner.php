@@ -304,39 +304,39 @@ class PSCleaner extends Module
                 foreach ($tables as $table) {
                     $db->execute('TRUNCATE TABLE `'._DB_PREFIX_.bqSQL($table).'`');
                 }
-                $db->execute('DELETE FROM `'._DB_PREFIX_.'address` WHERE id_customer > 0');
+//                $db->execute('DELETE FROM `'._DB_PREFIX_.'address` WHERE id_customer > 0');
                 $db->execute('UPDATE `'._DB_PREFIX_.'employee` SET `id_last_order` = 0,`id_last_customer_message` = 0,`id_last_customer` = 0');
                 $db->execute('UPDATE `'._DB_PREFIX_.'numeracion_documentos` SET `correlativo` = 0');
 
                 $db->execute('UPDATE `'._DB_PREFIX_.'pos_caja` SET `estado_apertura` = 0');
 
                 //CREAR CLIENTE PUBLICO GENERAL
-                $customer = new Customer();
-                $customer->id_shop_group = Context::getContext()->shop->id_shop_group;
-                $customer->id_shop = Context::getContext()->shop->id;
-                $customer->id_gender = 0;
-                $customer->id_default_group = (int) Configuration::get('PS_CUSTOMER_GROUP');
-                $customer->id_lang = Context::getContext()->language->id;
-                $customer->id_risk = 0;
-                $customer->firstname = 'PUBLICO GENERAL';
-                $customer->lastname = "";
-                $pass = $this->get('hashing')->hash("123456789", _COOKIE_KEY_);
-                $customer->passwd = $pass;
-                $customer->last_passwd_gen = date('Y-m-d H:i:s', strtotime('-'.Configuration::get('PS_PASSWD_TIME_FRONT').'minutes'));
-                $customer->newsletter = 0;
-                $customer->optin = 0;
-                $customer->outstanding_allow_amount = 0;
-                $customer->show_public_prices = 0;
-                $customer->max_payment_days = 0;
-                $customer->secure_key = md5(uniqid(rand(), true));
-                $customer->active = 1;
-                $customer->is_guest = 0;
-                $customer->deleted = 0;
-                $customer->id_document = 0;
-                $customer->num_document = 00000000;
-                $customer->direccion = '';
-                $customer->add();
-                $customer->updateGroup(array($customer->id_default_group));
+//                $customer = new Customer();
+//                $customer->id_shop_group = Context::getContext()->shop->id_shop_group;
+//                $customer->id_shop = Context::getContext()->shop->id;
+//                $customer->id_gender = 0;
+//                $customer->id_default_group = (int) Configuration::get('PS_CUSTOMER_GROUP');
+//                $customer->id_lang = Context::getContext()->language->id;
+//                $customer->id_risk = 0;
+//                $customer->firstname = 'PUBLICO GENERAL';
+//                $customer->lastname = "";
+//                $pass = $this->get('hashing')->hash("123456789", _COOKIE_KEY_);
+//                $customer->passwd = $pass;
+//                $customer->last_passwd_gen = date('Y-m-d H:i:s', strtotime('-'.Configuration::get('PS_PASSWD_TIME_FRONT').'minutes'));
+//                $customer->newsletter = 0;
+//                $customer->optin = 0;
+//                $customer->outstanding_allow_amount = 0;
+//                $customer->show_public_prices = 0;
+//                $customer->max_payment_days = 0;
+//                $customer->secure_key = md5(uniqid(rand(), true));
+//                $customer->active = 1;
+//                $customer->is_guest = 0;
+//                $customer->deleted = 0;
+//                $customer->id_document = 0;
+//                $customer->num_document = 00000000;
+//                $customer->direccion = '';
+//                $customer->add();
+//                $customer->updateGroup(array($customer->id_default_group));
 
                 Tools::deleteDir(_PS_ADMIN_DIR_.'/archivos_sunat/'.PS_SHOP_RUC);
                 Tools::deleteDir(_PS_ADMIN_DIR_.'/archivos_sunat/baja/');
@@ -467,7 +467,7 @@ class PSCleaner extends Module
         $fields_form_2 = array(
             'form' => array(
                 'legend' => array(
-                    'title' => $this->trans('Orders and customers', array(), 'Modules.Pscleaner.Admin'),
+                    'title' => $this->trans('Ventas', array(), 'Modules.Pscleaner.Admin'),
                     'icon' => 'icon-cogs'
                 ),
                 'input' => array(
@@ -475,7 +475,7 @@ class PSCleaner extends Module
                         'type' => 'switch',
                         'is_bool' => true,
 //                        'label' => $this->trans('I understand that all the orders and customers will be removed without possible rollback: customers, carts, orders, connections, guests, messages, stats...', array(), 'Modules.Pscleaner.Admin'),
-                        'label' => $this->trans('Entiendo que todos las ventas, reservas y clientes serán eliminados sin posibilidad de vuelta atrás ...', array(), 'Modules.Pscleaner.Admin'),
+                        'label' => $this->trans('Entiendo que todos las ventas y reservas serán eliminados sin posibilidad de vuelta atrás ...', array(), 'Modules.Pscleaner.Admin'),
                         'name' => 'checkTruncateSales',
                         'values' => array(
                             array(
@@ -493,7 +493,7 @@ class PSCleaner extends Module
                 ),
                 'submit' => array(
 //                    'title' => $this->trans('Delete orders & customers', array(), 'Modules.Pscleaner.Admin') . ' y <small>crear el cliente 1 por defecto</small>',
-                    'title' => $this->trans('Delete orders & customers', array(), 'Modules.Pscleaner.Admin') ,
+                    'title' => $this->trans('Eliminar Ventas', array(), 'Modules.Pscleaner.Admin') ,
                     'class' => 'btn btn-default pull-right',
                     'name' => 'submitTruncateSales',
                     'id' => 'submitTruncateSales',
@@ -819,13 +819,13 @@ class PSCleaner extends Module
     public static function getSalesRelatedTables()
     {
         return array(
-            'customer',
+//            'customer',
             'cart',
             'cart_product',
             'connections',
             'connections_page',
             'connections_source',
-            'customer_group',
+//            'customer_group',
             'customer_message',
             'customer_message_sync_imap',
             'customer_thread',
