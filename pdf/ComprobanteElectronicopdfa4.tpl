@@ -32,7 +32,7 @@
                         <h1 style="color: #428bca;">
                             <span>RUC: {$PS_SHOP_RUC}</span>
                             <br>
-                            <span>{$comprobante->tipo_documento_electronico|upper}<br>ELECTRONICA</span>
+                            <span>{$comprobante->tipo_documento_electronico|upper}<br>DE VENTA ELECTRONICA</span>
                             <br>
                             <span>{$comprobante->numero_comprobante}</span>
                         </h1>
@@ -154,7 +154,7 @@
         </td>
     </tr>
     <tr>
-        <td colspan="2" STYLE="text-align: center;">{$comprobante->tipo_documento_electronico|cat:' Electronica'|upper}</td>
+        <td colspan="2" STYLE="text-align: center;">{$comprobante->tipo_documento_electronico|cat:' de Venta Electronica'|upper}</td>
     </tr>
 
 </table>

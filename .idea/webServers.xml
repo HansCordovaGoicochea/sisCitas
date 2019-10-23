@@ -11,7 +11,7 @@
         </fileTransfer>
       </webServer>
       <webServer id="bf61723c-e5b1-43c3-bf26-205c2ca21ec6" name="sis" url="http://maiticonsultoria.com">
-        <fileTransfer host="maiticonsultoria.com" port="21" rootFolder="/sistemafacturacion.maiticonsultoria.com">
+        <fileTransfer host="maiticonsultoria.com" port="21" rootFolder="/patysalonspaybarberia.maiticonsultoria.com">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>

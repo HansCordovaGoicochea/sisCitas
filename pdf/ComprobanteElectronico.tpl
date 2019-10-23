@@ -17,7 +17,7 @@
         <td >
             <span>{$PS_SHOP_RAZON_SOCIAL|upper}</span><br>
             <span>RUC: {$PS_SHOP_RUC}</span><br>
-            <span>{$comprobante->tipo_documento_electronico|cat:' Electronica'|upper} {$comprobante->numero_comprobante}</span>
+            <span>{$comprobante->tipo_documento_electronico|cat:' de Venta Electronica'|upper} {$comprobante->numero_comprobante}</span>
         </td>
     </tr>
 
@@ -108,7 +108,7 @@
         <td style="text-align: left; border-bottom: 1px dashed black; font-size: 9px;" colspan="6">SON: {Tools::displaynumeroaletras($footer.total_paid_tax_incl, $moneda|upper)}</td>
     </tr>
     <tr>
-        <td colspan="6" STYLE="text-align: center;">{$comprobante->tipo_documento_electronico|cat:' Electronica'|upper}</td>
+        <td colspan="6" STYLE="text-align: center;">{$comprobante->tipo_documento_electronico|cat:' de Venta Electronica'|upper}</td>
     </tr>
 </table>
 </body>

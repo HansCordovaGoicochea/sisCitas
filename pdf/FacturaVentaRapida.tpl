@@ -94,9 +94,9 @@
         </td>
 
     </tr>
-    {if $empleado}
+    {if $colaborador}
     <tr >
-        <td colspan="4" style="">Emp.: {$empleado->lastname}, {$empleado->firstname}</td>
+        <td colspan="4" style="">Colaborador: {$colaborador->firstname} {$colaborador->lastname}</td>
     </tr>
     {/if}
     <tr>

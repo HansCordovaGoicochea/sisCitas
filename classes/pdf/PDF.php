@@ -256,7 +256,7 @@ class PDFCore
                     );
                     // QRCODE,Q : QR-CODE Better error correction
                     $this->pdf_renderer->write2DBarcode((string)$valor_qr, 'QRCODE,Q', 25, ($this->pdf_renderer->GetY())-5, 30, 30, $style, 'RTL');
-                    $this->pdf_renderer->writeHTMLCell(75, 10, 2, ($this->pdf_renderer->GetY()+28), '<table><tr><td colspan="6" style="font-size: 8px; border-bottom: 1px dashed black">Representación impresa de la '.strtoupper($object->tipo_documento_electronico).' ELECTRONICA puede ser consultado en www.sunat.gob.pe</td></tr>></table>', 0, 2, false, true, 'J', true );
+                    $this->pdf_renderer->writeHTMLCell(75, 10, 2, ($this->pdf_renderer->GetY()+28), '<table><tr><td colspan="6" style="font-size: 8px; border-bottom: 1px dashed black">Representación impresa de la '.strtoupper($object->tipo_documento_electronico).' ELECTRONICA puede ser consultado en www.sunat.gob.pe</td></tr></table>', 0, 2, false, true, 'J', true );
 //                    $this->pdf_renderer->writeHTMLCell(75, 10, 2, ($this->pdf_renderer->GetY()+28), '<table><tr><td colspan="6" style="font-size: 8px; border-bottom: 1px dashed black">Representación impresa de la '.strtoupper($object->tipo_documento_electronico).' ELECTRONICA puede ser consultado en '.$url_website.'</td></tr><tr><td colspan="4" style="text-align: center; font-size: 7px;">USUARIO: '.$empleado->firstname.' '. $empleado->lastname.'</td><td colspan="2" style="text-align: center"><small>&nbsp;</small></td></tr></table>', 0, 2, false, true, 'J', true );
 
                 }

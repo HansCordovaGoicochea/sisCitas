@@ -1960,8 +1960,9 @@ class AdminOrdersControllerCore extends AdminController
         parent::initPageHeaderToolbar();
 
         if ($this->display == 'view') {
+
             $this->page_header_toolbar_btn['back_to_list'] = array(
-                'href' => Context::getContext()->link->getAdminLink('AdminOrders'),
+                'href' => $this->context->cookie->ruta_order_back == 'pendiente' ? Context::getContext()->link->getAdminLink('AdminSunatPendiente') : Context::getContext()->link->getAdminLink('AdminOrders'),
                 'desc' => $this->l('Back to list', null, null, false),
                 'icon' => 'process-icon-back'
             );
@@ -3691,6 +3692,8 @@ class AdminOrdersControllerCore extends AdminController
         if (!Validate::isLoadedObject($order)) {
             $this->errors[] = $this->trans('The order cannot be found within your database.', array(), 'Admin.Orderscustomers.Notification');
         }
+
+        $this->context->cookie->__set("ruta_order_back", "order");
 
 //        d($this->context->cookie->metodo_pago);
         $metodo_pago = $this->context->cookie->metodo_pago;

@@ -3654,6 +3654,7 @@ class AdminSunatPendienteControllerCore extends AdminController
             $this->errors[] = $this->trans('The order cannot be found within your database.', array(), 'Admin.Orderscustomers.Notification');
         }
 
+        $this->context->cookie->__set("ruta_order_back", "pendiente");
 
         Tools::redirectAdmin($this->context->link->getAdminLink('AdminOrders').'&id_order='.Tools::getValue('id_order').'&vieworder');
 

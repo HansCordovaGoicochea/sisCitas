@@ -959,7 +959,7 @@ var app_vender = new Vue({
                         that.fillCustomer(data.result);
                         if (data.order){
                             that.order_bycliente = data.order;
-                            that.id_colaborador = data.order.id_colaborador;
+                            // that.id_colaborador = data.order.id_colaborador;
                         }
                         if (data.reservas.length){
                             let html = `
