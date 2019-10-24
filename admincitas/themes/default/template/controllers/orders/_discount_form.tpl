@@ -39,8 +39,8 @@
 		</label>
 		<div class="col-lg-9">
 			<select class="form-control" name="discount_type" id="discount_type">
-				<option value="1">{l s='Percent' d='Admin.Global'}</option>
-{*				<option value="2">{l s='Amount' d='Admin.Global'}</option>*}
+{*				<option value="1">{l s='Percent' d='Admin.Global'}</option>*}
+				<option value="2">{l s='Amount' d='Admin.Global'}</option>
 				{*				<option value="3">{l s='Free shipping' d='Admin.Shipping.Feature'}</option>*}
 			</select>
 		</div>
