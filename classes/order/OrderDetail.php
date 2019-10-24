@@ -684,7 +684,8 @@ class OrderDetailCore extends ObjectModel
         $this->id_colaborador = $id_colaborador;
         $objColabordaor = new Employee((int)$id_colaborador);
         $this->colaborador_name = $objColabordaor->firstname.' '.$objColabordaor->lastname;
-        $this->es_servicio = $id_colaborador && $id_colaborador > 0 ? 1 : 0;
+//        $this->es_servicio = $id_colaborador && $id_colaborador > 0 ? 1 : 0;
+        $this->es_servicio = $product['is_virtual'];
 
         $this->setVirtualProductInformation($product);
         $this->checkProductStock($product, $id_order_state);
@@ -884,6 +885,15 @@ from tm_order_detail od LEFT JOIN tm_tax_rule tr on (od.id_tax_rules_group = tr.
 where id_order = '.$id_order.' AND description = "'.$codigo.'"';
 
         return (float)Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($sql);
+
+    }
+
+    public static function getDeailtColaboradores($id_order){
+        $sql = 'select *
+from tm_order_detail
+where id_order = '.$id_order.' group by id_colaborador';
+
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
 
     }
 
