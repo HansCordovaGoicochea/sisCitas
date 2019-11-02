@@ -20,6 +20,9 @@
     const url_ajax_reservas = "{$link->getAdminLink('AdminReservarCita')|addslashes}";
     const token_reservas = "{getAdminToken tab='AdminReservarCita'}";
 
+        const tipo_venta_edit = '{Tools::getValue('tipo_venta_edit')}';
+        const id_order_atencion = '{Tools::getValue('id_order_atencion')}';
+
 </script>
 <br>
 <div id="app_vender">
@@ -269,8 +272,8 @@
                                 <td style="width: 15%" class="text-center">
                                     <input type="text" class="price form-control" v-model="item.price" @keyup="changePrecioUnitario(item)"/>
                                 </td>
-                                <td style="width: 15%">
-                                    <input type="text" class="total form-control" v-model="item.importe_linea" @keyup="changeImporte(item)"/>
+                                <td style="width: 15%" class="text-center"  v-text="item.importe_linea">
+                                    {*                                    <input type="text" class="total form-control" v-model="item.importe_linea" @keyup="changeImporte(item)"/>*}
                                 </td>
                                 <td style="width: 5%"><button class="btn btn-danger" @click="borrarProducto(item)"><i class="fa fa-trash fa-lg"></i></button></td>
                             </tr>
@@ -322,7 +325,7 @@
             <div class="footer_ache_veder">
                 <div class="row col-lg-12" >
                     <div class="col-md-4 mb-2 col-lg-4  col-xl-4 col-sm-12" v-if="!is_active_tab_pago">
-                        <button type="button" class="btn w-100 btn-light btn-sm" onclick="location.reload()" :disabled="guardandoEnviar">
+                        <button type="button" class="btn w-100 btn-light btn-sm" onclick="window.location.href = '{$link->getAdminLink("AdminVender")|addslashes}'" :disabled="guardandoEnviar">
                             <i class="fa fa-spinner fa-spin fa-lg" v-if="guardandoEnviar"></i>
                             <i class="icon-cart-plus" v-else></i> Nueva Venta
                         </button>
@@ -375,6 +378,11 @@
             </div>
         </div>
     </div>
+
+    <iframe name="ticketAhora" style="display:none;">
+        <div id="ticket_ahora" v-html="html_ticket_ahora"></div>
+    </iframe>
+
 </div>
 <style>
     .footer_ache_veder{

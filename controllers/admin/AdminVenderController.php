@@ -113,6 +113,8 @@ class AdminVenderControllerCore extends AdminController {
 
         $this->addCSS(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/css/select2.min.css');
         $this->addJs(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/js/select2.min.js');
+        $this->addCSS(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/css/print.min.css');
+        $this->addJs(__PS_BASE_URI__ . $this->admin_webpath . '/themes/default/js/print.min.js');
     }
     public function ajaxProcessSearchProducts()
     {
@@ -1243,6 +1245,32 @@ class AdminVenderControllerCore extends AdminController {
             'result' => "Guardado",
             'order' => $order,
             'link_venta' => $this->context->link->getAdminLink('AdminOrders').'&vieworder&id_order='.$order->id
+        )));
+
+    }
+
+    public function ajaxProcessGetDataOrderAtencion()
+    {
+
+        $id_order = Tools::getValue('id_order_atencion_vue');
+        if ($id_order){
+            $order = new Order((int)$id_order);
+            $customer = new Customer((int)$order->id_customer);
+            $tipodocumentolegal = new Tipodocumentolegal((int)$customer->id_document);
+            $customer->cod_sunat = $tipodocumentolegal->cod_sunat;
+            $customer->tipo_documento = $tipodocumentolegal->nombre;
+        }else{
+            die(json_encode(array(
+                'success' => "error",
+                'error' => "No se puede hacer actualizar la atencion",
+            )));
+
+        }
+
+        die(json_encode(array(
+            'success' => "ok",
+            'order' => $order,
+            'customer' => $customer,
         )));
 
     }

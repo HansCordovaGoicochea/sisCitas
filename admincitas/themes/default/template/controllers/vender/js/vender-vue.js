@@ -333,6 +333,10 @@ var app_vender = new Vue({
     el: '#app_vender',
     data() {
         return {
+            tipo_venta_edit_vue: tipo_venta_edit,
+            id_order_atencion_vue: id_order_atencion,
+
+
             colaboradores: colaboradores,
             perfil_empleado_vue: perfil_empleado,
             show_forma_pago: false,
@@ -408,7 +412,11 @@ var app_vender = new Vue({
             monto_deuda: 0,
 
             //////
-            order_bycliente: []
+            order_bycliente: [],
+
+
+            //////
+            html_ticket_ahora: "",
         };
     },
     ready: function() {
@@ -416,7 +424,45 @@ var app_vender = new Vue({
     },
     created: function(){
         let self = this;
+        if(self.tipo_venta_edit_vue === 'atencion'){
+            $.ajax({
+                type:"POST",
+                url: url_ajax_vender,
+                async: true,
+                dataType: "json",
+                data:{
+                    ajax: "1",
+                    token: token_vender,
+                    tab: "AdminVender",
+                    action : "getDataOrderAtencion",
+                    id_order_atencion_vue: self.id_order_atencion_vue
+                },
+                success: function (data) {
+                    if(data.success === 'ok'){
+                        self.order_bycliente = data.order;
+                        self.puntos_cliente = data.customer.puntos_acumulados;
+                        self.id_customer = data.customer.id_customer;
+                        self.numero_doc = data.customer.num_document;
+                        self.nombre_legal = data.customer.firstname;
+                        self.numero_doc = data.customer.num_document;
+                        self.tipo_doc = data.customer.tipo_documento;
+                        self.cod_sunat = data.customer.cod_sunat;
+                        self.fecha_nacimiento = data.customer.birthday && data.customer.birthday !== '0000-00-00' ? data.customer.birthday : '';
+                        self.celular_cliente = data.customer.telefono_celular;
 
+                        if (data.customer.direccion){
+                            self.direccion_cliente = data.customer.direccion;
+                        }
+                    }
+                },
+                error: function (error) {
+                    // console.log(error);
+                },
+                complete: function (data) {
+
+                }
+            });
+        }
 
     },
     computed: {
@@ -451,6 +497,7 @@ var app_vender = new Vue({
         },
     },
     methods: {
+
         enviarMailComprobanteCliente: function(){
             alert("aun no funciona");
         },
@@ -763,6 +810,82 @@ var app_vender = new Vue({
                                     })
                                 }
                                 if (data.response === 'ok'){
+
+                                    self.html_ticket_ahora = `
+<html>
+<head>
+    <style>
+        @media print {
+            @page {
+                size: 3.8in 18in;
+                page-break-after: avoid;
+                border: 1px solid red;
+                margin-top: 5mm;
+            }
+
+            @page :left {
+                margin-left: 5mm;
+                margin-right: 5mm;
+            }
+
+            @page :right {
+                margin-left: 5mm;
+                margin-right: 5mm;
+            }
+        }
+    </style>
+</head>
+<body>
+<div style="font-family: monospace;">
+    <div style="margin-top: 25px;">
+        <div style="font-size: 14px; margin-top: 4px;">
+            <div><span>`+moment(data.order.date_upd).format('DD/MM/YYYY hh:mm')+`</span></div>
+        </div>
+    </div>
+    <div style="border-top: 1px solid rgb(0, 0, 0); font-size: 15px; padding-top: 10px; margin-bottom: 15px;">
+        <div>Cliente: `+self.nombre_legal+`</div>
+        <div>DNI/RUC: `+self.numero_doc+`</div>
+    <hr style="margin-bottom: 0px; border-top: 1px solid rgb(0, 0, 0);">
+    <table role="grid" style="border-collapse: collapse; width: 100%;">
+        <thead>
+        <tr role="row" style="font-size: 12px;">
+            <th role="columnheader" style="text-align: left;">Cant.</th>
+            <th role="columnheader" style="text-align: left;">DESCRIPCIÓN</th>
+            <th role="columnheader" style="text-align: right;">P.Unit</th>
+            <th role="columnheader" style="text-align: right;">TOTAL</th>
+        </tr>
+        </thead>
+        <tbody style="border-bottom: 1px solid rgb(0, 0, 0); border-top: 1px solid rgb(0, 0, 0);">`;
+
+
+                                    $.each(self.cart, function (indx, value) {
+                                        self.html_ticket_ahora += `
+             <tr>
+                <td style="padding: 0.2rem;">
+                    `+value.quantity+`
+                </td>
+                <td style="padding: 0.2rem; text-align: left;">
+                   `+value.title+`
+                </td>
+                <td style="padding: 0.2rem; text-align: right;">
+                    `+value.price+`
+                </td>
+                <td style="text-align: right;">
+                    `+value.importe_linea+`
+                </td>
+            </tr>`;
+                                    })
+
+                                    self.html_ticket_ahora += `</tbody>
+    </table>
+    <br>
+    <div>Colaborador: `+self.colaborador_name_general+`</div>
+    <br>
+    <div style="text-align: center;"><strong>¡Gracias por su preferencia!</strong></div>
+</div>
+</body>
+</html>
+            `;
                                     // if (data.reload === 'ok'){
                                     //     location.reload();
                                     // }
@@ -774,10 +897,11 @@ var app_vender = new Vue({
                                     }
 
 
-                                    html_buttons += '<input type="button" class="btn btn-warning" value="Ticket Venta - '+data.order.nro_ticket+'" style="margin: 5px;" onclick="windowPrintAche(\'PDFtoTicket\')">';
-                                    let iframes = '<iframe id="PDFtoTicket" src="'+data.order.ruta_ticket_normal+'" style="display: none;"></iframe>';
-
-                                    $('#alertmessage').after(iframes);
+                                    html_buttons += '<input type="button" class="btn btn-warning" value="Ticket Venta" style="margin: 5px;" onclick="printTicket()">';
+                                    // - '+data.order.nro_ticket+'
+                                    // let iframes = '<iframe id="PDFtoTicket" src="'+data.order.ruta_ticket_normal+'" style="display: none;"></iframe>';
+                                    //
+                                    // $('#alertmessage').after(iframes);
                                     $('.alertmessage').append(html_buttons);
                                     $('.alertmessage').css('display', 'grid');
 
@@ -957,6 +1081,7 @@ var app_vender = new Vue({
                         }
                     }else{
                         that.fillCustomer(data.result);
+
                         if (data.order){
                             that.order_bycliente = data.order;
                             // that.id_colaborador = data.order.id_colaborador;
@@ -1199,6 +1324,86 @@ var app_vender = new Vue({
                 success: function (data) {
                     self.guardandoEnviar = false;
                     if (data.success === 'ok'){
+                        if(self.tipo_venta_edit_vue === 'atencion'){
+                            window.history.pushState('', '', url_ajax_vender);
+                        }
+
+                        self.html_ticket_ahora = `
+<html>
+<head>
+    <style>
+        @media print {
+            @page {
+                size: 3.8in 18in;
+                page-break-after: avoid;
+                border: 1px solid red;
+                margin-top: 5mm;
+            }
+
+            @page :left {
+                margin-left: 5mm;
+                margin-right: 5mm;
+            }
+
+            @page :right {
+                margin-left: 5mm;
+                margin-right: 5mm;
+            }
+        }
+    </style>
+</head>
+<body>
+<div style="font-family: monospace;">
+    <div style="margin-top: 25px;">
+        <div style="font-size: 14px; margin-top: 4px;">
+            <div><span>`+moment(data.order.date_upd).format('DD/MM/YYYY hh:mm')+`</span></div>
+        </div>
+    </div>
+    <div style="border-top: 1px solid rgb(0, 0, 0); font-size: 15px; padding-top: 10px; margin-bottom: 15px;">
+        <div>Cliente: `+self.nombre_legal+`</div>
+        <div>DNI/RUC: `+self.numero_doc+`</div>
+    <hr style="margin-bottom: 0px; border-top: 1px solid rgb(0, 0, 0);">
+    <table role="grid" style="border-collapse: collapse; width: 100%;">
+        <thead>
+        <tr role="row" style="font-size: 12px;">
+            <th role="columnheader" style="text-align: left;">Cant.</th>
+            <th role="columnheader" style="text-align: left;">DESCRIPCIÓN</th>
+            <th role="columnheader" style="text-align: right;">P.Unit</th>
+            <th role="columnheader" style="text-align: right;">TOTAL</th>
+        </tr>
+        </thead>
+        <tbody style="border-bottom: 1px solid rgb(0, 0, 0); border-top: 1px solid rgb(0, 0, 0);">`;
+
+
+         $.each(self.cart, function (indx, value) {
+             self.html_ticket_ahora += `
+             <tr>
+                <td style="padding: 0.2rem;">
+                    `+value.quantity+`
+                </td>
+                <td style="padding: 0.2rem; text-align: left;">
+                   `+value.title+`
+                </td>
+                <td style="padding: 0.2rem; text-align: right;">
+                    `+value.price+`
+                </td>
+                <td style="text-align: right;">
+                    `+value.importe_linea+`
+                </td>
+            </tr>`;
+         })
+
+        self.html_ticket_ahora += `</tbody>
+    </table>
+    <br>
+    <div>Colaborador: `+self.colaborador_name_general+`</div>
+    <br>
+    <div style="text-align: center;"><strong>¡Gracias por su preferencia!</strong></div>
+</div>
+</body>
+</html>
+            `;
+
                         $.growl.notice({ title:data.result, message:'' });
                         self.order = data.order;
                         let html_buttons = '';
@@ -1207,10 +1412,11 @@ var app_vender = new Vue({
                         }
 
 
-                        html_buttons += '<input type="button" class="btn btn-warning" value="Ticket Venta - '+data.order.nro_ticket+'" style="margin: 5px;" onclick="windowPrintAche(\'PDFtoTicket\')">';
-                        let iframes = '<iframe id="PDFtoTicket" src="'+data.order.ruta_ticket_normal+'" style="display: none;"></iframe>';
-
-                        $('#alertmessage').after(iframes);
+                        html_buttons += '<input type="button" class="btn btn-warning" value="Ticket Venta" style="margin: 5px;" onclick="printTicket()">';
+                        // - '+data.order.nro_ticket+'
+                        // let iframes = '<iframe id="PDFtoTicket" src="'+data.order.ruta_ticket_normal+'" style="display: none;"></iframe>';
+                        //
+                        // $('#alertmessage').after(iframes);
                         $('.alertmessage').append(html_buttons);
                         $('.alertmessage').css('display', 'grid');
 
@@ -1348,6 +1554,15 @@ function pasaVentaReserva(id) {
     }else{
         return false;
     }
+}
+
+function printTicket(){
+
+    printJS({
+        printable: 'ticket_ahora',
+        type: 'html',
+        scanStyles: false
+    })
 }
 
 function anularVentaReserva(id, id_colaborador) {

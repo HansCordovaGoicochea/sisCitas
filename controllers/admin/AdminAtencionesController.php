@@ -20,6 +20,7 @@ class AdminAtencionesControllerCore extends AdminController
         $this->allow_export = true;
         $this->deleted = false;
         $this->context = Context::getContext();
+        $this->addRowAction('view');
 
         parent::__construct();
 
@@ -85,23 +86,23 @@ class AdminAtencionesControllerCore extends AdminController
                 'title' => $this->trans('ID', array(), 'Admin.Global'),
                 'align' => 'hide',
                 'class' => 'hide',
-                'remove_onclick' => true,
+//                'remove_onclick' => true,
             ),
             'customer' => array(
                 'title' => $this->trans('Customer', array(), 'Admin.Global'),
                 'havingFilter' => true,
-                'remove_onclick' => true,
+//                'remove_onclick' => true,
             ),
             'date_add' => array(
                 'title' => $this->trans('Fecha', array(), 'Admin.Global'),
                 'type' => 'datetime',
                 'filter_key' => 'a!date_add',
-                'remove_onclick' => true,
+//                'remove_onclick' => true,
             ),
             'colaborador' => array(
                 'title' => $this->trans('Colaborador', array(), 'Admin.Global'),
                 'havingFilter' => true,
-                'remove_onclick' => true,
+//                'remove_onclick' => true,
             ),
         );
 
@@ -115,12 +116,12 @@ class AdminAtencionesControllerCore extends AdminController
                 'filter_type' => 'int',
                 'order_key' => 'osname',
                 'tooltip' => 'motivo_anulacion',
-                'remove_onclick' => true,
+//                'remove_onclick' => true,
             ),
         ));
 
         $this->_where = Shop::addSqlRestriction(false, 'a');
-        $this->_where .= " AND a.current_state in (1, 2, 6) AND a.id_colaborador > 0";
+        $this->_where .= " AND a.current_state in (1) AND a.id_colaborador > 0";
 
         if (Tools::isSubmit('id_order')) {
             // Save context (in order to apply cart rule)
@@ -190,5 +191,23 @@ class AdminAtencionesControllerCore extends AdminController
 
 
         die(Tools::jsonEncode(array('errors' => true, 'pagos' => $pagos, 'detalle' => $detalle)));
+    }
+
+
+    public function renderView()
+    {
+
+        $order = new Order(Tools::getValue('id_order'));
+        if (!Validate::isLoadedObject($order)) {
+            $this->errors[] = $this->trans('The order cannot be found within your database.', array(), 'Admin.Orderscustomers.Notification');
+        }
+
+        $this->context->cookie->__set("ruta_order_back", "atenciones");
+
+        Tools::redirectAdmin($this->context->link->getAdminLink('AdminVender').'&tipo_venta_edit=atencion&id_order_atencion='.Tools::getValue('id_order').'');
+
+
+
+        return parent::renderView();
     }
 }

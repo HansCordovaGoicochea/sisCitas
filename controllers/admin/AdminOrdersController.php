@@ -1961,8 +1961,17 @@ class AdminOrdersControllerCore extends AdminController
 
         if ($this->display == 'view') {
 
+            if($this->context->cookie->ruta_order_back == 'pendiente'){
+                $ruta = Context::getContext()->link->getAdminLink('AdminSunatPendiente');
+            }
+            else if($this->context->cookie->ruta_order_back == 'atenciones'){
+                $ruta = Context::getContext()->link->getAdminLink('AdminAtenciones');
+            }else{
+                $ruta= Context::getContext()->link->getAdminLink('AdminOrders');
+            }
+
             $this->page_header_toolbar_btn['back_to_list'] = array(
-                'href' => $this->context->cookie->ruta_order_back == 'pendiente' ? Context::getContext()->link->getAdminLink('AdminSunatPendiente') : Context::getContext()->link->getAdminLink('AdminOrders'),
+                'href' => $ruta ,
                 'desc' => $this->l('Back to list', null, null, false),
                 'icon' => 'process-icon-back'
             );
