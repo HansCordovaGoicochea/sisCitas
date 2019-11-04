@@ -1,5 +1,4 @@
 $(function () {
-
     $('.page-head').remove();
 
     // if (perfil_empleado === 'Vendedor'){

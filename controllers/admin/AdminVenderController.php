@@ -364,6 +364,7 @@ class AdminVenderControllerCore extends AdminController {
 
             //crear ticket venta
             $this->crearTicketVenta($order);
+            $obj_numeracion = $this->crearTicketColaborador();
 
             $caja = new PosArqueoscaja((int)$last_caja['id_pos_arqueoscaja']);
             $rsp['response'] = 'ok';
@@ -377,6 +378,7 @@ class AdminVenderControllerCore extends AdminController {
             $rsp['confirmaciones'] =  $this->confirmations;
             $rsp['comprobantes'] =  $comprobantes;
             $rsp['link_venta'] =  $this->context->link->getAdminLink('AdminOrders').'&vieworder&id_order='.$order_final_actualizado->id;
+            $rsp['obj_numeracion'] =  $obj_numeracion;
 
             //        d("dfdfdf");
             $this->ajaxDie(
@@ -585,6 +587,32 @@ class AdminVenderControllerCore extends AdminController {
 
 //        $this->confirmations[] = "Llegue al final";
 //        $this->confirmations[] = $order;
+
+    }
+
+    protected function crearTicketColaborador(){
+        $nombre_virtual_uri = $this->context->shop->virtual_uri;
+//        $this->confirmations[] = "Entre al ticket venta";
+
+        $correlativo_comanda = NumeracionDocumento::getNumTipoDoc('TicketColaborador');
+        if (empty($correlativo_comanda)){
+            $objNC = new NumeracionDocumento();
+            $objNC->serie = '';
+            $objNC->correlativo = 0;
+            $objNC->nombre = 'TicketColaborador';
+            $objNC->id_shop = Context::getContext()->shop->id;
+            $objNC->add();
+            $correlativo_comanda = NumeracionDocumento::getNumTipoDoc('TicketColaborador');
+        }
+        else{
+            $correlativo_comanda = NumeracionDocumento::getNumTipoDoc('TicketColaborador');
+        }
+
+        $co = new NumeracionDocumento((int)$correlativo_comanda['id_numeracion_documentos']);
+        $co->correlativo = ($correlativo_comanda['correlativo']+1);
+        $co->update();
+
+        return $co;
 
     }
 
@@ -1239,11 +1267,12 @@ class AdminVenderControllerCore extends AdminController {
 
         //crear ticket venta
         $this->crearTicketVenta($order);
-
+        $obj_numeracion = $this->crearTicketColaborador();
         die(json_encode(array(
             'success' => "ok",
             'result' => "Guardado",
             'order' => $order,
+            'obj_numeracion' => $obj_numeracion,
             'link_venta' => $this->context->link->getAdminLink('AdminOrders').'&vieworder&id_order='.$order->id
         )));
 

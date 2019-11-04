@@ -838,51 +838,51 @@ var app_vender = new Vue({
 <body>
 <div style="font-family: monospace;">
     <div style="margin-top: 25px;">
-        <div style="font-size: 14px; margin-top: 4px;">
-            <div><span>`+moment(data.order.date_upd).format('DD/MM/YYYY hh:mm')+`</span></div>
-        </div>
+         <div style="font-size: 14px; margin-top: 4px;">
+            <div>
+                <span>Ticket # `+data.obj_numeracion.correlativo+`</span> 
+                <span style="float: right;">`+moment(data.order.date_upd).format('DD/MM/YYYY hh:mm A')+`</span>
+            </div>
+         </div>
     </div>
     <div style="border-top: 1px solid rgb(0, 0, 0); font-size: 15px; padding-top: 10px; margin-bottom: 15px;">
-        <div>Cliente: `+self.nombre_legal+`</div>
+        <div style="font-size: 17px; font-weight: bold; ">Cliente: `+self.nombre_legal+`</div>
         <div>DNI/RUC: `+self.numero_doc+`</div>
-    <hr style="margin-bottom: 0px; border-top: 1px solid rgb(0, 0, 0);">
-    <table role="grid" style="border-collapse: collapse; width: 100%;">
-        <thead>
-        <tr role="row" style="font-size: 12px;">
-            <th role="columnheader" style="text-align: left;">Cant.</th>
-            <th role="columnheader" style="text-align: left;">DESCRIPCIÓN</th>
-            <th role="columnheader" style="text-align: right;">P.Unit</th>
-            <th role="columnheader" style="text-align: right;">TOTAL</th>
-        </tr>
-        </thead>
-        <tbody style="border-bottom: 1px solid rgb(0, 0, 0); border-top: 1px solid rgb(0, 0, 0);">`;
+        <hr style="margin-bottom: 0px; border-top: 1px solid rgb(0, 0, 0);">
+        <table role="grid" style="border-collapse: collapse; width: 100%;">
+            <thead>
+            <tr role="row" style="font-size: 12px;">
+                <th role="columnheader" style="text-align: left;">Cant.</th>
+                <th role="columnheader" style="text-align: left;">DESCRIPCIÓN</th>
+                <th role="columnheader" style="text-align: right;">P.Unit</th>
+                <th role="columnheader" style="text-align: right;">TOTAL</th>
+            </tr>
+            </thead>
+            <tbody style="border-bottom: 1px solid rgb(0, 0, 0); border-top: 1px solid rgb(0, 0, 0);">`;
 
+            $.each(self.cart, function (indx, value) {
+                self.html_ticket_ahora += `
+                <tr>
+    <td style="padding: 0.2rem;">
+    `+value.quantity+`
+    </td>
+    <td style="padding: 0.2rem; text-align: left;">
+    `+value.title+`
+    </td>
+    <td style="padding: 0.2rem; text-align: right;">
+    `+value.price+`
+    </td>
+    <td style="text-align: right;">
+    `+value.importe_linea+`
+    </td>
+    </tr>`;
+            });
 
-                                    $.each(self.cart, function (indx, value) {
-                                        self.html_ticket_ahora += `
-             <tr>
-                <td style="padding: 0.2rem;">
-                    `+value.quantity+`
-                </td>
-                <td style="padding: 0.2rem; text-align: left;">
-                   `+value.title+`
-                </td>
-                <td style="padding: 0.2rem; text-align: right;">
-                    `+value.price+`
-                </td>
-                <td style="text-align: right;">
-                    `+value.importe_linea+`
-                </td>
-            </tr>`;
-                                    })
-
-                                    self.html_ticket_ahora += `</tbody>
-    </table>
-    <br>
-    <div>Colaborador: `+self.colaborador_name_general+`</div>
-    <br>
-    <div style="text-align: center;"><strong>¡Gracias por su preferencia!</strong></div>
-</div>
+self.html_ticket_ahora += `</tbody>
+        </table>
+        <br>
+        <div style="font-size: 17px; font-weight: bold; ">Colaborador: `+self.colaborador_name_general+`</div>
+    </div>
 </body>
 </html>
             `;
@@ -1328,51 +1328,54 @@ var app_vender = new Vue({
                             window.history.pushState('', '', url_ajax_vender);
                         }
 
-                        self.html_ticket_ahora = `
-<html>
-<head>
-    <style>
-        @media print {
-            @page {
-                size: 3.8in 18in;
-                page-break-after: avoid;
-                border: 1px solid red;
-                margin-top: 5mm;
-            }
-
-            @page :left {
-                margin-left: 5mm;
-                margin-right: 5mm;
-            }
-
-            @page :right {
-                margin-left: 5mm;
-                margin-right: 5mm;
-            }
-        }
-    </style>
-</head>
-<body>
-<div style="font-family: monospace;">
-    <div style="margin-top: 25px;">
-        <div style="font-size: 14px; margin-top: 4px;">
-            <div><span>`+moment(data.order.date_upd).format('DD/MM/YYYY hh:mm')+`</span></div>
-        </div>
-    </div>
-    <div style="border-top: 1px solid rgb(0, 0, 0); font-size: 15px; padding-top: 10px; margin-bottom: 15px;">
-        <div>Cliente: `+self.nombre_legal+`</div>
-        <div>DNI/RUC: `+self.numero_doc+`</div>
-    <hr style="margin-bottom: 0px; border-top: 1px solid rgb(0, 0, 0);">
-    <table role="grid" style="border-collapse: collapse; width: 100%;">
-        <thead>
-        <tr role="row" style="font-size: 12px;">
-            <th role="columnheader" style="text-align: left;">Cant.</th>
-            <th role="columnheader" style="text-align: left;">DESCRIPCIÓN</th>
-            <th role="columnheader" style="text-align: right;">P.Unit</th>
-            <th role="columnheader" style="text-align: right;">TOTAL</th>
-        </tr>
-        </thead>
-        <tbody style="border-bottom: 1px solid rgb(0, 0, 0); border-top: 1px solid rgb(0, 0, 0);">`;
+                    self.html_ticket_ahora = `
+                    <html>
+                    <head>
+                        <style>
+                            @media print {
+                                @page {
+                                    size: 3.8in 18in;
+                                    page-break-after: avoid;
+                                    border: 1px solid red;
+                                    margin-top: 5mm;
+                                }
+                    
+                                @page :left {
+                                    margin-left: 5mm;
+                                    margin-right: 5mm;
+                                }
+                    
+                                @page :right {
+                                    margin-left: 5mm;
+                                    margin-right: 5mm;
+                                }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                    <div style="font-family: monospace;">
+                        <div style="margin-top: 25px;">
+                             <div style="font-size: 14px; margin-top: 4px;">
+                                <div>
+                                    <span>Ticket # `+data.obj_numeracion.correlativo+`</span> 
+                                    <span style="float: right;">`+moment(data.order.date_upd).format('DD/MM/YYYY hh:mm A')+`</span>
+                                </div>
+                             </div>
+                        </div>
+                        <div style="border-top: 1px solid rgb(0, 0, 0); font-size: 15px; padding-top: 10px; margin-bottom: 15px;">
+                            <div style="font-size: 17px; font-weight: bold; ">Cliente: `+self.nombre_legal+`</div>
+                            <div>DNI/RUC: `+self.numero_doc+`</div>
+                        <hr style="margin-bottom: 0px; border-top: 1px solid rgb(0, 0, 0);">
+                        <table role="grid" style="border-collapse: collapse; width: 100%;">
+                            <thead>
+                            <tr role="row" style="font-size: 12px;">
+                                <th role="columnheader" style="text-align: left;">Cant.</th>
+                                <th role="columnheader" style="text-align: left;">DESCRIPCIÓN</th>
+                                <th role="columnheader" style="text-align: right;">P.Unit</th>
+                                <th role="columnheader" style="text-align: right;">TOTAL</th>
+                            </tr>
+                            </thead>
+                            <tbody style="border-bottom: 1px solid rgb(0, 0, 0); border-top: 1px solid rgb(0, 0, 0);">`;
 
 
          $.each(self.cart, function (indx, value) {
@@ -1393,15 +1396,13 @@ var app_vender = new Vue({
             </tr>`;
          })
 
-        self.html_ticket_ahora += `</tbody>
-    </table>
-    <br>
-    <div>Colaborador: `+self.colaborador_name_general+`</div>
-    <br>
-    <div style="text-align: center;"><strong>¡Gracias por su preferencia!</strong></div>
-</div>
-</body>
-</html>
+self.html_ticket_ahora += `</tbody>
+                </table>
+                <br>
+                <div style="font-size: 17px; font-weight: bold; ">Colaborador: `+self.colaborador_name_general+`</div>
+            </div>
+            </body>
+            </html>
             `;
 
                         $.growl.notice({ title:data.result, message:'' });

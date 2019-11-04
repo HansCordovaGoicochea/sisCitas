@@ -13,8 +13,8 @@ class AdminAtencionesControllerCore extends AdminController
     public function __construct()
     {
         $this->bootstrap = true;
-        $this->table = 'order';
-        $this->className = 'Order';
+        $this->table = 'order_detail';
+        $this->className = 'OrderDetail';
         $this->lang = false;
         $this->explicitSelect = true;
         $this->allow_export = true;
@@ -28,49 +28,16 @@ class AdminAtencionesControllerCore extends AdminController
             return $this->errors[] = $this->trans('Tiene que seleccionar una tienda antes.', array(), 'Admin.Orderscustomers.Notification');
         }
 
-        $this->_select = '
-        (a.total_paid_tax_incl - a.total_paid_tax_excl) as igv_order2,
-        a.total_paid_tax_incl as total_paid_tax_incl,
-		a.total_paid_tax_excl as total_paid_tax_excl,
-		a.id_customer,
+        $this->_join .= 'LEFT JOIN `'._DB_PREFIX_.'employee` ea ON (ea.`id_employee` = a.`id_colaborador`) ';
+        $this->_join .= 'LEFT JOIN `'._DB_PREFIX_.'orders` o ON (o.`id_order` = a.`id_order` AND o.`id_shop` = '.$this->context->shop->id.') ';
+        $this->_join .= 'LEFT JOIN `'._DB_PREFIX_.'customer` ec ON (ec.`id_customer` = o.`id_customer`) ';
 
-		a.id_currency,
-		
-		a.id_order AS id_pdf,
-		a.id_order as `id_xml`,
-        a.id_order as `id_pdf2`,
-        a.id_order as `id_pdf2Bol`,
-        a.id_order as `id_cdrxml`,
-        
-		CONCAT(c.`firstname`, " (", c.num_document, ") ") AS `customer`,
-				c.num_document AS `doc_cliente`,
-		osl.`name` AS `osname`,
-		os.`color`,
-		IF((SELECT so.id_order FROM `'._DB_PREFIX_.'orders` so WHERE so.id_customer = a.id_customer AND so.id_order < a.id_order LIMIT 1) > 0, 0, 1) as new,
-		country_lang.name as cname,
-		IF(a.valid, 1, 0) badge_success,
-		IF (poc.tipo_documento_electronico != "", poc.tipo_documento_electronico, "Ticket") comprobante,
-		IF (poc.numero_comprobante  != "", poc.numero_comprobante, a.nro_ticket) nro_comprobante,
-       (a.total_paid_tax_incl - IFNULL((select SUM(op.amount) from `'._DB_PREFIX_.'order_payment` op where op.order_reference = a.reference), 0)) as deuda,
-        IFNULL((select SUM(op.amount) from `'._DB_PREFIX_.'order_payment` op where op.order_reference = a.reference), 0) as `pagado`,
-        IF (a.`id_employee`, CONCAT_WS(" ",emp.firstname, emp.lastname), "Venta desde la Web") as empleado,
-        motivo_anulacion,
-        CONCAT_WS(" ",ea.firstname, ea.lastname) as colaborador
-		';
+        $this->_select .= 'CONCAT_WS(" - ", a.colaborador_name, a.product_name) as colaborador_servicio, CONCAT(ec.`firstname`, " (", ec.num_document, ") ") AS `customer`, o.date_add as fecha, SUM(product_quantity) as cantidad, sum(a.total_price_tax_incl) as total_servicio';
 
-        $this->_join = '
-		LEFT JOIN `'._DB_PREFIX_.'employee` ea ON (ea.`id_employee` = a.`id_colaborador`)
-		LEFT JOIN `'._DB_PREFIX_.'customer` c ON (c.`id_customer` = a.`id_customer`)
-		LEFT JOIN `'._DB_PREFIX_.'address` address ON address.id_address = a.id_address_delivery
-		LEFT JOIN `'._DB_PREFIX_.'country` country ON address.id_country = country.id_country
-		LEFT JOIN `'._DB_PREFIX_.'country_lang` country_lang ON (country.`id_country` = country_lang.`id_country` AND country_lang.`id_lang` = '.(int)$this->context->language->id.')
-		LEFT JOIN `'._DB_PREFIX_.'order_state` os ON (os.`id_order_state` = a.`current_state`)
-		LEFT JOIN `'._DB_PREFIX_.'order_state_lang` osl ON (os.`id_order_state` = osl.`id_order_state` AND osl.`id_lang` = '.(int)$this->context->language->id.')
-		LEFT JOIN `'._DB_PREFIX_.'pos_ordercomprobantes` poc ON (poc.`id_order` = a.`id_order`)
-        LEFT JOIN `'._DB_PREFIX_.'employee` emp ON (emp.`id_employee` = a.`id_employee`)';
+        $this->_where .= "
+            AND DATE(o.date_add) = CURDATE()";
 
-
-        $this->_orderBy = 'date_add';
+        $this->_orderBy = 'o.date_add';
         $this->_orderWay = 'DESC';
         $this->_use_found_rows = true;
 
@@ -86,6 +53,14 @@ class AdminAtencionesControllerCore extends AdminController
                 'title' => $this->trans('ID', array(), 'Admin.Global'),
                 'align' => 'hide',
                 'class' => 'hide',
+                'filter_key' => 'o!id_order',
+//                'remove_onclick' => true,
+            ),
+            'id_order_detail' => array(
+                'title' => $this->trans('ID', array(), 'Admin.Global'),
+                'align' => 'hide',
+                'class' => 'hide',
+                'filter_key' => 'a!id_order_detail',
 //                'remove_onclick' => true,
             ),
             'customer' => array(
@@ -96,42 +71,18 @@ class AdminAtencionesControllerCore extends AdminController
             'date_add' => array(
                 'title' => $this->trans('Fecha', array(), 'Admin.Global'),
                 'type' => 'datetime',
-                'filter_key' => 'a!date_add',
+                'search' => false,
+                'filter_key' => 'o!date_add',
 //                'remove_onclick' => true,
             ),
-            'colaborador' => array(
-                'title' => $this->trans('Colaborador', array(), 'Admin.Global'),
+            'colaborador_servicio' => array(
+                'title' => $this->trans('Colaborador - Servicio', array(), 'Admin.Global'),
                 'havingFilter' => true,
 //                'remove_onclick' => true,
             ),
         );
-
-        $this->fields_list = array_merge($this->fields_list, array(
-            'osname' => array(
-                'title' => $this->trans('Status', array(), 'Admin.Global'),
-                'type' => 'select',
-                'color' => 'color',
-                'list' => $this->statuses_array,
-                'filter_key' => 'os!id_order_state',
-                'filter_type' => 'int',
-                'order_key' => 'osname',
-                'tooltip' => 'motivo_anulacion',
-//                'remove_onclick' => true,
-            ),
-        ));
-
-        $this->_where = Shop::addSqlRestriction(false, 'a');
-        $this->_where .= " AND a.current_state in (1) AND a.id_colaborador > 0";
-
-        if (Tools::isSubmit('id_order')) {
-            // Save context (in order to apply cart rule)
-            $order = new Order((int)Tools::getValue('id_order'));
-            $this->context->cart = new Cart($order->id_cart);
-            $this->context->customer = new Customer($order->id_customer);
-        }
-//
-//        d(Tools::toUnderscoreCase(substr($this->controller_name, 5)));
-//
+        $this->_group = ' group by a.product_id, a.id_colaborador, a.id_order_detail';
+        $this->_where .= " AND o.current_state in (1) AND a.id_colaborador > 0";
 
     }
     public function setMedia($isNewTheme = false)
@@ -150,7 +101,7 @@ class AdminAtencionesControllerCore extends AdminController
 
         if (empty($this->display)) {
             $this->page_header_toolbar_btn['new_order'] = array(
-                'href' => self::$currentIndex.'&addorder&token='.$this->token,
+                'href' => self::$currentIndex.'&addorder_detail&token='.$this->token,
                 'desc' => $this->trans('Nueva Venta', array(), 'Admin.Orderscustomers.Feature'),
                 'icon' => 'process-icon-new'
             );
@@ -168,6 +119,7 @@ class AdminAtencionesControllerCore extends AdminController
 
     public function renderForm()
     {
+
         if (Context::getContext()->shop->getContext() != Shop::CONTEXT_SHOP && Shop::isFeatureActive()) {
             $this->errors[] = $this->trans('You have to select a shop before creating new orders.', array(), 'Admin.Orderscustomers.Notification');
         }
@@ -197,14 +149,15 @@ class AdminAtencionesControllerCore extends AdminController
     public function renderView()
     {
 
-        $order = new Order(Tools::getValue('id_order'));
+        $orderdetail = new OrderDetail(Tools::getValue('id_order_detail'));
+        $order = new Order($orderdetail->id_order);
         if (!Validate::isLoadedObject($order)) {
             $this->errors[] = $this->trans('The order cannot be found within your database.', array(), 'Admin.Orderscustomers.Notification');
         }
 
         $this->context->cookie->__set("ruta_order_back", "atenciones");
 
-        Tools::redirectAdmin($this->context->link->getAdminLink('AdminVender').'&tipo_venta_edit=atencion&id_order_atencion='.Tools::getValue('id_order').'');
+        Tools::redirectAdmin($this->context->link->getAdminLink('AdminVender').'&tipo_venta_edit=atencion&id_order_atencion='.$order->id.'');
 
 
 
