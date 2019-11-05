@@ -1212,6 +1212,8 @@ class AdminVenderControllerCore extends AdminController {
                 // Save new cart
                 $cart->add();
 
+
+
                 $productToAdd = new Product((int)($product['id']), true, (int)($this->context->language->id));
                 $updateQuantity = $cart->updateQty((int)($product['quantity']), (int)($product['id']),null, false, 'up', 0 , new Shop((int)$cart->id_shop));
                 // Create Order detail information
