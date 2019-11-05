@@ -435,7 +435,7 @@ function init()
 				var products = new Array();
 				if (typeof(data.products) != 'undefined')
 					for (var i = 0; i < data.products.length; i++)
-						products[i] = { data: data.products[i], value: data.products[i].name };
+						products[i] = { data: data.products[i], value: data.products[i].name+" - "+data.products[i].formatted_price };
 				return products;
 			},
 			extraParams: {
