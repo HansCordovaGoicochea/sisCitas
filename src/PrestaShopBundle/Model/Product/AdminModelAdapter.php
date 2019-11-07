@@ -457,6 +457,7 @@ class AdminModelAdapter extends \PrestaShopBundle\Model\AdminModelAdapter
                 'pack_stock_type' => $this->product->pack_stock_type,
 
                 'cantidad_puntos' => $this->product->cantidad_puntos,
+                'fecha_vencimiento' => $this->product->fecha_vencimiento, // aca fecha_vencimiento
             ],
             'step2' => [
                 'price' => $this->product->price,

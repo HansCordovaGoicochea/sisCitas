@@ -29,6 +29,7 @@ use Pack;
 use PrestaShopBundle\Form\Admin\Category\SimpleCategory;
 use PrestaShopBundle\Form\Admin\Type\ChoiceCategoriesTreeType;
 use PrestaShopBundle\Form\Admin\Type\CommonAbstractType;
+use PrestaShopBundle\Form\Admin\Type\DatePickerType;
 use PrestaShopBundle\Form\Admin\Type\FormattedTextareaType;
 use PrestaShopBundle\Form\Admin\Type\TranslateType;
 use PrestaShopBundle\Form\Admin\Type\TypeaheadProductCollectionType;
@@ -331,6 +332,13 @@ class ProductInformation extends CommonAbstractType
                     ),
                 )
             );
+
+//        $builder ->add('fecha_vencimiento', 'PrestaShopBundle\Form\Admin\Type\DatePickerType', array(
+        $builder ->add('fecha_vencimiento', DatePickerType::class, array(
+            'required' => false,
+            'label' => $this->translator->trans('Fecha Vencimiento', array(), 'Admin.Catalog.Feature'),
+            'attr' => array('placeholder' => 'YYYY-MM-DD'),
+        ));
 
         $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) {
             $data = $event->getData();

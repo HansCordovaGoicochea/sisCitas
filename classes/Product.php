@@ -309,6 +309,7 @@ class ProductCore extends ObjectModel
     const STATE_SAVED = 1;
 
     public $cantidad_puntos;
+    public $fecha_vencimiento = '0000-00-00';
 
     public static $definition = array(
         'table' => 'product',
@@ -318,6 +319,7 @@ class ProductCore extends ObjectModel
         'fields' => array(
             /* Classic fields */
             'cantidad_puntos' =>            array('type' => self::TYPE_INT),
+            'fecha_vencimiento' =>            array('type' => self::TYPE_DATE, 'validate' => 'isDateFormat'),
 
             'id_shop_default' =>            array('type' => self::TYPE_INT, 'validate' => 'isUnsignedId'),
             'id_manufacturer' =>            array('type' => self::TYPE_INT, 'validate' => 'isUnsignedId'),
@@ -2560,7 +2562,7 @@ class ProductCore extends ObjectModel
         }
         $sql = new DbQuery();
         $sql->select(
-            'p.*, product_shop.*, stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity, pl.`description`, pl.`description_short`, pl.`link_rewrite`, pl.`meta_description`,
+            'p.*, product_shop.*, stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity,p.`fecha_vencimiento`, pl.`description`, pl.`description_short`, pl.`link_rewrite`, pl.`meta_description`,
 			pl.`meta_keywords`, pl.`meta_title`, pl.`name`, pl.`available_now`, pl.`available_later`, image_shop.`id_image` id_image, il.`legend`, m.`name` AS manufacturer_name,
 			(DATEDIFF(product_shop.`date_add`,
 				DATE_SUB(

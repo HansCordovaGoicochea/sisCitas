@@ -137,6 +137,21 @@
                   </div>
                 </div>
 
+                <div class="form-group">
+                  <h2>
+                    {{ "Fecha Vencimiento" }}
+                    <span class="help-box" data-toggle="popover"
+                          data-content="{{ "Fecha de Vencimiento del Producto." }}" ></span>
+                  </h2>
+                  {{ form_errors(form.step1.fecha_vencimiento) }}
+                  <div class="row">
+                    <div class="col-xl-12 col-lg-12" id="product_fecha_vencimiento_field">
+                      {{ form_widget(form.step1.fecha_vencimiento) }}
+                    </div>
+                  </div>
+
+                </div>
+
 {#                <div id="manufacturer">#}
 {#                  {{ include('@Product/ProductPage/Forms/form_manufacturer.html.twig', { 'form': formManufacturer }) }}#}
 {#                </div>#}
