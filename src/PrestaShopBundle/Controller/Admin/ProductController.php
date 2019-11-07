@@ -169,7 +169,7 @@ class ProductController extends FrameworkBundleAdminController
             'href' => $this->generateUrl('admin_product_new'),
             'desc' => $translator->trans('New product', array(), 'Admin.Actions'),
             'icon' => 'add',
-            'help' => $translator->trans('Create a new product: CTRL+P', array(), 'Admin.Catalog.Help'),
+//            'help' => $translator->trans('Create a new product: CTRL+P', array(), 'Admin.Catalog.Help'),
         ];
 
         // Fetch product list (and cache it into view subcall to listAction)
