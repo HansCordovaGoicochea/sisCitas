@@ -10,7 +10,7 @@ admin_product_catalog:
         sortOrder: last
     requirements:
         limit: _limit|last|\d+
-        orderBy: last|id_product|name|reference|name_category|price|sav_quantity|position|active|position_ordering
+        orderBy: last|id_product|name|reference|name_category|price|sav_quantity|position|active|position_ordering|fecha_vencimiento
         offset: last|\d+
         sortOrder: last|asc|desc
 
@@ -38,7 +38,7 @@ admin_product_list:
         view: full
     requirements:
         limit: _limit|last|\d+
-        orderBy: last|id_product|name|reference|name_category|price|sav_quantity|position|active|position_ordering
+        orderBy: last|id_product|name|reference|name_category|price|sav_quantity|position|active|position_ordering|fecha_vencimiento
         offset: last|\d+
         sortOrder: last|asc|desc
         view: full|quicknav

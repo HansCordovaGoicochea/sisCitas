@@ -225,6 +225,7 @@ class AdminProductDataProvider extends AbstractAdminQueryBuilder implements Prod
             'name_manufacturer' => array('table' => 'm', 'field' => 'name', 'filtering' => self::FILTERING_LIKE_BOTH),
             'low_stock_threshold' => array('table' => 'p', 'field' => 'low_stock_threshold'),
             'cantidad_puntos' => array('table' => 'p', 'field' => 'cantidad_puntos'),
+            'fecha_vencimiento' => array('table' => 'p', 'field' => 'fecha_vencimiento', 'filtering' => self::FILTERING_EQUAL_STRING),
         );
         $sqlTable = array(
             'p' => 'product',

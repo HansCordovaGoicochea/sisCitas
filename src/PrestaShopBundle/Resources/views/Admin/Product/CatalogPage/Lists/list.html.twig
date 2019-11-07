@@ -53,6 +53,9 @@
             {{ product.reference|default('') }}
         </td>
         <td>
+            {{ product.fecha_vencimiento is empty ? "" : product.fecha_vencimiento|date("m/d/Y") }}
+        </td>
+        <td>
             {{ product.name_category|default('') }}
         </td>
 {#        <td>#}

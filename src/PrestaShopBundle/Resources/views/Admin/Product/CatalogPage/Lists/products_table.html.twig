@@ -50,6 +50,9 @@
             {{ ps.sortable_column_header("Código"|trans({}, 'Admin.Global'), 'reference', orderBy, sortOrder) }}
           </th>
           <th scope="col">
+            {{ ps.sortable_column_header("Fecha vencimiento"|trans({}, 'Admin.Catalog.Feature'), 'fecha_vencimiento', orderBy, sortOrder) }}
+          </th>
+          <th scope="col">
             {{ ps.sortable_column_header("Category"|trans({}, 'Admin.Catalog.Feature'), 'name_category', orderBy, sortOrder) }}
           </th>
 {#          <th scope="col">#}
@@ -110,6 +113,15 @@
               placeholder="{{ "Search ref."|trans({}, 'Admin.Catalog.Help') }}"
               name="filter_column_reference"
               value="{{ filter_column_reference }}"
+            />
+          </th>
+          <th>
+            <input
+              type="text"
+              class="form-control datepicker"
+              placeholder="{{ "Fecha Vencimiento"|trans({}, 'Admin.Catalog.Help') }}"
+              name="filter_column_fecha_vencimiento"
+              value="{{ filter_column_fecha_vencimiento }}"
             />
           </th>
           <th>

@@ -234,6 +234,7 @@ class AdminFilter
             'last_orderBy' => 'id_product',
             'last_sortOrder' => 'desc',
             'filter_column_name_manufacturer' => '',
+            'filter_column_fecha_vencimiento' => '',
         );
     }
 
@@ -338,6 +339,7 @@ class AdminFilter
                 'filter' => FILTER_CALLBACK,
                 'options' => $filterMinMax(FILTER_SANITIZE_NUMBER_INT),
             ),
+            'filter_column_fecha_vencimiento' => FILTER_SANITIZE_STRING,
             'filter_column_active' => FILTER_SANITIZE_NUMBER_INT,
             'last_offset' => FILTER_SANITIZE_NUMBER_INT,
             'last_limit' => FILTER_SANITIZE_NUMBER_INT,
