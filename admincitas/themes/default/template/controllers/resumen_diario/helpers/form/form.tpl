@@ -26,6 +26,17 @@
 
     </script>
 	{if $nro_tiendas == 1}
+        {if $objResumenDiario->mensaje_cdr}
+            {if $objResumenDiario->cod_sunat > 0}
+                <div class="danger">
+                    {$objResumenDiario->mensaje_cdr}
+                </div>
+            {else}
+                <div class="success">
+                    {$objResumenDiario->mensaje_cdr}
+                </div>
+            {/if}
+        {/if}
         <div id="errores"></div>
 <div class="oe_clear ui-tabs ui-widget ui-widget-content ui-corner-all">
 	<div class="panel">

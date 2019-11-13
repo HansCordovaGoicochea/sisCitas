@@ -669,7 +669,7 @@ class ProcesarComprobante
                     //=============hash CDR=================
                     $doc_cdr = new DOMDocument();
                     $doc_cdr->load($ruta_archivo_cdr . 'R-' . $archivo . '.xml');
-                    $mensaje['respuesta'] = 'OK';
+                    $mensaje['respuesta'] = 'ok';
                     $mensaje['cod_sunat'] = $doc_cdr->getElementsByTagName('ResponseCode')->item(0)->nodeValue;
                     $mensaje['msj_sunat'] = $doc_cdr->getElementsByTagName('Description')->item(0)->nodeValue;
                     $mensaje['mensaje'] = $doc_cdr->getElementsByTagName('Description')->item(0)->nodeValue;
