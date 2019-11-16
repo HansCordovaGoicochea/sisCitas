@@ -51,6 +51,7 @@
 			// alert("dfdf");
 			$( "#persona" ).prop( "checked", true );
 
+
 			$('input[type=radio][name="TYPE_CUSTOMER_ACHE"]').change(function () {
 				// alert(this.value);
 				$("#id_document :selected").removeAttr('selected');
@@ -123,6 +124,9 @@
 					fontSize: '',
 					source: ''
 				});
+
+
+
 				$('.error_ache').remove();
 				let data = $("#id_document").find(':selected').data('codsunat');
 				if (data === 6 && $.trim($('#direccion').val()) === ""){
@@ -141,6 +145,8 @@
 
 					return false;
 				}
+
+
 			});
 
 			$('#num_document').keyup(function () {
@@ -198,6 +204,8 @@
 				}else{
 					$('#customer_form_submit_btn').attr('disabled', false);
 				}
+
+				traerDatosSunat();
 			});
 		});
 
