@@ -49,14 +49,15 @@
 
                             {assign var='total' value=0}
                             {assign var='nro_operaciones' value=0}
+                            {assign var='suma_efectivo' value = $suma_efectivo + $datos_fila.pagos}
                             {foreach from=Order::getDetailsOrdersDateFromDateTO((int)$datos_fila.id_order) item='detail'}
-                                {assign var='suma_efectivo' value = $suma_efectivo + $detail.total_price_tax_incl}
+                                {*                                {assign var='suma_efectivo' value = $suma_efectivo + $detail.total_price_tax_incl}*}
                                 {assign var='total' value=$total+$detail.total_price_tax_incl}
                                 {assign var='nro_operaciones' value=$nro_operaciones+1}
                                 {if $detail.product_quantity > 0}
                                     <tr >
                                         <td style="text-align: left;">{$detail.fecha|date_format:"%d/%m/%Y %I:%M %p"}</td>
-                                        <td style="text-align: left;">{$detail.product_name}</td>
+                                        <td style="text-align: left;">{$detail.product_name} {$detail.fecha_tours}</td>
                                         <td style="text-align: center;">{$detail.product_quantity|round:2}</td>
                                         <td style="text-align: center;">{displayPrice currency=$datos_fila.id_currency price=$detail.total_price_tax_incl|round:2}</td>
                                         <td style="text-align: center;">- -</td>
@@ -110,14 +111,15 @@
 
                             {assign var='total' value=0}
                             {assign var='nro_operaciones' value=0}
+                            {assign var='suma_visa' value = $suma_visa + $datos_fila.pagos}
                             {foreach from=Order::getDetailsOrdersDateFromDateTO((int)$datos_fila.id_order) item='detail'}
-                                {assign var='suma_visa' value = $suma_visa + $detail.total_price_tax_incl}
+                                {*                                {assign var='suma_visa' value = $suma_visa + $detail.total_price_tax_incl}*}
                                 {assign var='total' value=$total+$detail.total_price_tax_incl}
                                 {assign var='nro_operaciones' value=$nro_operaciones+1}
                                 {if $detail.product_quantity > 0}
                                     <tr >
                                         <td style="text-align: left;">{$detail.fecha|date_format:"%d/%m/%Y %I:%M %p"}</td>
-                                        <td style="text-align: left;">{$detail.product_name}</td>
+                                        <td style="text-align: left;">{$detail.product_name} {$detail.fecha_tours}</td>
                                         <td style="text-align: center;">{$detail.product_quantity|round:2}</td>
                                         <td style="text-align: center;">{displayPrice currency=$datos_fila.id_currency price=$detail.total_price_tax_incl|round:2}</td>
                                         <td style="text-align: center;">- -</td>
@@ -171,14 +173,15 @@
 
                             {assign var='total' value=0}
                             {assign var='nro_operaciones' value=0}
+                            {assign var='suma_izipay' value = $suma_izipay + $datos_fila.pagos}
                             {foreach from=Order::getDetailsOrdersDateFromDateTO((int)$datos_fila.id_order) item='detail'}
-                                {assign var='suma_izipay' value = $suma_izipay + $detail.total_price_tax_incl}
+                                {*                                {assign var='suma_izipay' value = $suma_izipay + $detail.total_price_tax_incl}*}
                                 {assign var='total' value=$total+$detail.total_price_tax_incl}
                                 {assign var='nro_operaciones' value=$nro_operaciones+1}
                                 {if $detail.product_quantity > 0}
                                     <tr >
                                         <td style="text-align: left;">{$detail.fecha|date_format:"%d/%m/%Y %I:%M %p"}</td>
-                                        <td style="text-align: left;">{$detail.product_name}</td>
+                                        <td style="text-align: left;">{$detail.product_name} {$detail.fecha_tours}</td>
                                         <td style="text-align: center;">{$detail.product_quantity|round:2}</td>
                                         <td style="text-align: center;">{displayPrice currency=$datos_fila.id_currency price=$detail.total_price_tax_incl|round:2}</td>
                                         <td style="text-align: center;">- -</td>
@@ -233,13 +236,13 @@
                             {assign var='total' value=0}
                             {assign var='nro_operaciones' value=0}
                             {foreach from=Order::getDetailsOrdersDateFromDateTO((int)$datos_fila.id_order) item='detail'}
-                                {assign var='suma_porcobrar' value = $suma_porcobrar + $detail.pagos}
+                                {*                                {assign var='suma_porcobrar' value = $suma_porcobrar + $detail.pagos}*}
                                 {assign var='total' value=$total+$detail.total_price_tax_incl}
                                 {assign var='nro_operaciones' value=$nro_operaciones+1}
                                 {if $detail.product_quantity > 0}
                                     <tr >
                                         <td style="text-align: left;">{$detail.fecha|date_format:"%d/%m/%Y %I:%M %p"}</td>
-                                        <td style="text-align: left;">{$detail.product_name}</td>
+                                        <td style="text-align: left;">{$detail.product_name} {$detail.fecha_tours}</td>
                                         <td style="text-align: center;">{$detail.product_quantity|round:2}</td>
                                         <td style="text-align: center;">{displayPrice currency=$datos_fila.id_currency price=$detail.total_price_tax_incl|round:2}</td>
                                         <td style="text-align: center;">- -</td>
@@ -249,7 +252,7 @@
                                 {/if}
 
                             {/foreach}
-
+                            {assign var='suma_porcobrar' value = $suma_porcobrar + ($total - $datos_fila.pagos)}
                             <tr class="warning">
                                 <td style="text-align: right;"></td>
                                 <td style="text-align: right;"></td>
@@ -359,11 +362,12 @@
                 <tr class="warning">
                     <td style="text-align: right;"  colspan="6">Total Egresos: -{displayPrice currency=1 price=$suma_egresos|round:2}</td>
                 </tr>
+
                 <tr class="warning">
                     <td style="text-align: right;"  colspan="6">Total Adelantos: {displayPrice currency=1 price=$suma_adelantos|round:2}</td>
                 </tr>
                 <tr class="warning">
-                    <td style="text-align: right; font-size: 1.75em;"  colspan="6">Saldo en Caja: {displayPrice currency=1 price=($suma_adelantos + $suma_efectivo + $operacion_caja->monto_apertura) - $suma_egresos|round:2}</td>
+                    <td style="text-align: right; font-size: 1.75em;"  colspan="6">Saldo en Caja: {displayPrice currency=1 price=($suma_adelantos + $suma_efectivo + $operacion_caja->monto_apertura ) - $suma_egresos|round:2}</td>
                 </tr>
                 </tbody>
             </table>
